@@ -23,7 +23,7 @@
 
 !define READER_OLD_UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Reader"
 !define READER_OLD_MANUPRODUCTKEY "Software\hadc188\Reader"
-!define READER_STABLE_MANUPRODUCTKEY "Software\avut388\Reader"
+!define READER_STABLE_MANUPRODUCTKEY "Software\kikyo2006\Reader"
 
 !macro ReaderLStopOldBuild
   ; The previous build may still be running and holding the SQLite database
@@ -47,7 +47,9 @@
   ReadRegStr $R4 SHCTX "${READER_OLD_MANUPRODUCTKEY}" ""
 
   StrCpy $R3 0
-  ${If} $R0 == "avut388"
+  ${If} $R0 == "kikyo2006"
+    StrCpy $R3 1
+  ${ElseIf} $R0 == "avut388"
     StrCpy $R3 1
   ${ElseIf} $R0 == "hadc188"
     StrCpy $R3 1

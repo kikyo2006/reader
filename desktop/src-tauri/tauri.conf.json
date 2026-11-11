@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Reader",
-  "version": "1.7.0",
-  "identifier": "com.avut388.reader",
+  "version": "1.7.1",
+  "identifier": "com.kikyo2006.reader",
   "build": {
     "beforeDevCommand": "npm --prefix ../frontend run dev",
     "devUrl": "http://localhost:5173",
