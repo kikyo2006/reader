@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.6.5). Leave empty to use latest release or package version.'
+        required: false
+        default: ''
 
 concurrency:
   group: desktop-release-${{ github.ref }}
@@ -20,17 +25,31 @@ jobs:
     outputs:
       release_tag: ${{ steps.release.outputs.release_tag }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Resolve Release target
         id: release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             release_tag="$GITHUB_REF_NAME"
-          elif ! release_tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq '.tagName' 2>/dev/null)"; then
-            echo "No published Release found" >&2
-            exit 1
+          elif [[ -n "$INPUT_TAG" ]]; then
+            release_tag="$INPUT_TAG"
+          elif release_tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq '.tagName' 2>/dev/null)" && [[ -n "$release_tag" ]]; then
+            echo "Found existing release: $release_tag"
+          else
+            project_ver="$(node -p 'require("./desktop/src-tauri/tauri.conf.json").version' 2>/dev/null || echo '')"
+            if [[ -n "$project_ver" ]]; then
+              release_tag="v$project_ver"
+              echo "No previous release found. Using project version: $release_tag"
+            else
+              echo "No published Release found and could not determine project version" >&2
+              exit 1
+            fi
           fi
 
           if ! gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
