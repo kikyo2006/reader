@@ -4,13 +4,13 @@
       <section class="source-login-dialog" :class="{ 'is-web': !!webLoginUrl }" role="dialog" aria-modal="true" :aria-labelledby="`${formId}-title`" :inert="!!browser">
         <header class="login-header">
           <div class="login-heading">
-            <h3 :id="`${formId}-title`">{{ source.bookSourceName }} · 登录</h3>
+            <h3 :id="`${formId}-title`">{{ source.bookSourceName }} · {{ t('source.login.title') }}</h3>
             <p :title="previewUrl || source.bookSourceUrl">{{ previewUrl || source.bookSourceUrl }}</p>
           </div>
-          <button class="close-button" type="button" aria-label="关闭登录窗口" @click="close">×</button>
+          <button class="close-button" type="button" :aria-label="t('common.close')" @click="close">×</button>
         </header>
         <div class="login-body">
-          <p v-if="loading" class="login-status" role="status">正在读取登录配置…</p>
+          <p v-if="loading" class="login-status" role="status">{{ t('source.login.readingConfig') }}</p>
           <p v-if="error" class="login-error" role="alert">{{ error }}</p>
           <div v-if="view?.mode === 'form'" class="login-form" :aria-busy="busy">
             <template v-for="(field, index) in view.fields" :key="`${field.name}-${index}`">
@@ -38,35 +38,35 @@
           <!-- 网页登录时把 Cookie 区收成一行折叠条: 登录页本身要占满剩余高度,
                而这块 static 内容会把它挤成一条窄缝(见 .is-web 的说明)。 -->
           <details v-if="webLoginUrl" class="cookie-section cookie-fold">
-            <summary>手动导入 Cookie</summary>
-            <p>粘贴在网站登录后获取的 Cookie，保存后此书源会使用新的登录状态。</p>
-            <textarea :id="`${formId}-cookie`" v-model="cookieText" rows="3" spellcheck="false" autocomplete="off" placeholder="例如：session=…; user=…" :disabled="savingCookie || busy"></textarea>
+            <summary>{{ t('source.login.manualCookie') }}</summary>
+            <p>{{ t('source.login.cookieDesc') }}</p>
+            <textarea :id="`${formId}-cookie`" v-model="cookieText" rows="3" spellcheck="false" autocomplete="off" :placeholder="t('source.login.cookiePlaceholder')" :disabled="savingCookie || busy"></textarea>
             <div class="cookie-actions">
-              <button class="login-button primary" type="button" :disabled="!cookieText.trim() || savingCookie || busy" @click="saveCookie(false)">{{ savingCookie ? '保存中…' : '导入 Cookie' }}</button>
-              <button class="login-button" type="button" :disabled="savingCookie || busy" @click="saveCookie(true)">清除 Cookie</button>
+              <button class="login-button primary" type="button" :disabled="!cookieText.trim() || savingCookie || busy" @click="saveCookie(false)">{{ savingCookie ? t('common.saving') : t('source.login.importCookie') }}</button>
+              <button class="login-button" type="button" :disabled="savingCookie || busy" @click="saveCookie(true)">{{ t('source.login.clearCookie') }}</button>
             </div>
           </details>
           <section v-else class="cookie-section" :aria-labelledby="`${formId}-cookie-label`">
-            <label :id="`${formId}-cookie-label`" :for="`${formId}-cookie`">手动导入 Cookie</label>
-            <p>粘贴在网站登录后获取的 Cookie，保存后此书源会使用新的登录状态。</p>
-            <textarea :id="`${formId}-cookie`" v-model="cookieText" rows="3" spellcheck="false" autocomplete="off" placeholder="例如：session=…; user=…" :disabled="savingCookie || busy"></textarea>
+            <label :id="`${formId}-cookie-label`" :for="`${formId}-cookie`">{{ t('source.login.manualCookie') }}</label>
+            <p>{{ t('source.login.cookieDesc') }}</p>
+            <textarea :id="`${formId}-cookie`" v-model="cookieText" rows="3" spellcheck="false" autocomplete="off" :placeholder="t('source.login.cookiePlaceholder')" :disabled="savingCookie || busy"></textarea>
             <div class="cookie-actions">
-              <button class="login-button primary" type="button" :disabled="!cookieText.trim() || savingCookie || busy" @click="saveCookie(false)">{{ savingCookie ? '保存中…' : '导入 Cookie' }}</button>
-              <button class="login-button" type="button" :disabled="savingCookie || busy" @click="saveCookie(true)">清除 Cookie</button>
+              <button class="login-button primary" type="button" :disabled="!cookieText.trim() || savingCookie || busy" @click="saveCookie(false)">{{ savingCookie ? t('common.saving') : t('source.login.importCookie') }}</button>
+              <button class="login-button" type="button" :disabled="savingCookie || busy" @click="saveCookie(true)">{{ t('source.login.clearCookie') }}</button>
             </div>
           </section>
           <!-- 网页登录页改用**独立窗口**打开（见 applyView 的说明）：上游常用
                X-Frame-Options / CSP frame-ancestors 或前端 SDK 检测 iframe 嵌入，
                嵌在这里会整页替换成「渲染安全策略拦截」。这里只显示入口状态。 -->
           <p v-if="webLoginUrl" class="login-web-hint">
-            登录页已在独立窗口打开。完成登录后关闭该窗口，Cookie 会自动写回此书源。
-            <button class="login-button" type="button" :disabled="busy" @click="reopenWebLogin">重新打开</button>
+            {{ t('source.login.webHint') }}
+            <button class="login-button" type="button" :disabled="busy" @click="reopenWebLogin">{{ t('source.login.reopen') }}</button>
           </p>
         </div>
         <footer class="login-footer">
-          <span v-if="busy" role="status">正在执行书源操作…</span>
-          <button class="login-button" type="button" @click="close">关闭</button>
-          <button v-if="view?.mode === 'form'" class="login-button primary" type="button" :disabled="busy || savingCookie || loading" @click="runAction('login')">确认登录</button>
+          <span v-if="busy" role="status">{{ t('source.login.executing') }}</span>
+          <button class="login-button" type="button" @click="close">{{ t('common.close') }}</button>
+          <button v-if="view?.mode === 'form'" class="login-button primary" type="button" :disabled="busy || savingCookie || loading" @click="runAction('login')">{{ t('source.login.confirmLogin') }}</button>
         </footer>
       </section>
     </div>
@@ -82,6 +82,7 @@ import SourceBrowserPanel from '../SourceBrowserPanel.vue'
 import { closeSourcePanel, openExternalWindow, type ShowBrowserRequest } from '../../api/sourceClick'
 import type { CSSProperties } from 'vue'
 import { useAppStore } from '../../stores/app'
+import { t } from '../../i18n'
 
 const props = defineProps<{ modelValue: boolean; source: BookSource | null }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
@@ -128,8 +129,8 @@ const webLoginUrl = computed(() => {
 function reopenWebLogin() {
   const target = webLoginUrl.value
   if (!target) return
-  void openExternalWindow(target, `登录 ${props.source?.bookSourceName || ''}`, props.source?.bookSourceUrl)
-    .catch((err) => notify(err instanceof Error ? err.message : '打开登录窗口失败', 'error'))
+  void openExternalWindow(target, t('source.login.titleNamed', { name: props.source?.bookSourceName || '' }), props.source?.bookSourceUrl)
+    .catch((err) => notify(err instanceof Error ? err.message : t('source.login.openLoginWindowFailed'), 'error'))
 }
 
 function fieldStyle(field: SourceLoginField): CSSProperties {
@@ -157,11 +158,11 @@ function showBrowser(request: ShowBrowserRequest, current: number) {
     // `awaitPanelId` 非空时表示脚本正在等这个窗口关闭，关窗要唤醒它。
     void openExternalWindow(
       request.url,
-      request.title || '书源网页',
+      request.title || t('source.browserTitle'),
       request.bookSourceUrl || props.source?.bookSourceUrl,
       request.awaitPanelId || undefined,
     )
-      .catch((err) => notify(err instanceof Error ? err.message : '打开窗口失败', 'error'))
+      .catch((err) => notify(err instanceof Error ? err.message : t('source.login.openWindowFailed'), 'error'))
     return
   }
   if (current === generation && props.modelValue) browser.value = request
@@ -188,7 +189,7 @@ async function refreshLogin() {
     if (current === generation) applyView(result)
   } catch (err) {
     if (current === generation) {
-      const message = err instanceof Error ? err.message : '刷新登录表单失败'
+      const message = err instanceof Error ? err.message : t('source.login.refreshFormFailed')
       error.value = message
       appStore.showToast(message, 'error')
     }
@@ -204,9 +205,9 @@ function applyView(result: SourceLoginView) {
   // CSP frame-ancestors，或用前端安全 SDK 检测 iframe 嵌入并整页替换成拦截
   // 提示。窗口关闭时后端会把 Cookie 收回书源 jar。
   if (result.externalWindow && result.url) {
-    void openExternalWindow(result.url, `登录 ${props.source?.bookSourceName || ''}`, props.source?.bookSourceUrl)
+    void openExternalWindow(result.url, t('source.login.titleNamed', { name: props.source?.bookSourceName || '' }), props.source?.bookSourceUrl)
       .catch((err) => {
-        const message = err instanceof Error ? err.message : '打开登录窗口失败'
+        const message = err instanceof Error ? err.message : t('source.login.openLoginWindowFailed')
         error.value = message
         appStore.showToast(message, 'error')
       })
@@ -230,7 +231,7 @@ watch(() => [props.modelValue, props.source?.bookSourceUrl] as const, async ([vi
     const result = await loginBookSource(props.source.bookSourceUrl, undefined, undefined, (request) => showBrowser(request, current))
     if (current === generation) applyView(result)
   } catch (err) {
-    if (current === generation) error.value = err instanceof Error ? err.message : '读取登录配置失败'
+    if (current === generation) error.value = err instanceof Error ? err.message : t('source.login.loadConfigFailed')
   } finally {
     if (current === generation) loading.value = false
   }
@@ -246,10 +247,10 @@ async function runAction(action: string) {
     const result = await loginBookSource(props.source.bookSourceUrl, action, { ...values.value }, (request) => showBrowser(request, current))
     if (current !== generation) return
     applyView(result)
-    if (!messages.value.length && !result.showBrowser && !result.cancelled) notify(action === 'login' ? '登录操作已完成' : '操作已完成')
+    if (!messages.value.length && !result.showBrowser && !result.cancelled) notify(action === 'login' ? t('source.login.loginSuccess') : t('common.success'))
   } catch (err) {
     if (current === generation) {
-      const message = err instanceof Error ? err.message : '登录操作失败'
+      const message = err instanceof Error ? err.message : t('source.login.loginFailed')
       error.value = message
       appStore.showToast(message, 'error')
     }
@@ -271,12 +272,12 @@ async function saveCookie(clear: boolean) {
   try {
     const result = await setBookSourceCookie(props.source.bookSourceUrl, clear ? '' : cookieText.value.trim())
     if (current !== generation) return
-    if (!result.saved) throw new Error('保存 Cookie 失败')
+    if (!result.saved) throw new Error(t('source.login.saveCookieFailed'))
     cookieText.value = ''
-    notify(clear ? 'Cookie 已清除' : 'Cookie 已保存')
+    notify(clear ? t('source.login.cookieCleared') : t('source.login.cookieSaved'))
   } catch (err) {
     if (current === generation) {
-      const message = err instanceof Error ? err.message : '保存 Cookie 失败'
+      const message = err instanceof Error ? err.message : t('source.login.saveCookieFailed')
       error.value = message
       appStore.showToast(message, 'error')
     }

@@ -10,15 +10,15 @@
         :class="{ 'with-custom-background': hasCustomBackground }"
       >
         <div class="drawer-header">
-          <h2>&#35774;&#32622;</h2>
-          <button class="close-btn" @click="close">
+          <h2>{{ t('settings.title') }}</h2>
+          <button class="close-btn" :title="t('common.close')" @click="close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <nav class="settings-tabs" aria-label="设置分类">
+        <nav class="settings-tabs" :aria-label="t('settings.title')">
           <button
             v-for="tab in settingsTabs"
             :key="tab.value"
@@ -29,20 +29,51 @@
         </nav>
 
         <div class="drawer-body">
+          <section v-show="activeSettingsTab === 'common' || (appStore.isWebMode && activeSettingsTab === 'appearance')" class="drawer-section">
+            <h3 class="section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              {{ t('settings.language.title') }}
+            </h3>
+            <div class="language-select-wrapper">
+              <select
+                id="settings-language-select"
+                class="language-select"
+                :value="currentLocale"
+                :aria-label="t('settings.language.title')"
+                @change="changeLanguage(($event.target as HTMLSelectElement).value as SupportedLocale)"
+              >
+                <option
+                  v-for="item in AVAILABLE_LOCALES"
+                  :key="item.value"
+                  :value="item.value"
+                >
+                  {{ item.label }}
+                </option>
+              </select>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+            <small class="proxy-hint">{{ t('settings.language.desc') }}</small>
+          </section>
 
           <section v-show="activeSettingsTab === 'common'" class="drawer-section">
             <h3 class="section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                 <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
               </svg>
-              &#20070;&#28304;&#31649;&#29702;
+              {{ t('settings.sources.title') }}
             </h3>
             <div class="btn-group">
               <button class="action-btn" @click="openSourceManager">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                   <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                 </svg>
-                &#20070;&#28304;&#31649;&#29702;
+                {{ t('settings.sources.action') }}
               </button>
             </div>
           </section>
@@ -52,14 +83,14 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                 <path d="M6 3h12a2 2 0 0 1 2 2v16l-8-5-8 5V5a2 2 0 0 1 2-2Z" />
               </svg>
-              阅读数据
+              {{ t('settings.readingData.title') }}
             </h3>
             <div class="btn-group">
               <button class="action-btn" @click="openBookmarkManager">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                   <path d="M6 3h12a2 2 0 0 1 2 2v16l-8-5-8 5V5a2 2 0 0 1 2-2Z" />
                 </svg>
-                书签管理
+                {{ t('settings.readingData.bookmarks') }}
               </button>
             </div>
           </section>
@@ -70,23 +101,23 @@
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.14.38.35.72.6 1 .3.31.68.5 1.1.6h.09v4h-.09c-.42.1-.8.29-1.1.6-.25.28-.46.62-.6 1Z" />
               </svg>
-              网络代理
+              {{ t('settings.proxy.title') }}
             </h3>
             <div class="proxy-setting">
-              <div class="proxy-mode-toggle" role="group" aria-label="网络代理模式">
+              <div class="proxy-mode-toggle" role="group" :aria-label="t('settings.proxy.mode')">
                 <button
                   type="button"
                   :class="{ active: proxyModeDraft === 'system' }"
                   @click="proxyModeDraft = 'system'"
-                >跟随系统</button>
+                >{{ t('settings.proxy.system') }}</button>
                 <button
                   type="button"
                   :class="{ active: proxyModeDraft === 'manual' }"
                   @click="proxyModeDraft = 'manual'"
-                >手动代理</button>
+                >{{ t('settings.proxy.manual') }}</button>
               </div>
               <div v-if="proxyModeDraft === 'manual'" class="proxy-address-field">
-                <label for="network-proxy-url">代理地址</label>
+                <label for="network-proxy-url">{{ t('settings.proxy.address') }}</label>
                 <input
                   id="network-proxy-url"
                   v-model.trim="proxyUrlDraft"
@@ -103,7 +134,7 @@
                 type="button"
                 :disabled="savingProxy || (proxyModeDraft === 'manual' && !proxyUrlDraft.trim())"
                 @click="saveNetworkProxy"
-              >{{ savingProxy ? '应用中...' : '保存并应用' }}</button>
+              >{{ savingProxy ? t('settings.proxy.applying') : t('settings.proxy.saveAndApply') }}</button>
             </div>
           </section>
 
@@ -115,7 +146,7 @@
                 <path d="M7 10l5 5 5-5" />
                 <path d="M12 15V3" />
               </svg>
-              &#22791;&#20221;&#19982;&#24674;&#22797;
+              {{ t('settings.backup.title') }}
             </h3>
             <div class="status-card">
               <span>{{ webdavStatusTitle }}</span>
@@ -123,7 +154,7 @@
             </div>
             <div class="btn-group">
               <button class="action-btn" @click="openWebdavManager">
-                &#22791;&#20221;&#19982;&#24674;&#22797;
+                {{ t('settings.backup.action') }}
               </button>
             </div>
           </section>
@@ -135,13 +166,13 @@
                 <path d="m7 9 5-5 5 5" />
                 <path d="M20 16.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5" />
               </svg>
-              &#24212;&#29992;
+              {{ t('settings.app.title') }}
               <span class="section-badge">{{ appVersion }}</span>
             </h3>
             <div v-if="isDesktopApp" class="setting-switch-row">
               <div class="setting-switch-copy">
-                <span>关闭时隐藏到系统托盘</span>
-                <small>{{ appStore.closeToTray ? '关闭窗口后继续在后台运行' : '关闭窗口后直接退出应用' }}</small>
+                <span>{{ t('settings.app.closeToTray') }}</span>
+                <small>{{ appStore.closeToTray ? t('settings.app.closeToTrayOn') : t('settings.app.closeToTrayOff') }}</small>
               </div>
               <button
                 class="switch-control"
@@ -149,7 +180,7 @@
                 type="button"
                 role="switch"
                 :aria-checked="appStore.closeToTray"
-                aria-label="关闭时隐藏到系统托盘"
+                :aria-label="t('settings.app.closeToTray')"
                 @click="appStore.toggleCloseToTray()"
               >
                 <span></span>
@@ -158,7 +189,7 @@
             <div v-if="isDesktopApp" class="boss-key-setting">
               <div class="setting-switch-row compact-row">
                 <div class="setting-switch-copy">
-                  <span>老板键</span>
+                  <span>{{ t('settings.app.bossKey') }}</span>
                 </div>
                 <button
                   class="switch-control"
@@ -174,15 +205,15 @@
                 :class="{ recording: recordingBossKey }"
                 type="button"
                 :disabled="!appStore.bossKeyEnabled"
-                aria-label="老板键快捷键"
+                :aria-label="t('settings.app.bossKey')"
                 @click="startBossKeyRecording"
                 @keydown="recordBossKey"
                 @blur="recordingBossKey = false"
               >
                 <span class="boss-key-value">
-                  {{ recordingBossKey ? '请按下新的快捷键' : formatBossKey(appStore.bossKeyShortcut) }}
+                  {{ recordingBossKey ? t('settings.app.bossKeyRecording') : formatBossKey(appStore.bossKeyShortcut) }}
                 </span>
-                <span class="boss-key-hint">{{ recordingBossKey ? 'Esc 取消' : '点击修改' }}</span>
+                <span class="boss-key-hint">{{ recordingBossKey ? t('settings.app.bossKeyHintEsc') : t('settings.app.bossKeyHintClick') }}</span>
               </button>
             </div>
             <!-- 与上面的「老板键」同一层级: 都是自带边框的卡片, 不再额外加小标题,
@@ -191,8 +222,8 @@
             <template v-if="appStore.canCheckVersionUpdate">
               <div class="setting-switch-row">
                 <div class="setting-switch-copy">
-                  <span>自动检查更新</span>
-                  <small>{{ appStore.autoCheckUpdate ? '启动时检查版本，有更新时弹窗提示' : '启动时不检查版本更新' }}</small>
+                  <span>{{ t('settings.app.autoCheckUpdate') }}</span>
+                  <small>{{ appStore.autoCheckUpdate ? t('settings.app.autoCheckUpdateOn') : t('settings.app.autoCheckUpdateOff') }}</small>
                 </div>
                 <button
                   class="switch-control"
@@ -200,7 +231,7 @@
                   type="button"
                   role="switch"
                   :aria-checked="appStore.autoCheckUpdate"
-                  aria-label="自动检查更新"
+                  :aria-label="t('settings.app.autoCheckUpdate')"
                   @click="appStore.setAutoCheckUpdate(!appStore.autoCheckUpdate)"
                 >
                   <span></span>
@@ -221,17 +252,17 @@
               </div>
               <div class="version-actions">
                 <button class="action-btn" :disabled="!appStore.versionUpdate?.releaseUrl" @click="handleOpenRelease">
-                  查看发行页
+                  {{ t('settings.app.openRelease') }}
                 </button>
                 <button
                   class="action-btn"
                   :disabled="!appStore.hasVersionUpdateReminder || appStore.versionUpdateLoading"
                   @click="handleDismissVersionUpdate"
                 >
-                  本版本不再提醒
+                  {{ t('settings.app.ignoreVersion') }}
                 </button>
                 <button class="action-btn" :disabled="appStore.versionUpdateLoading" @click="handleCheckVersionUpdate">
-                  {{ appStore.versionUpdateLoading ? '检查中…' : '重新检查' }}
+                  {{ appStore.versionUpdateLoading ? t('settings.app.checking') : t('settings.app.recheck') }}
                 </button>
                 <button
                   v-if="isDesktopApp"
@@ -253,7 +284,7 @@
                 <rect width="7" height="7" x="3" y="14" rx="1" />
                 <rect width="7" height="7" x="14" y="14" rx="1" />
               </svg>
-              &#20070;&#26550;&#35774;&#32622;
+              {{ t('settings.bookshelf.title') }}
             </h3>
             <div class="btn-group">
               <button class="action-btn" @click="refreshCache">
@@ -263,7 +294,7 @@
                   <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
                   <path d="M16 16h5v5" />
                 </svg>
-                &#21047;&#26032;&#32531;&#23384;
+                {{ t('settings.bookshelf.refreshCache') }}
               </button>
             </div>
           </section>
@@ -274,7 +305,7 @@
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
               </svg>
-              &#22806;&#35266;
+              {{ t('settings.appearance.theme') }}
             </h3>
             <div class="theme-toggle">
               <button
@@ -286,7 +317,7 @@
                   <circle cx="12" cy="12" r="4" />
                   <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
                 </svg>
-                &#20142;&#33394;
+                {{ t('settings.appearance.themeLight') }}
               </button>
               <button
                 class="theme-option"
@@ -296,7 +327,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
-                &#26263;&#33394;
+                {{ t('settings.appearance.themeDark') }}
               </button>
             </div>
             <!--
@@ -306,7 +337,7 @@
             -->
             <div v-if="!appStore.isWebMode" class="background-setting">
               <div class="setting-switch-copy">
-                <span>桌面背景图</span>
+                <span>{{ t('settings.appearance.desktopBg') }}</span>
               </div>
               <div class="background-actions">
                 <button
@@ -322,7 +353,7 @@
                       ? { backgroundImage: `url('${readerStore.config.backgroundImage}')` }
                       : undefined"
                   ></span>
-                  <span>{{ processingBackground ? '正在处理' : (readerStore.config.backgroundImage ? '更换图片' : '选择图片') }}</span>
+                  <span>{{ processingBackground ? t('settings.appearance.processing') : (readerStore.config.backgroundImage ? t('settings.appearance.changeImage') : t('settings.appearance.selectImage')) }}</span>
                 </button>
                 <button
                   v-if="readerStore.config.backgroundImage"
@@ -330,7 +361,7 @@
                   type="button"
                   :disabled="processingBackground"
                   @click="removeBackgroundImage"
-                >移除</button>
+                >{{ t('settings.appearance.removeImage') }}</button>
                 <input
                   ref="backgroundInputRef"
                   class="hidden-input"
@@ -340,7 +371,7 @@
                 >
               </div>
               <div v-if="readerStore.config.backgroundImage" class="background-opacity-row">
-                <label for="desktop-background-opacity">背景透明度</label>
+                <label for="desktop-background-opacity">{{ t('settings.appearance.bgOpacity') }}</label>
                 <input
                   id="desktop-background-opacity"
                   class="settings-slider"
@@ -351,7 +382,7 @@
                   :value="readerStore.config.backgroundOpacity"
                   @input="handleBackgroundOpacityChange"
                 >
-                <label class="opacity-input-wrap" title="可直接输入 0-100 的数值">
+                <label class="opacity-input-wrap" :title="t('settings.appearance.inputValHint')">
                   <input
                     class="opacity-input"
                     type="number"
@@ -367,7 +398,7 @@
             </div>
             <div v-if="!appStore.isWebMode" class="setting-switch-row">
               <div class="setting-switch-copy">
-                <span>应用到阅读页</span>
+                <span>{{ t('settings.appearance.applyBgToReader') }}</span>
                 <small>{{ readerBackgroundDescription }}</small>
               </div>
               <button
@@ -377,7 +408,7 @@
                 role="switch"
                 :disabled="!readerStore.config.backgroundImage"
                 :aria-checked="readerStore.config.applyBackgroundToReader"
-                aria-label="将桌面背景图应用到阅读页"
+                :aria-label="t('settings.appearance.applyBgAria')"
                 @click="toggleReaderBackground"
               >
                 <span></span>
@@ -391,10 +422,10 @@
               class="background-setting"
             >
               <div class="setting-switch-copy">
-                <span>窗口透明度</span>
+                <span>{{ t('settings.appearance.windowOpacity') }}</span>
               </div>
               <div class="background-opacity-row">
-                <label for="app-window-opacity">不透明度</label>
+                <label for="app-window-opacity">{{ t('settings.appearance.opacity') }}</label>
                 <input
                   id="app-window-opacity"
                   class="settings-slider"
@@ -405,7 +436,7 @@
                   :value="readerOpacityToPercent(readerStore.config.windowOpacity)"
                   @input="updateWindowOpacityPercent(($event.target as HTMLInputElement).value)"
                 >
-                <label class="opacity-input-wrap" title="可直接输入数值">
+                <label class="opacity-input-wrap" :title="t('settings.appearance.inputValHint')">
                   <input
                     class="opacity-input"
                     type="number"
@@ -420,7 +451,7 @@
               </div>
               <div class="setting-switch-row">
                 <div class="setting-switch-copy">
-                  <span>应用到阅读页</span>
+                  <span>{{ t('settings.appearance.applyBgToReader') }}</span>
                   <small>{{ windowOpacityDescription }}</small>
                 </div>
                 <button
@@ -429,7 +460,7 @@
                   type="button"
                   role="switch"
                   :aria-checked="readerStore.config.applyWindowOpacityToReader"
-                  aria-label="将窗口透明度应用到阅读页"
+                  :aria-label="t('settings.appearance.applyWindowOpacityAria')"
                   @click="toggleWindowOpacityForReader"
                 >
                   <span></span>
@@ -450,29 +481,29 @@
                 <path d="M17.94 17.94 12 12m0 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zM12 12l5.5-5.5" />
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
-              &#38544;&#34255;&#21151;&#33021;
+              {{ t('settings.appearance.hiddenFeatures') }}
             </h3>
             <div class="feature-toggle-list">
               <label class="feature-toggle">
-                <span>隐藏统计</span>
+                <span>{{ t('settings.appearance.hideStats') }}</span>
                 <button
                   class="toggle-btn"
                   :class="{ on: appStore.isFeatureHidden('stats') }"
                   type="button"
                   @click="appStore.toggleHiddenFeature('stats')"
                 >
-                  {{ appStore.isFeatureHidden('stats') ? '已隐藏' : '显示' }}
+                  {{ appStore.isFeatureHidden('stats') ? t('settings.appearance.hidden') : t('settings.appearance.show') }}
                 </button>
               </label>
               <label class="feature-toggle">
-                <span>隐藏 RSS</span>
+                <span>{{ t('settings.appearance.hideRss') }}</span>
                 <button
                   class="toggle-btn"
                   :class="{ on: appStore.isFeatureHidden('rss') }"
                   type="button"
                   @click="appStore.toggleHiddenFeature('rss')"
                 >
-                  {{ appStore.isFeatureHidden('rss') ? '已隐藏' : '显示' }}
+                  {{ appStore.isFeatureHidden('rss') ? t('settings.appearance.hidden') : t('settings.appearance.show') }}
                 </button>
               </label>
             </div>
@@ -502,6 +533,7 @@ import {
 import { captureBossKey, formatBossKey } from '../utils/bossKey'
 import { uploadBackgroundImage } from '../api/background'
 import WebAccessSetting from './WebAccessSetting.vue'
+import { t, currentLocale, AVAILABLE_LOCALES, type SupportedLocale } from '../i18n'
 
 const props = defineProps<{
   modelValue: boolean
@@ -521,6 +553,10 @@ const backgroundInputRef = ref<HTMLInputElement | null>(null)
 const processingBackground = ref(false)
 const recordingBossKey = ref(false)
 
+function changeLanguage(lang: SupportedLocale) {
+  appStore.setLanguage(lang)
+}
+
 /**
  * 设置分类。Web 端只留「外观」——
  *
@@ -530,17 +566,20 @@ const recordingBossKey = ref(false)
  *
  * 注意保留「外观」: 阅读页的字号、行距、主题在手机上同样要调。
  */
-const allSettingsTabs = [
-  { value: 'common', label: '常用' },
-  { value: 'appearance', label: '外观' },
-  { value: 'app', label: '应用' },
-] as const
+type SettingsTabValue = 'common' | 'appearance' | 'app'
+
+const allSettingsTabs = computed(() => [
+  { value: 'common' as SettingsTabValue, label: t('settings.tabs.common') },
+  { value: 'appearance' as SettingsTabValue, label: t('settings.tabs.appearance') },
+  { value: 'app' as SettingsTabValue, label: t('settings.tabs.app') },
+])
+
 const settingsTabs = computed(() =>
   appStore.isWebMode
-    ? allSettingsTabs.filter((tab) => tab.value === 'appearance')
-    : [...allSettingsTabs],
+    ? allSettingsTabs.value.filter((tab) => tab.value === 'appearance')
+    : allSettingsTabs.value,
 )
-const activeSettingsTab = ref<(typeof allSettingsTabs)[number]['value']>(
+const activeSettingsTab = ref<SettingsTabValue>(
   // Web 端只有「外观」一个标签, 直接把默认值设成它 ——
   // 否则会停在一个根本不渲染的「常用」上, 面板看起来是空的。
   appStore.isWebMode ? 'appearance' : 'common',
@@ -553,21 +592,21 @@ const hasCustomBackground = computed(() => Boolean(readerStore.config.background
   route.name !== 'reader' || readerStore.config.applyBackgroundToReader
 ))
 const readerBackgroundDescription = computed(() => {
-  if (!readerStore.config.backgroundImage) return '请先选择桌面背景图片'
+  if (!readerStore.config.backgroundImage) return t('settings.appearance.bgDescEmpty')
   return readerStore.config.applyBackgroundToReader
-    ? '桌面背景图也会显示在阅读页'
-    : '阅读页继续使用阅读主题背景'
+    ? t('settings.appearance.bgDescReaderOn')
+    : t('settings.appearance.bgDescReaderOff')
 })
 const proxyDescription = computed(() => {
   if (proxyModeDraft.value === 'manual') {
-    return '书源、订阅源、封面和未单独配置代理的语音请求会使用此地址。'
+    return t('settings.proxy.manualDesc')
   }
   if (appStore.networkProxyStatus?.mode === 'system') {
     return appStore.networkProxyStatus.active
-      ? '已读取本机系统代理，相关网络请求会自动使用。'
-      : '本机未启用系统代理，相关网络请求将直接连接。'
+      ? t('settings.proxy.systemActiveDesc')
+      : t('settings.proxy.systemInactiveDesc')
   }
-  return '默认读取本机系统代理；未启用时自动直接连接。'
+  return t('settings.proxy.systemDefaultDesc')
 })
 
 watch(() => props.modelValue, (visible) => {
@@ -580,31 +619,31 @@ watch(() => props.modelValue, (visible) => {
 })
 
 // Single-user desktop: local WebDAV backup is always available.
-const webdavStatusTitle = computed(() => '\u6587\u4ef6\u5907\u4efd\u4e0e\u6062\u590d')
-const webdavStatusMessage = computed(() => '进入备份窗口后，可手动配置 WebDAV 地址并执行备份、下载和恢复。不会自动上传或恢复。')
+const webdavStatusTitle = computed(() => t('settings.backup.statusTitle'))
+const webdavStatusMessage = computed(() => t('settings.backup.statusMessage'))
 
 const versionUpdateTitle = computed(() => {
   const info = appStore.versionUpdate
-  if (appStore.versionUpdateLoading && !info) return '正在检查新版本'
-  if (!info) return '版本检查'
-  if (info.error && !info.latestVersion) return '版本检查失败'
-  if (info.updateAvailable) return `发现新版本 ${info.latestVersion}`
-  return '已是最新版本'
+  if (appStore.versionUpdateLoading && !info) return t('settings.version.checkingTitle')
+  if (!info) return t('settings.version.checkTitle')
+  if (info.error && !info.latestVersion) return t('settings.version.checkFailed')
+  if (info.updateAvailable) return t('settings.version.foundNew', { version: info.latestVersion || '' })
+  return t('settings.version.isLatest')
 })
 const versionUpdateMessage = computed(() => {
   const info = appStore.versionUpdate
-  if (appStore.versionUpdateLoading && !info) return '正在从 GitHub Release 获取最新版本。'
-  if (!info) return '可检查 GitHub Release，发现新版后会在设置入口提示。'
+  if (appStore.versionUpdateLoading && !info) return t('settings.version.fetchingRelease')
+  if (!info) return t('settings.version.checkHint')
   if (info.error && !info.latestVersion) return info.error
   if (info.updateAvailable && info.shouldRemind) {
-    return `当前 ${info.currentVersion}，最新 ${info.latestVersion}。更新时会自动匹配安装包版或便携版。`
+    return t('settings.version.versionMatch', { current: info.currentVersion, latest: info.latestVersion })
   }
   if (info.updateAvailable) {
-    return `当前 ${info.currentVersion}，最新 ${info.latestVersion}，本版本已设置不再提醒。`
+    return t('settings.version.ignoredNotice', { current: info.currentVersion, latest: info.latestVersion })
   }
-  if (info.error) return `当前 ${info.currentVersion}，上次检查失败：${info.error}`
+  if (info.error) return t('settings.version.lastCheckFailed', { current: info.currentVersion, error: info.error })
   // 没有更新时不重复版本号: 标题旁已有版本徽标, 这里再写一遍纯属冗余。
-  return `已确认 ${info.currentVersion} 为最新，无需更新。`
+  return t('settings.version.confirmedLatest', { current: info.currentVersion })
 })
 const updateProgressStyle = computed(() => ({
   width: appStore.desktopUpdateProgress?.stage === 'failed'
@@ -618,7 +657,7 @@ const showDesktopUpdateProgress = computed(() => (
 ))
 const desktopUpdateProgressMessage = computed(() => {
   const progress = appStore.desktopUpdateProgress
-  if (!progress) return '正在准备更新'
+  if (!progress) return t('settings.version.preparing')
   if (progress.stage === 'downloading' && progress.percent != null) {
     return `${progress.message} ${progress.percent}%`
   }
@@ -626,12 +665,12 @@ const desktopUpdateProgressMessage = computed(() => {
 })
 const desktopUpdateButtonLabel = computed(() => {
   const progress = appStore.desktopUpdateProgress
-  if (!appStore.desktopUpdateLoading) return progress?.stage === 'failed' ? '重试更新' : '下载并更新'
-  if (progress?.stage === 'downloading' && progress.percent != null) return `下载 ${progress.percent}%`
-  if (progress?.stage === 'verifying') return '正在校验...'
-  if (progress?.stage === 'ready') return '正在启动...'
-  if (progress?.stage === 'failed') return '重试更新'
-  return '正在准备...'
+  if (!appStore.desktopUpdateLoading) return progress?.stage === 'failed' ? t('settings.version.retry') : t('settings.version.downloadAndUpdate')
+  if (progress?.stage === 'downloading' && progress.percent != null) return t('settings.version.downloading', { percent: progress.percent })
+  if (progress?.stage === 'verifying') return t('settings.version.verifying')
+  if (progress?.stage === 'ready') return t('settings.version.starting')
+  if (progress?.stage === 'failed') return t('settings.version.retry')
+  return t('settings.version.preparingShort')
 })
 
 
@@ -659,9 +698,9 @@ function openBookmarkManager() {
 async function toggleBossKey() {
   try {
     await appStore.setBossKeyEnabled(!appStore.bossKeyEnabled)
-    appStore.showToast(appStore.bossKeyEnabled ? '老板键已启用' : '老板键已关闭', 'success')
+    appStore.showToast(appStore.bossKeyEnabled ? t('settings.appearance.bossKeyEnabledToast') : t('settings.appearance.bossKeyDisabledToast'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '老板键设置失败', 'error')
+    appStore.showToast((error as Error).message || t('settings.appearance.bossKeySetFailedToast'), 'error')
   }
 }
 
@@ -671,11 +710,11 @@ async function saveNetworkProxy() {
   try {
     const status = await appStore.setNetworkProxy(proxyModeDraft.value, proxyUrlDraft.value)
     appStore.showToast(
-      status?.active ? '代理设置已应用' : '已使用直接连接',
+      status?.active ? t('settings.proxy.appliedToast') : t('settings.proxy.directToast'),
       'success',
     )
   } catch (error) {
-    appStore.showToast((error as Error).message || '代理设置失败', 'error')
+    appStore.showToast((error as Error).message || t('settings.proxy.failedToast'), 'error')
   } finally {
     savingProxy.value = false
   }
@@ -704,20 +743,20 @@ async function recordBossKey(event: KeyboardEvent) {
   try {
     await appStore.setBossKeyShortcut(result.shortcut)
     recordingBossKey.value = false
-    appStore.showToast('老板键快捷键已更新', 'success')
+    appStore.showToast(t('settings.appearance.bossKeyUpdatedToast'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '快捷键已被其他应用占用', 'error')
+    appStore.showToast((error as Error).message || t('settings.appearance.bossKeyConflictToast'), 'error')
   }
 }
 
 function refreshCache() {
   shelfStore.fetchBooks()
-  appStore.showToast('\u4e66\u67b6\u5df2\u5237\u65b0', 'success')
+  appStore.showToast(t('settings.bookshelf.cacheRefreshed'), 'success')
   close()
 }
 
-function setTheme(t: 'light' | 'dark') {
-  appStore.setTheme(t)
+function setTheme(tTheme: 'light' | 'dark') {
+  appStore.setTheme(tTheme)
 }
 
 function toggleReaderBackground() {
@@ -738,9 +777,9 @@ async function handleBackgroundImageChange(event: Event) {
     const prepared = await prepareReaderBackgroundImage(file)
     const url = await uploadBackgroundImage('desktop', prepared.blob, prepared.fileName)
     readerStore.setBackgroundImage(url)
-    appStore.showToast('桌面背景已更新', 'success')
+    appStore.showToast(t('settings.appearance.bgUpdatedToast'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '背景图片处理失败', 'error')
+    appStore.showToast((error as Error).message || t('settings.appearance.bgFailedToast'), 'error')
   } finally {
     processingBackground.value = false
     input.value = ''
@@ -778,8 +817,8 @@ const windowOpacityFloorPercent = Math.round(READER_WINDOW_OPACITY_MIN * 100)
 
 const windowOpacityDescription = computed(() => (
   readerStore.config.applyWindowOpacityToReader
-    ? '阅读页与应用窗口使用同一档透明度'
-    : '阅读页使用自己的透明度，可在阅读设置里单独调整'
+    ? t('settings.appearance.opacitySyncOn')
+    : t('settings.appearance.opacitySyncOff')
 ))
 
 function updateWindowOpacityPercent(raw: string) {
@@ -811,7 +850,7 @@ function toggleWindowOpacityForReader() {
 
 function removeBackgroundImage() {
   readerStore.clearBackgroundImage()
-  appStore.showToast('桌面背景已移除', 'success')
+  appStore.showToast(t('settings.appearance.bgRemovedToast'), 'success')
 }
 
 async function handleDesktopUpdate() {
@@ -1084,6 +1123,48 @@ async function handleCheckVersionUpdate() {
 /* `.boss-key-*` 的样式已提到 `styles/global.css`。原因同 Web 访问:
  * 它们是独立的一块控件, 放在 scoped 里无法被其它组件/演示页复用, 而且
  * 同一个类在文件里出现过两份(后者覆盖前者的 display:flex), 已一并清理。 */
+
+.language-select-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.language-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 40px;
+  padding: 0 36px 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-sunken);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.language-select:hover {
+  border-color: var(--color-primary-soft);
+}
+
+.language-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+  background: var(--color-bg-elevated);
+}
+
+.language-select-wrapper .select-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-text-secondary);
+}
 
 .proxy-setting {
   display: grid;

@@ -2,13 +2,13 @@
   <div class="reader-source" :style="{ background: theme.popup, color: theme.fontColor }">
     <div class="source-header">
       <div class="header-left">
-        <h3>切换书源</h3>
-        <span class="source-count" v-if="preparedResults.length">{{ preparedResults.length }} 个结果</span>
+        <h3>{{ t('reader.sourcesTitle') }}</h3>
+        <span class="source-count" v-if="preparedResults.length">{{ t('reader.sourceResultsCount', { count: preparedResults.length }) }}</span>
         <!-- 换源落库（含后端回填新源详情）可能十几秒。提示放在标题旁而不是盖
              一层遮罩：列表、刷新、关闭全程都能点，慢源时也不会有「卡住」的观感。 -->
         <span v-if="isSwitchingSource" class="switching-hint" role="status">
           <span class="switching-hint-spinner" aria-hidden="true"></span>
-          正在切换…
+          {{ t('reader.switchingSource') }}
         </span>
       </div>
       <div class="header-actions">
@@ -19,8 +19,8 @@
           v-if="searching"
           class="icon-btn"
           type="button"
-          title="停止搜索"
-          aria-label="停止搜索"
+          :title="t('reader.stopSearch')"
+          :aria-label="t('reader.stopSearch')"
           @click="stopSearch"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -31,8 +31,8 @@
           v-else
           class="icon-btn"
           type="button"
-          title="重新搜索书源"
-          aria-label="重新搜索书源"
+          :title="t('reader.reSearchSources')"
+          :aria-label="t('reader.reSearchSources')"
           :disabled="isLocal"
           @click="startSearch(true)"
         >
@@ -40,7 +40,7 @@
             <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
           </svg>
         </button>
-        <button class="close-btn" type="button" title="关闭" aria-label="关闭" @click="store.closePanel()">
+        <button class="close-btn" type="button" :title="t('common.close')" :aria-label="t('common.close')" @click="store.closePanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -50,7 +50,7 @@
     
     <div class="source-list" ref="listRef">
       <!-- Current Source Header -->
-      <div class="section-label" v-if="currentSource">当前书源</div>
+      <div class="section-label" v-if="currentSource">{{ t('reader.currentSource') }}</div>
       <div v-if="currentSource" class="source-item current">
         <div class="source-name">{{ currentSource.originName || currentSource.origin }}</div>
         <div class="source-url">{{ currentSource.origin }}</div>
@@ -68,23 +68,23 @@
         </div>
         <div class="book-brief-main">
           <div class="book-brief-title">{{ store.book.name }}</div>
-          <div class="book-brief-meta">{{ store.book.author || '未知作者' }}</div>
-          <div class="book-brief-meta" v-if="store.currentChapter?.title">当前章节：{{ store.currentChapter.title }}</div>
-          <div class="book-brief-meta" v-if="store.book.latestChapterTitle">最新章节：{{ store.book.latestChapterTitle }}</div>
+          <div class="book-brief-meta">{{ store.book.author || t('bookDetail.unknownAuthor') }}</div>
+          <div class="book-brief-meta" v-if="store.currentChapter?.title">{{ t('reader.currentChapterLabel') }}：{{ store.currentChapter.title }}</div>
+          <div class="book-brief-meta" v-if="store.book.latestChapterTitle">{{ t('reader.latestChapterLabel') }}：{{ store.book.latestChapterTitle }}</div>
         </div>
       </div>
 
-      <div v-if="isLocal" class="empty">本地书籍不支持换源</div>
+      <div v-if="isLocal" class="empty">{{ t('reader.localBookNoSwitchSource') }}</div>
 
       <template v-else>
-      <div class="section-label">其他可用源</div>
+      <div class="section-label">{{ t('reader.otherSources') }}</div>
 
       <div v-if="searching && !preparedResults.length" class="loading">
         <div class="spinner"></div>
-        正在全网搜索同名书籍...
+        {{ t('reader.searchingBookSources') }}
       </div>
 
-      <div v-else-if="!preparedResults.length && !sourcesIncomplete" class="empty">未找到其他书源</div>
+      <div v-else-if="!preparedResults.length && !sourcesIncomplete" class="empty">{{ t('reader.noOtherSources') }}</div>
       
       <!--
         候选列表：紧凑的一行一源。
@@ -107,9 +107,9 @@
           <span class="candidate-body">
             <span class="candidate-title-row">
               <span class="candidate-name">{{ sourceNameByOrigin(item.book.origin) }}</span>
-              <span v-if="item.sameLatest" class="candidate-badge good">最新章一致</span>
-              <span v-else-if="item.book.lastChapter" class="candidate-badge">章节有差异</span>
-              <span v-if="!item.sameName" class="candidate-badge warn">书名不完全一致</span>
+              <span v-if="item.sameLatest" class="candidate-badge good">{{ t('reader.sameLatestChapter') }}</span>
+              <span v-else-if="item.book.lastChapter" class="candidate-badge">{{ t('reader.diffChapter') }}</span>
+              <span v-if="!item.sameName" class="candidate-badge warn">{{ t('reader.nameMismatch') }}</span>
             </span>
             <span class="candidate-meta">
               <span v-if="item.book.author" class="candidate-author">{{ item.book.author }}</span>
@@ -128,7 +128,7 @@
 
       <div v-if="searching && preparedResults.length" class="inline-loading">
         <div class="spinner small"></div>
-        继续搜索其他书源...
+        {{ t('reader.continueSearchingSources') }}
       </div>
       </template>
 
@@ -144,12 +144,12 @@
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7.5v5.5M12 16.5h.01" />
         </svg>
-        <span class="incomplete-text">部分书源访问失败</span>
-        <button type="button" class="incomplete-retry" @click="startSearch(true)">重试</button>
+        <span class="incomplete-text">{{ t('reader.someSourcesFailed') }}</span>
+        <button type="button" class="incomplete-retry" @click="startSearch(true)">{{ t('common.retry') }}</button>
       </div>
       <div v-if="hasMoreSources && !searching" class="load-more-wrap">
         <button class="load-more-btn" :disabled="loadingMore" @click="loadMoreSources">
-          {{ loadingMore ? '加载中...' : '加载更多' }}
+          {{ loadingMore ? t('common.loading') : t('common.loadMore') }}
         </button>
       </div>
     </div>
@@ -168,7 +168,7 @@
         <div class="detail-row detail-row-main">
           <span class="detail-name">{{ sourceNameByOrigin(selectedCandidate.book.origin) }}</span>
           <span class="detail-sub">{{ detailSubLine }}</span>
-          <button class="detail-dismiss" type="button" title="收起" aria-label="收起" @click="clearSelection">
+          <button class="detail-dismiss" type="button" :title="t('common.collapse')" :aria-label="t('common.collapse')" @click="clearSelection">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
@@ -182,7 +182,7 @@
             type="button"
             :disabled="isSwitchingSource"
             @click="handleSwitch(selectedCandidate.book)"
-          >{{ isSwitchingSource ? '切换中…' : '切换到此书源' }}</button>
+          >{{ isSwitchingSource ? t('reader.switchingSource') : t('reader.switchToThisSource') }}</button>
         </div>
       </div>
     </Transition>
@@ -199,6 +199,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { t } from '../../i18n'
 import { useReaderStore } from '../../stores/reader'
 import { useAppStore } from '../../stores/app'
 import { useSourceStore } from '../../stores/source'
@@ -302,8 +303,8 @@ const preparedResults = computed<CandidateItem[]>(() => {
       const sameAuthor = normalizeAuthorText(book.author) === currentAuthor
       const sameLatest = !!currentLatest && normalizeText(book.lastChapter) === currentLatest
       const chapterHint = sameLatest
-        ? '可无缝续读'
-        : (book.lastChapter ? `目标源最新：${book.lastChapter}` : '')
+        ? t('reader.seamlessContinue')
+        : (book.lastChapter ? t('reader.targetLatest', { chapter: book.lastChapter }) : '')
       const score = (sameName ? 3 : 0) + (sameAuthor ? 3 : 0) + (sameLatest ? 4 : 0)
       return { book, sameName, sameAuthor, sameLatest, chapterHint, score }
     })
@@ -434,7 +435,7 @@ function closeAvailableSourceSSE() {
 /** 停止当前搜索(对齐手机端 `ChangeBookSourceViewModel.stopSearch`)。
  *
  *  只关流不够: `searching` 必须复位, 否则"停止"后按钮还停在停止态、
- *  「继续搜索其他书源...」的转圈也永远不会消失。已拿到的结果保留 ——
+ *  「{{ t('reader.continueSearchingSources') }}」的转圈也永远不会消失。已拿到的结果保留 ——
  *  用户在搜索中途点停止, 想要的正是"就这些, 别再等了"。 */
 function stopSearch() {
   closeAvailableSourceSSE()
@@ -549,7 +550,7 @@ function finishAvailableSourceSSE(
     sourcesIncomplete.value = true
     hasMoreSources.value = false
     if (mode === 'loadMore') {
-      appStore.showToast('加载更多书源失败', 'error')
+      appStore.showToast(t('reader.loadMoreFailed'), 'error')
     }
     return
   }
@@ -557,13 +558,13 @@ function finishAvailableSourceSSE(
   if (mode === 'loadMore') {
     const addedCount = results.value.length - beforeCount
     if (addedCount > 0) {
-      appStore.showToast(`已新增 ${addedCount} 个书源`, 'success')
+      appStore.showToast(t('reader.addedSourcesCount', { count: addedCount }), 'success')
     } else if (sourcesIncomplete.value) {
       return
     } else if (!hasMoreSources.value) {
-      appStore.showToast('没有更多书源了', 'warning')
+      appStore.showToast(t('reader.noMoreSources'), 'warning')
     } else {
-      appStore.showToast('本批次未找到更多匹配书源', 'warning')
+      appStore.showToast(t('reader.noMoreMatchingSources'), 'warning')
     }
   }
 }
@@ -591,7 +592,7 @@ function clearSelection() {
 const detailSubLine = computed(() => {
   const book = selectedCandidate.value?.book
   if (!book) return ''
-  const author = (book.author || '未知作者').trim()
+  const author = (book.author || t('bookDetail.unknownAuthor')).trim()
   const updated = (book.updateTime || '').trim()
   return updated ? `${author} · ${updated}` : author
 })
@@ -607,10 +608,10 @@ const detailLatestLine = computed(() => {
   if (!candidate) return ''
   const latest = (candidatePreview.value?.latestChapterTitle || candidate.book.lastChapter || '').trim()
   const hint = candidate.sameLatest
-    ? '可无缝续读'
+    ? t('reader.seamlessContinue')
     : (candidate.chapterHint || '')
   if (latest && hint) return `${latest} · ${hint}`
-  return latest || hint || '最新章节未知'
+  return latest || hint || t('reader.latestChapterUnknown')
 })
 
 function loadMoreSources() {

@@ -36,6 +36,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '../stores/app'
+import { t } from '../i18n'
 
 type NavKey = 'home' | 'explore' | 'recent' | 'rss'
 
@@ -43,37 +44,37 @@ const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 
-const allItems: Array<{ key: NavKey; label: string; path: string; paths: string[] }> = [
+const allItems = computed<Array<{ key: NavKey; label: string; path: string; paths: string[] }>>(() => [
   {
     key: 'home',
-    label: '书架',
+    label: t('nav.bookshelf'),
     path: '/',
     paths: ['M4 5.5A2.5 2.5 0 0 1 6.5 3H20', 'M4 5.5V19a2 2 0 0 0 2 2h14', 'M8 7h8', 'M8 11h8', 'M8 15h5'],
   },
   {
     key: 'explore',
-    label: '书海',
+    label: t('nav.explore'),
     path: '/explore',
     paths: ['M12 3a9 9 0 1 0 9 9', 'm16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z'],
   },
   {
     key: 'recent',
-    label: '统计',
+    label: t('nav.stats'),
     path: '/stats',
     paths: ['M12 7v5l3 2', 'M12 3a9 9 0 1 0 9 9'],
   },
   {
     key: 'rss',
-    label: 'RSS',
+    label: t('nav.rss'),
     path: '/rss',
     paths: ['M4 11a9 9 0 0 1 9 9', 'M4 4a16 16 0 0 1 16 16', 'M5 19h.01'],
   },
-]
+])
 
 // 过滤不可见的入口。判断集中在 `appStore.isNavVisible`:
 // - 桌面端按用户偏好隐藏统计/RSS;
 // - Web 端只保留书架与最近阅读(其余能力没有对应的后端实现, 留着会让人以为坏了)。
-const items = computed(() => allItems.filter((item) => appStore.isNavVisible(item.key)))
+const items = computed(() => allItems.value.filter((item) => appStore.isNavVisible(item.key)))
 
 const navRef = ref<HTMLElement | null>(null)
 const itemRefs = ref<Record<NavKey, HTMLElement | null>>({

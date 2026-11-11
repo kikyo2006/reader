@@ -9,7 +9,7 @@
       <button
         v-if="showDeleteAction && !editMode"
         class="card-delete-btn"
-        title="删除最近阅读"
+        :title="t('recent.removeFromRecent')"
         @click.stop="$emit('delete', book)"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -50,31 +50,31 @@
         <div class="title-block">
           <h3 class="book-name">{{ book.name }}</h3>
           <div class="book-meta">
-            <span class="book-author">{{ book.author || '未知作者' }}</span>
+            <span class="book-author">{{ book.author || t('bookshelf.unknownAuthor') }}</span>
             <span v-if="asBook.totalChapterNum" class="meta-dot">·</span>
-            <span v-if="asBook.totalChapterNum" class="book-chapters">共{{ asBook.totalChapterNum }}章</span>
+            <span v-if="asBook.totalChapterNum" class="book-chapters">{{ t('bookshelf.totalChapters', { count: asBook.totalChapterNum }) }}</span>
           </div>
         </div>
       </div>
 
       <div v-if="isSearch && (sourceName || sourceGroup || sourceCount > 1)" class="book-source-row">
-        <span v-if="sourceCount > 1" class="source-chip source-count">{{ sourceCount }} 个源</span>
+        <span v-if="sourceCount > 1" class="source-chip source-count">{{ t('bookshelf.sourceCountBadge', { count: sourceCount }) }}</span>
         <span v-if="sourceName" class="source-chip source-name">{{ sourceName }}</span>
         <span v-if="sourceGroup" class="source-chip source-group">{{ sourceGroup }}</span>
       </div>
 
       <div class="chapter-lines">
         <p v-if="asBook.durChapterTitle && !isSearch" class="book-progress">
-          已读：{{ asBook.durChapterTitle }}
+          {{ t('bookshelf.lastRead') }}{{ asBook.durChapterTitle }}
         </p>
         <p v-if="latestChapterText" class="book-latest">
-          最新：{{ latestChapterText }}
+          {{ t('bookDetail.latestChapter') }}：{{ latestChapterText }}
         </p>
       </div>
 
       <div class="card-footer">
         <div v-if="!isSearch && serverCachedCount > 0" class="book-cache-row">
-          <span v-if="serverCachedCount > 0" class="cache-chip">本地 {{ serverCachedCount }} 章</span>
+          <span v-if="serverCachedCount > 0" class="cache-chip">{{ t('bookshelf.localCachedChapters', { count: serverCachedCount }) }}</span>
         </div>
         <!-- Search mode: add to shelf -->
         <button
@@ -87,7 +87,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          {{ inShelf ? '已加入' : '加入书架' }}
+          {{ inShelf ? t('bookshelf.inShelf') : t('bookshelf.addToShelf') }}
         </button>
       </div>
     </div>
@@ -99,6 +99,7 @@ import { computed, ref } from 'vue'
 import { getCoverUrl } from '../api/bookshelf'
 import { isLocalBook } from '../utils/localBook'
 import type { Book, SearchBook } from '../types'
+import { t } from '../i18n'
 
 const props = defineProps<{
   book: Book | SearchBook

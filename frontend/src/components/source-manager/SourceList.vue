@@ -2,7 +2,7 @@
   <section class="source-list-wrapper">
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>加载书源中...</p>
+      <p>{{ t('source.list.loading') }}</p>
     </div>
     <div v-else class="source-list">
       <article
@@ -31,7 +31,7 @@
           <button
             class="icon-btn small"
             type="button"
-            :title="isPinned(source) ? '取消置顶' : '置顶'"
+            :title="isPinned(source) ? t('source.list.unpin') : t('source.list.pin')"
             :class="{ pinned: isPinned(source) }"
             @click="togglePin(source)"
           >
@@ -40,17 +40,17 @@
               <path d="M9 10.8V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6.8l1.5 2.2a1 1 0 0 1-.8 1.5H8.3a1 1 0 0 1-.8-1.5L9 10.8Z" />
             </svg>
           </button>
-          <label class="toggle" title="启用状态">
+          <label class="toggle" :title="t('source.list.enableState')">
             <input type="checkbox" :checked="source.enabled !== false" @change="$emit('toggle-enabled', source)" />
             <span class="toggle-slider"></span>
           </label>
-          <button class="icon-btn small" type="button" title="编辑" @click="$emit('edit', source)">
+          <button class="icon-btn small" type="button" :title="t('source.list.edit')" @click="$emit('edit', source)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
           </button>
-          <button class="icon-btn small danger" type="button" title="删除" @click="$emit('delete', source)">
+          <button class="icon-btn small danger" type="button" :title="t('source.list.delete')" @click="$emit('delete', source)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
             </svg>
@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import type { BookSource } from '../../types'
+import { t } from '../../i18n'
 
 defineProps<{
   sources: BookSource[]

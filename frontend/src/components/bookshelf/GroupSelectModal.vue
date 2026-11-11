@@ -2,7 +2,7 @@
   <div v-if="modelValue" class="modal-overlay" @click="$emit('update:modelValue', false)">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3>{{ (bookCount ?? 0) > 0 ? `调整分组（${bookCount} 本）` : '调整分组' }}</h3>
+        <h3>{{ (bookCount ?? 0) > 0 ? t('bookshelf.groups.adjustCount', { count: bookCount ?? 0 }) : t('bookshelf.groups.adjust') }}</h3>
         <button class="close-btn" @click="$emit('update:modelValue', false)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
         </button>
@@ -24,17 +24,17 @@
             />
             <span class="group-name">{{ group.groupName }}</span>
           </label>
-          <p v-if="!shelfStore.groups.length" class="empty-hint">还没有分组，先在下方新建一个吧</p>
+          <p v-if="!shelfStore.groups.length" class="empty-hint">{{ t('bookshelf.groups.emptyHint') }}</p>
 
           <div class="new-group">
             <input
               v-model="newGroupName"
-              placeholder="新建分组名称..."
+              :placeholder="t('bookshelf.groups.newGroupPlaceholder')"
               class="group-input"
               @keyup.enter="handleCreate"
             />
             <button class="add-btn" @click="handleCreate" :disabled="!newGroupName.trim() || creating">
-              新建并勾选
+              {{ t('bookshelf.groups.createAndCheck') }}
             </button>
           </div>
         </div>
@@ -43,7 +43,7 @@
       <div class="modal-footer">
         <span class="footer-hint">{{ footerHint }}</span>
         <button class="confirm-btn" :disabled="!hasChanges || submitting" @click="handleConfirm">
-          {{ submitting ? '保存中…' : '保存' }}
+          {{ submitting ? t('common.saving') : t('common.save') }}
         </button>
       </div>
     </div>
@@ -54,6 +54,7 @@
 import { ref, computed, watch } from 'vue'
 import { useBookshelfStore } from '../../stores/bookshelf'
 import { useAppStore } from '../../stores/app'
+import { t } from '../../i18n'
 
 const props = defineProps<{
   modelValue: boolean
@@ -87,8 +88,8 @@ const isBatch = computed(() => (props.bookCount ?? 0) > 1)
  *  否则「加入/移出」的措辞会被理解成逐本叠加, 静默抹掉书与书之间不同的归属。 */
 const footerHint = computed(() => (
   isBatch.value
-    ? `保存后 ${props.bookCount} 本书的分组将统一设为勾选项`
-    : '勾选即加入分组，取消勾选即移出'
+    ? t('bookshelf.groups.batchHint', { count: props.bookCount ?? 0 })
+    : t('bookshelf.groups.singleHint')
 ))
 
 const hasChanges = computed(() => currentMask.value !== initialMask.value)

@@ -11,27 +11,27 @@
       <!-- Shelf Header -->
       <div class="shelf-header">
         <h1 class="shelf-title">
-          书架
+          {{ t('nav.bookshelf') }}
           <span class="book-count">({{ visibleShelfBooks.length }})</span>
         </h1>
         <div class="shelf-actions">
           <template v-if="shelfStore.editMode">
-            <button class="shelf-btn" type="button" title="全选" aria-label="全选" @click="shelfStore.selectAll()">
+            <button class="shelf-btn" type="button" :title="t('common.selectAll')" :aria-label="t('common.selectAll')" @click="shelfStore.selectAll()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 11l3 3L22 4" />
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
-              <span class="shelf-btn-label">全选</span>
+              <span class="shelf-btn-label">{{ t('common.selectAll') }}</span>
             </button>
-            <button class="shelf-btn" type="button" title="取消全选" aria-label="取消全选" @click="shelfStore.clearSelection()">
+            <button class="shelf-btn" type="button" :title="t('common.cancel')" :aria-label="t('common.cancel')" @click="shelfStore.clearSelection()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <path d="M8 12h8" />
               </svg>
-              <span class="shelf-btn-label">取消全选</span>
+              <span class="shelf-btn-label">{{ t('common.cancel') }}</span>
             </button>
           </template>
-          <button class="shelf-btn" type="button" title="导入本地书" aria-label="导入本地书" @click="triggerLocalBookUpload" :disabled="localBookUploading">
+          <button class="shelf-btn" type="button" :title="t('bookshelf.importLocal')" :aria-label="t('bookshelf.importLocal')" @click="triggerLocalBookUpload" :disabled="localBookUploading">
             <svg v-if="!localBookUploading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 3v12" />
               <path d="m7 8 5-5 5 5" />
@@ -41,15 +41,15 @@
               <path d="M21 12a9 9 0 0 0-15.55-6.2L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            <span class="shelf-btn-label">{{ localBookUploading ? '导入中' : '导入本地书' }}</span>
+            <span class="shelf-btn-label">{{ localBookUploading ? t('common.loading') : t('bookshelf.importLocal') }}</span>
           </button>
           <!-- 导出走桌面文件对话框(save dialog + 本地路径), 浏览器里没有等价能力。 -->
           <button
             v-if="!appStore.isWebMode"
             class="shelf-btn"
             type="button"
-            title="导出书籍"
-            aria-label="导出书籍"
+            :title="t('bookDetail.exportBook')"
+            :aria-label="t('bookDetail.exportBook')"
             @click="showExportModal = true"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -57,35 +57,28 @@
               <path d="M7 10l5 5 5-5" />
               <path d="M12 15V3" />
             </svg>
-            <span class="shelf-btn-label">导出书籍</span>
+            <span class="shelf-btn-label">{{ t('bookDetail.exportBook') }}</span>
           </button>
-          <!--
-            分组管理 / 缓存管理 / 编辑(批量删除、移组)都是**写操作**, 而 Web 端
-            只注册了只读接口(见 src/server/router.rs): `saveBookGroup`、
-            `deleteBookGroups`、`saveBookGroupId`、`deleteBook(s)` 都没有 HTTP 路由。
-            这些按钮留着不会有任何效果 —— 用户点"批量删除"只会收到一个
-            `请求失败(404)` 的 toast, 比没有按钮更糟。与"导出书籍"同样处理。
-          -->
           <button
             v-if="!appStore.isWebMode"
             class="shelf-btn"
             type="button"
-            title="分组管理"
-            aria-label="分组管理"
+            :title="t('bookshelf.manageGroups')"
+            :aria-label="t('bookshelf.manageGroups')"
             @click="showGroupManager = true"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 7h6l2 2h8v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
               <path d="M8 13h8" />
             </svg>
-            <span class="shelf-btn-label">分组管理</span>
+            <span class="shelf-btn-label">{{ t('bookshelf.manageGroups') }}</span>
           </button>
           <button
             v-if="!appStore.isWebMode"
             class="shelf-btn"
             type="button"
-            title="缓存管理"
-            aria-label="缓存管理"
+            :title="t('bookDetail.cacheBook')"
+            :aria-label="t('bookDetail.cacheBook')"
             @click="showCacheManager = true"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -93,15 +86,15 @@
               <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
               <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
             </svg>
-            <span class="shelf-btn-label">缓存管理</span>
+            <span class="shelf-btn-label">{{ t('bookDetail.cacheBook') }}</span>
           </button>
           <button
             v-if="!appStore.isWebMode"
             class="shelf-btn"
             type="button"
             :class="{ active: shelfStore.editMode }"
-            :title="shelfStore.editMode ? '完成' : '编辑'"
-            :aria-label="shelfStore.editMode ? '完成' : '编辑'"
+            :title="shelfStore.editMode ? t('bookshelf.finishBatch') : t('common.edit')"
+            :aria-label="shelfStore.editMode ? t('bookshelf.finishBatch') : t('common.edit')"
             @click="toggleEditMode"
           >
             <svg v-if="shelfStore.editMode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -111,7 +104,7 @@
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
-            <span class="shelf-btn-label">{{ shelfStore.editMode ? '完成' : '编辑' }}</span>
+            <span class="shelf-btn-label">{{ shelfStore.editMode ? t('bookshelf.finishBatch') : t('common.edit') }}</span>
           </button>
         </div>
       </div>
@@ -134,7 +127,7 @@
             :class="{ active: shelfStore.activeGroupId === group.groupId }"
             @click="shelfStore.activeGroupId = group.groupId"
           >
-            {{ group.groupName }}
+            {{ formatGroupName(group) }}
           </button>
         </div>
         <!-- 编辑模式(全选/批量删除)作用于整个分组, 此时隐藏搜索框: 显示筛选
@@ -148,14 +141,14 @@
             v-model.trim="bookSearchText"
             type="text"
             class="shelf-search-input"
-            placeholder="搜索书架"
-            aria-label="搜索书架"
+            :placeholder="t('topbar.searchPlaceholder')"
+            :aria-label="t('topbar.searchPlaceholder')"
           />
           <button
             v-if="bookSearchText"
             type="button"
             class="shelf-search-clear"
-            aria-label="清空书架搜索"
+            :aria-label="t('common.clear')"
             @click="bookSearchText = ''"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
@@ -170,8 +163,8 @@
             :class="{ open: sortMenuOpen }"
             :aria-expanded="sortMenuOpen"
             aria-haspopup="listbox"
-            :title="`书架排序方式:${bookSortLabel(shelfStore.effectiveSortMode)}`"
-            :aria-label="`书架排序方式:${bookSortLabel(shelfStore.effectiveSortMode)}`"
+            :title="`${t('bookshelf.sort')}: ${bookSortLabel(shelfStore.effectiveSortMode)}`"
+            :aria-label="`${t('bookshelf.sort')}: ${bookSortLabel(shelfStore.effectiveSortMode)}`"
             @click="toggleSortMenu"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -184,7 +177,7 @@
             </svg>
           </button>
           <Transition name="sort-pop">
-            <div v-if="sortMenuOpen" class="sort-popover" role="listbox" aria-label="书架排序方式">
+            <div v-if="sortMenuOpen" class="sort-popover" role="listbox" :aria-label="t('bookshelf.sort')">
               <button
                 v-for="option in BOOK_SORT_OPTIONS"
                 :key="option.value"
@@ -200,7 +193,7 @@
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                 </span>
-                <span class="sort-option-label">{{ option.label }}</span>
+                <span class="sort-option-label">{{ bookSortLabel(option.value) }}</span>
               </button>
             </div>
           </Transition>
@@ -229,16 +222,16 @@
       <Transition name="slide-up">
         <div v-if="shelfStore.editMode && shelfStore.selectedBookUrls.size > 0" class="batch-toolbar">
           <div class="batch-info">
-            已选中 <span>{{ shelfStore.selectedBookUrls.size }}</span> 本书
+            {{ t('bookshelf.selectedCount', { count: shelfStore.selectedBookUrls.size }) }}
           </div>
           <div class="batch-actions">
             <button class="batch-btn" @click="handleBulkMove">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
-              移动分组
+              {{ t('bookshelf.moveToGroup') }}
             </button>
             <button class="batch-btn danger" @click="handleBulkDelete">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a3 3 0 0 1-3-3H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-              批量删除
+              {{ t('bookshelf.deleteSelected') }}
             </button>
           </div>
         </div>
@@ -285,6 +278,7 @@ import { showContextMenu, type MenuItem } from '../composables/useContextMenu'
 import { BOOK_SORT_KEYS, BOOK_SORT_OPTIONS, bookSortLabel } from '../utils/bookshelfSort'
 import { filterShelfBooks } from '../utils/bookshelfFilter'
 import type { Book, SearchBook } from '../types'
+import { t } from '../i18n'
 
 const router = useRouter()
 const shelfStore = useBookshelfStore()
@@ -301,8 +295,8 @@ const visibleShelfBooks = computed(() => (
 /** 空态文案要区分「书架没有书」和「关键词没命中」, 否则搜不到时像把书弄丢了。 */
 const shelfEmptyText = computed(() => (
   bookSearchText.value.trim()
-    ? '没有找到匹配的书籍'
-    : '书架空空如也,搜索添加新书吧'
+    ? t('common.notFound')
+    : t('bookshelf.emptySub')
 ))
 const showGroupSelect = ref(false)
 /** 右键「调整分组」时记住目标书; 为空表示走批量(编辑模式多选)路径。 */
@@ -336,6 +330,16 @@ const groupEditTargets = computed(() => {
   return shelfStore.books.filter((b) => shelfStore.selectedBookUrls.has(b.bookUrl))
 })
 
+function formatGroupName(group: { groupId: number; groupName: string }) {
+  if (group.groupId === -1 || group.groupName === '全部') {
+    return t('bookshelf.groups.all')
+  }
+  if (group.groupId === 0 || group.groupName === '未分组') {
+    return t('bookshelf.groups.ungrouped')
+  }
+  return group.groupName
+}
+
 onMounted(async () => {
   let skipOfflineRestore = false
   try {
@@ -351,7 +355,7 @@ onMounted(async () => {
   if (!skipOfflineRestore && !appStore.isOnline) {
     const restored = await readerStore.restorePersistedSession()
     if (restored) {
-      appStore.showToast('已恢复最近阅读的离线章节', 'success')
+      appStore.showToast(t('bookshelf.offlineChaptersRestored'), 'success')
       router.replace('/reader')
     }
   }
@@ -370,7 +374,7 @@ async function handleLocalBookFileChange(event: Event) {
 
   const lowerName = file.name.toLowerCase()
   if (!lowerName.endsWith('.txt') && !lowerName.endsWith('.epub') && !lowerName.endsWith('.pdf')) {
-    appStore.showToast('只支持导入 .txt、.epub 或 .pdf 文件', 'warning')
+    appStore.showToast(t('bookshelf.importTypeWarning'), 'warning')
     return
   }
 
@@ -382,10 +386,10 @@ async function handleLocalBookFileChange(event: Event) {
         ? await uploadPdfBook(file)
         : await uploadTxtBook(file)
     await shelfStore.fetchBooks()
-    appStore.showToast(`已导入《${book.name}》`, 'success')
+    appStore.showToast(t('bookshelf.importSuccess', { name: book.name }), 'success')
     await handleBookClick(book)
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '本地书导入失败', 'error')
+    appStore.showToast((e as Error).message || t('bookshelf.localBookImportFailed'), 'error')
   } finally {
     localBookUploading.value = false
   }
@@ -422,11 +426,11 @@ function openDetail(book: Book | SearchBook, editNow: boolean) {
 
 async function handleDeleteBook(book: Book | SearchBook) {
   const b = book as Book
-  const ok = await appStore.confirmDialog(`确定从书架删除 "${b.name}"？`, { title: '删除书籍', danger: true })
+  const ok = await appStore.confirmDialog(t('bookshelf.confirmDeleteBook', { name: b.name }), { title: t('bookshelf.deleteBookTitle'), danger: true })
   if (!ok) return
   try {
     await shelfStore.removeBook(b)
-    appStore.showToast(`已删除 "${b.name}"`, 'success')
+    appStore.showToast(t('bookshelf.deletedBook', { name: b.name }), 'success')
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
   }
@@ -436,8 +440,8 @@ function handleBookContextMenu({ book, event }: { book: Book | SearchBook; event
   // 批量编辑模式不弹单本菜单
   if (shelfStore.editMode) return
   const readItems: MenuItem[] = [
-    { label: '开始阅读', action: () => handleBookClick(book) },
-    { label: '查看详情', action: () => handleBookInfo(book) },
+    { label: t('bookshelf.actions.read'), action: () => handleBookClick(book) },
+    { label: t('bookshelf.actions.details'), action: () => handleBookInfo(book) },
   ]
   // Web 端只保留上面这条纯读路径。其余项都依赖桌面专属能力:
   // 「编辑信息」要写回 saveBook + 封面上传, 「调整分组」是 saveBookGroupId,
@@ -446,13 +450,13 @@ function handleBookContextMenu({ book, event }: { book: Book | SearchBook; event
   const writeItems: MenuItem[] = appStore.isWebMode
     ? []
     : [
-      { label: '编辑信息', action: () => openDetail(book, true) },
+      { label: t('bookshelf.actions.edit'), action: () => openDetail(book, true) },
       { divider: true },
       // 单本分组调整: 记下这本书, 选中集此时必然是空的(编辑模式不弹本菜单)。
-      { label: '调整分组', action: () => openGroupSelect(book.bookUrl) },
-      { label: '缓存管理', action: () => { showCacheManager.value = true } },
+      { label: t('bookshelf.actions.changeGroup'), action: () => openGroupSelect(book.bookUrl) },
+      { label: t('bookshelf.actions.cache'), action: () => { showCacheManager.value = true } },
       { divider: true },
-      { label: '删除', danger: true, action: () => handleDeleteBook(book) },
+      { label: t('bookshelf.actions.delete'), danger: true, action: () => handleDeleteBook(book) },
     ]
   showContextMenu(event, [...readItems, ...writeItems], book)
 }
@@ -473,11 +477,11 @@ watch(() => shelfStore.editMode, (editing) => {
 
 async function handleBulkDelete() {
   const count = shelfStore.selectedBookUrls.size
-  const ok = await appStore.confirmDialog(`确定删除选中的 ${count} 本书？`, { title: '批量删除', danger: true })
+  const ok = await appStore.confirmDialog(t('bookshelf.confirmBatchDelete', { count }), { title: t('bookshelf.batchDeleteTitle'), danger: true })
   if (!ok) return
   try {
     await shelfStore.bulkDelete()
-    appStore.showToast(`成功删除 ${count} 本书`, 'success')
+    appStore.showToast(t('bookshelf.batchDeleteSuccess', { count }), 'success')
   } catch (e: any) {
     appStore.showToast(e.message, 'error')
   }
@@ -500,18 +504,18 @@ async function handleGroupConfirm(mask: number) {
   try {
     if (target) {
       await shelfStore.setBooksGroupMask([target], mask)
-      appStore.showToast('分组已更新', 'success')
+      appStore.showToast(t('bookshelf.groupUpdated'), 'success')
     } else {
       const urls = [...shelfStore.selectedBookUrls]
       await shelfStore.setBooksGroupMask(urls, mask)
-      appStore.showToast(`已调整 ${urls.length} 本书的分组`, 'success')
+      appStore.showToast(t('bookshelf.groupAdjustSuccess', { count: urls.length }), 'success')
       shelfStore.clearSelection()
     }
     showGroupSelect.value = false
   } catch (e: any) {
     // 失败时**保留** target 且不关弹窗: 用户在弹窗里重试仍是单本语义 ——
     // 若在 finally 里清掉, 重试会退化成「0 本书的批量」, 显示成功却没保存。
-    appStore.showToast(e.message || '分组更新失败', 'error')
+    appStore.showToast(e.message || t('bookshelf.groups.updateFailed'), 'error')
   } finally {
     groupSaving.value = false
   }
@@ -524,7 +528,7 @@ async function handleReorderBooks(payload: { draggedUrl: string; targetUrl: stri
   try {
     await shelfStore.reorderBooks(payload.draggedUrl, payload.targetUrl)
   } catch (e: any) {
-    appStore.showToast(e.message || '排序失败', 'error')
+    appStore.showToast(e.message || t('bookshelf.sortFailed'), 'error')
   }
 }
 
@@ -559,7 +563,7 @@ async function chooseSort(value: number) {
   try {
     await applySort(value)
   } catch (e: any) {
-    appStore.showToast(e.message || '排序设置失败', 'error')
+    appStore.showToast(e.message || t('bookshelf.sortSetFailed'), 'error')
   }
 }
 

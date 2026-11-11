@@ -85,6 +85,7 @@ pub async fn apply_desktop_update(
     state: tauri::State<'_, AppState>,
     on_event: tauri::ipc::Channel<DesktopUpdateProgress>,
 ) -> Result<ApiResponse<DesktopUpdateResult>, AppError> {
+    let _ = &app;
     if cfg!(debug_assertions) {
         return Err(AppError::BadRequest(
             "开发模式不能执行自动更新，请使用发布版测试".to_string(),

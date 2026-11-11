@@ -4,6 +4,7 @@ import type { useReaderStore } from '../stores/reader'
 import type { useAppStore } from '../stores/app'
 import { saveReplaceRule } from '../api/replaceRule'
 import { saveBook } from '../api/bookshelf'
+import { t } from '../i18n'
 
 type ReaderStore = ReturnType<typeof useReaderStore>
 type AppStore = ReturnType<typeof useAppStore>
@@ -230,9 +231,9 @@ export function useReaderSelection(
       selection?.removeAllRanges()
       activeSelectionText.value = ''
       hideSelectionMenu()
-      appStore.showToast('已加入书签', 'success')
+      appStore.showToast(t('reader.bookmarkAdded'), 'success')
     } catch {
-      appStore.showToast('加入书签失败', 'error')
+      appStore.showToast(t('reader.bookmarkAddFailed'), 'error')
     }
   }
 
@@ -252,10 +253,10 @@ export function useReaderSelection(
           ? '*'
           : `book:${store.book.bookUrl}`
       const scopeLabel = mode === 'source'
-        ? '书源替换'
+        ? t('reader.sourceReplace')
         : mode === 'global'
-          ? '全部替换'
-          : '本书替换'
+          ? t('reader.globalReplace')
+          : t('reader.bookReplace')
       const baseName = `${scopeLabel} ${text.slice(0, 20)}`
       const samePatternRule = store.replaceRules.find(rule => (
         rule.pattern === text && (rule.scope || '') === scope
@@ -296,15 +297,15 @@ export function useReaderSelection(
       hideSelectionMenu()
       appStore.showToast(
         mode === 'source'
-          ? '已加入书源替换规则'
+          ? t('reader.addedSourceReplaceRule')
           : mode === 'global'
-            ? '已加入全局替换规则'
-            : '已加入本书替换规则',
+            ? t('reader.addedGlobalReplaceRule')
+            : t('reader.addedBookReplaceRule'),
         'success',
       )
       return true
     } catch {
-      appStore.showToast('加入替换规则失败', 'error')
+      appStore.showToast(t('reader.addReplaceRuleFailed'), 'error')
       return false
     }
   }

@@ -8,7 +8,7 @@
         :aria-checked="partiallySelected ? 'mixed' : allSelected"
         @change="$emit('toggle-current-selection')"
       />
-      <span>{{ allSelected ? '取消全选' : '全选当前' }}</span>
+      <span>{{ allSelected ? t('source.filter.unselectAll') : t('source.filter.selectAll') }}</span>
     </label>
     <div class="search-field">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -18,7 +18,7 @@
       <input
         :value="filterText"
         type="text"
-        placeholder="搜索书源名称或 URL"
+        :placeholder="t('source.filter.searchPlaceholder')"
         @input="$emit('update:filterText', ($event.target as HTMLInputElement).value)"
       />
     </div>
@@ -27,14 +27,14 @@
       class="group-select"
       @change="$emit('update:filterGroup', ($event.target as HTMLSelectElement).value)"
     >
-      <option value="">全部分组</option>
+      <option value="">{{ t('source.filter.allGroups') }}</option>
       <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
     </select>
     <div v-if="selectedCount > 0" class="selection-tools">
-      <span>已选 {{ selectedCount }}</span>
-      <button class="mini-btn danger" type="button" @click="$emit('delete-selection')">删除选中</button>
+      <span>{{ t('source.filter.selected', { count: selectedCount }) }}</span>
+      <button class="mini-btn danger" type="button" @click="$emit('delete-selection')">{{ t('source.filter.deleteSelected') }}</button>
       <button class="mini-btn" type="button" @click="$emit('more-selection', $event)">
-        更多
+        {{ t('source.filter.more') }}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
           <path d="m6 9 6 6 6-6" />
         </svg>
@@ -44,6 +44,8 @@
 </template>
 
 <script setup lang="ts">
+import { t } from '../../i18n'
+
 defineProps<{
   filterText: string
   filterGroup: string

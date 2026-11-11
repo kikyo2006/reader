@@ -15,7 +15,7 @@ use crate::util::time::now_ts;
 const APP_NAMESPACE: &str = "_app";
 const UPDATE_CACHE_NAME: &str = "version-update-cache";
 const UPDATE_PREFERENCES_NAME: &str = "version-update-preferences";
-const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/hadc188/reader/releases/latest";
+const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/kikyo2006/reader/releases/latest";
 /// GitHub API 的镜像前缀。检查版本本身也可能遇到 api.github.com 被阻断或限流，
 /// 因此不能只给下载阶段加镜像。候选按可用性排序，返回内容仍走同一套 JSON 解析
 /// 与版本号校验。
@@ -490,7 +490,7 @@ mod tests {
     fn release_api_mirror_url_wraps_the_github_api_endpoint() {
         assert_eq!(
             release_api_mirror_url("https://gh-proxy.com/"),
-            "https://gh-proxy.com/https://api.github.com/repos/hadc188/reader/releases/latest",
+            "https://gh-proxy.com/https://api.github.com/repos/kikyo2006/reader/releases/latest",
         );
     }
 

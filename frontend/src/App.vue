@@ -41,7 +41,7 @@
           class="toast"
           :class="toast.type"
           role="status"
-          title="点击关闭"
+          :title="t('common.clickToClose')"
           @click="appStore.dismissToast(toast.id)"
         >
           {{ toast.message }}
@@ -55,6 +55,7 @@
 import { computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { listen } from '@tauri-apps/api/event'
+import { t } from './i18n'
 import { useAppStore } from './stores/app'
 import { useReaderStore } from './stores/reader'
 import AppTopBar from './components/AppTopBar.vue'
@@ -173,7 +174,7 @@ async function consumePendingLegadoDeepLink() {
     const result = await importFromLegadoDeepLink(url)
     appStore.showToast(result.message, result.type)
   } catch (error) {
-    appStore.showToast((error as Error).message || '一键导入失败', 'error')
+    appStore.showToast((error as Error).message || t('common.importFailed'), 'error')
   }
 }
 
@@ -264,7 +265,7 @@ function handleGlobalFullscreenKey(e: KeyboardEvent) {
   e.preventDefault()
   void toggleAppFullscreen().catch((error) => {
     resetFullscreenIntent()
-    appStore.showToast((error as Error)?.message || '切换全屏失败', 'warning')
+    appStore.showToast((error as Error)?.message || t('common.toggleFullscreenFailed'), 'warning')
   })
 }
 

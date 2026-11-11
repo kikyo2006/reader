@@ -8,10 +8,10 @@
         <section class="webdav-modal">
           <header class="modal-header">
             <div>
-              <h2>备份与恢复</h2>
-              <p class="subtitle">手动管理本地备份，并与 Legado 兼容的 WebDAV 备份</p>
+              <h2>{{ t('settings.backup.title') }}</h2>
+              <p class="subtitle">{{ t('settings.backup.action') }}</p>
             </div>
-            <button class="icon-btn" @click="close" aria-label="关闭">
+            <button class="icon-btn" @click="close" :aria-label="t('common.close')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
@@ -212,6 +212,7 @@
 import { computed, ref, watch } from 'vue'
 import { useAppStore } from '../stores/app'
 import { toError } from '../api/invoke'
+import { t } from '../i18n'
 import {
   createWebdavBackupArchive,
   deleteWebdavFile,

@@ -4,16 +4,16 @@
       <section ref="dialog" class="source-browser-panel" role="dialog" aria-modal="true" :aria-label="title" tabindex="-1" :style="panelStyle">
         <header class="source-browser-head" :class="{ draggable: draggable }" @pointerdown="startDrag" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag">
           <span class="source-browser-title">{{ title }}</span>
-          <button type="button" class="source-browser-close" @click="closeActive">{{ active.awaitResult ? '取消' : stack.length > 1 ? '返回' : '关闭' }}</button>
-          <button v-if="error && !active.ready" type="button" @click="reload">重新加载</button>
-          <button v-if="active.awaitResult" type="button" class="source-browser-confirm" :disabled="!active.ready || confirming" @click="confirm">{{ confirming ? '正在保存…' : '确认' }}</button>
+          <button type="button" class="source-browser-close" @click="closeActive">{{ active.awaitResult ? t('common.cancel') : stack.length > 1 ? t('common.back') : t('common.close') }}</button>
+          <button v-if="error && !active.ready" type="button" @click="reload">{{ t('common.retry') }}</button>
+          <button v-if="active.awaitResult" type="button" class="source-browser-confirm" :disabled="!active.ready || confirming" @click="confirm">{{ confirming ? t('common.saving') : t('common.confirm') }}</button>
         </header>
         <p v-if="error" class="source-browser-error" role="alert">{{ error }}</p>
         <p v-else-if="message" class="source-browser-message" role="status">{{ message }}</p>
         <iframe
           v-for="panel in stack" v-show="panel === active" :key="panel.panelId"
           :ref="(element) => setFrame(panel.panelId, element)"
-          class="source-browser-frame" :title="panel.title || '书源网页'" :src="panelUrl(panel)"
+          class="source-browser-frame" :title="panel.title || t('source.browserTitle')" :src="panelUrl(panel)"
           sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
           @load="checkReady(panel)"
         ></iframe>
@@ -26,6 +26,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance, type CSSProperties } from 'vue'
 import { closeSourcePanel, type ShowBrowserRequest } from '../api/sourceClick'
 import { readerOrigin } from '../api/scheme'
+import { t } from '../i18n'
 
 const props = defineProps<{ request: ShowBrowserRequest | null; background?: string; color?: string }>()
 const emit = defineEmits<{
@@ -45,7 +46,7 @@ type Panel = ShowBrowserRequest & {
 }
 const stack = ref<Panel[]>([])
 const active = computed(() => stack.value.at(-1))
-const title = computed(() => active.value?.title || active.value?.url || '书源网页')
+const title = computed(() => active.value?.title || active.value?.url || t('source.browserTitle'))
 const options = computed(() => active.value?.options || {})
 const draggable = computed(() => options.value.isDraggable !== false)
 const dialog = ref<HTMLElement | null>(null)
@@ -116,10 +117,10 @@ function markLoading(panel: Panel) {
   panel.readyRequestId = undefined
   if (panel === active.value) {
     error.value = ''
-    message.value = '正在加载网页…'
+    message.value = t('source.browser.loadingWeb')
   }
   readyTimers.set(panel.panelId, window.setTimeout(() => {
-    unavailable(panel, '网页加载超时，请重新加载或取消后重试')
+    unavailable(panel, t('source.browser.loadTimeout'))
   }, 30_000))
 }
 function postToPanel(panel: Panel, data: Record<string, unknown>): boolean {
@@ -134,10 +135,10 @@ function checkReady(panel: Panel) {
   const id = requestId()
   panel.readyRequestId = id
   readyTimers.set(panel.panelId, window.setTimeout(() => {
-    if (panel.readyRequestId === id) unavailable(panel, '当前网页无法确认，请重新加载或取消后重试')
+    if (panel.readyRequestId === id) unavailable(panel, t('source.browser.cannotConfirm'))
   }, 5_000))
   if (!postToPanel(panel, { type: 'reader:ready', requestId: id })) {
-    unavailable(panel, '网页尚未打开，请重新加载后重试')
+    unavailable(panel, t('source.browser.notOpened'))
   }
 }
 watch(() => props.request, async (request) => {
@@ -196,11 +197,11 @@ function confirm() {
   confirmation = {
     panelId: panel.panelId, requestId: id,
     timer: window.setTimeout(() => {
-      if (confirmation?.requestId === id) unavailable(panel, '网页未响应确认，请重新加载后重试')
+      if (confirmation?.requestId === id) unavailable(panel, t('source.browser.noResponseConfirm'))
     }, 12_000),
   }
   if (!postToPanel(panel, { type: 'reader:confirm', requestId: id, documentId: panel.documentId })) {
-    unavailable(panel, '网页未响应确认，请重新加载后重试')
+    unavailable(panel, t('source.browser.noResponseConfirm'))
   }
 }
 
@@ -225,7 +226,7 @@ function handleMessage(event: MessageEvent) {
   if (data.type === 'navigating') { markLoading(panel); return }
   if (data.type === 'navigationCancelled') { checkReady(panel); return }
   if (data.type === 'navigationError') {
-    unavailable(panel, String(data.message || '网页跳转失败，请重新加载后重试'))
+    unavailable(panel, String(data.message || t('source.browser.navigateFailed')))
     return
   }
   if (data.type === 'location') {
@@ -241,7 +242,7 @@ function handleMessage(event: MessageEvent) {
     case 'dismiss': dismiss(); break
     case 'error':
       if (data.requestId && data.requestId !== confirmation?.requestId) return
-      error.value = String(data.message || '网页操作失败')
+      error.value = String(data.message || t('source.browser.operationFailed'))
       clearConfirmation(panel.panelId)
       break
     case 'toast': message.value = String(data.message || ''); emit('toast', message.value); break

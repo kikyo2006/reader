@@ -10,6 +10,7 @@
  */
 import { useAppStore } from '../stores/app'
 import { saveBookSources, readRemoteSourceFile } from '../api/source'
+import { t } from '../i18n'
 import type { BookSource } from '../types'
 import { describeImportLinkFailure, parseImportLink } from '../utils/sourceImportLink'
 
@@ -38,16 +39,16 @@ export function useSourceImport() {
       }) as BookSource[]
 
       if (!sources.length) {
-        appStore.showToast('这个链接里没有可导入的书源', 'warning')
+        appStore.showToast(t('source.importNoSources'), 'warning')
         return 0
       }
 
       await saveBookSources(sources)
-      appStore.showToast(`成功导入 ${sources.length} 个书源`, 'success')
+      appStore.showToast(t('source.importSuccessCount', { count: sources.length }), 'success')
       return sources.length
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error)
-      appStore.showToast(message || '书源导入失败', 'error')
+      appStore.showToast(message || t('source.importFailedToast'), 'error')
       return 0
     }
   }

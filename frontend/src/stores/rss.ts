@@ -4,6 +4,7 @@ import { deleteRssSource, deleteRssSources, getRssArticles, getRssContent, getRs
 import type { RssArticle, RssSource } from '../types'
 import { saveRecentReadBook } from '../utils/recentBooks'
 import { toRssSourceDeletePayload } from '../utils/sourceSelection'
+import { t } from '../i18n'
 
 type ArticleScope = 'source' | 'group' | 'all'
 type ScopedArticle = RssArticle & {
@@ -213,7 +214,7 @@ export const useRssStore = defineStore('rss', () => {
       activeContent.value = inlineContent
       contentLoading.value = false
       saveRecentReadBook({
-        name: article.title || 'RSS 文章',
+        name: article.title || t('rss.articleFallback'),
         author: article.origin || 'RSS',
         bookUrl: article.link,
         origin: `rss:${sourceUrl}`,
@@ -235,7 +236,7 @@ export const useRssStore = defineStore('rss', () => {
       })
       activeContent.value = normalizeFetchedContent(fetchedContent) || inlineContent || ''
       saveRecentReadBook({
-        name: article.title || 'RSS 文章',
+        name: article.title || t('rss.articleFallback'),
         author: article.origin || 'RSS',
         bookUrl: article.link,
         origin: `rss:${sourceUrl}`,

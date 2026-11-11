@@ -1,16 +1,16 @@
 <template>
   <header class="source-manager-header">
     <div class="title-block">
-      <h2>书源管理</h2>
+      <h2>{{ t('source.title') }}</h2>
       <p>
-        共 {{ total }} 个 · 启用 {{ enabled }} 个 · 当前筛选 {{ filtered }} 个
-        <span v-if="selected > 0"> · 已选 {{ selected }} 个</span>
-        <span v-if="testing"> · 测试进度 {{ testCompleted }} / {{ testTotal }}（{{ testPercent }}%）</span>
-        <span v-if="stopping" class="stopping-hint"> · 正在中止…</span>
+        {{ t('source.headerStats', { total, enabled, filtered }) }}
+        <span v-if="selected > 0">{{ t('source.headerSelected', { count: selected }) }}</span>
+        <span v-if="testing">{{ t('source.headerTesting', { completed: testCompleted, total: testTotal, percent: testPercent }) }}</span>
+        <span v-if="stopping" class="stopping-hint">{{ t('source.headerStopping') }}</span>
       </p>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" :class="{ spinning: loading }" type="button" title="刷新" @click="$emit('refresh')">
+      <button class="icon-btn" :class="{ spinning: loading }" type="button" :title="t('common.refresh')" @click="$emit('refresh')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
           <path d="M3 3v5h5" />
@@ -18,9 +18,9 @@
           <path d="M16 16h5v5" />
         </svg>
       </button>
-      <button class="action-btn" type="button" @click="$emit('import-local')">本地导入</button>
-      <button class="action-btn" type="button" @click="$emit('open-subscriptions')">网络导入</button>
-      <button class="action-btn" type="button" @click="$emit('export')">导出</button>
+      <button class="action-btn" type="button" @click="$emit('import-local')">{{ t('source.importLocal') }}</button>
+      <button class="action-btn" type="button" @click="$emit('open-subscriptions')">{{ t('source.importUrl') }}</button>
+      <button class="action-btn" type="button" @click="$emit('export')">{{ t('common.export') }}</button>
       <button
         class="action-btn"
         :class="{ danger: testing }"
@@ -28,7 +28,7 @@
         type="button"
         @click="testing ? $emit('cancel-test') : $emit('test-sources')"
       >
-        {{ stopping ? '正在中止…' : (testing ? '中止测试' : '测试书源') }}
+        {{ stopping ? t('source.headerStopping') : (testing ? t('source.stopTest') : t('source.testSources')) }}
       </button>
       <button
         class="action-btn danger"
@@ -36,10 +36,10 @@
         type="button"
         @click="$emit('delete-invalid')"
       >
-        删除失效<span v-if="invalidCount"> {{ invalidCount }}</span>
+        {{ t('source.deleteInvalid') }}<span v-if="invalidCount"> {{ invalidCount }}</span>
       </button>
-      <button class="action-btn primary" type="button" @click="$emit('create')">新增</button>
-      <button class="icon-btn close-btn" type="button" title="关闭" @click="$emit('close')">
+      <button class="action-btn primary" type="button" @click="$emit('create')">{{ t('source.add') }}</button>
+      <button class="icon-btn close-btn" type="button" :title="t('common.close')" @click="$emit('close')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { t } from '../../i18n'
 
 const props = defineProps<{
   total: number

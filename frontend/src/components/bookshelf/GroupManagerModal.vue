@@ -7,7 +7,7 @@
       <div v-if="modelValue" class="modal-container" @click.self="$emit('update:modelValue', false)">
         <div class="modal-card">
           <div class="modal-header">
-            <h3>分组管理</h3>
+            <h3>{{ t('bookshelf.groups.title') }}</h3>
             <button class="close-btn" @click="$emit('update:modelValue', false)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
             </button>
@@ -15,8 +15,8 @@
 
           <div class="modal-body">
             <div class="create-row">
-              <input v-model.trim="newGroupName" class="group-input" placeholder="新建分组名称" @keyup.enter="createGroup" />
-              <button class="primary-btn" :disabled="!newGroupName" @click="createGroup">新建</button>
+              <input v-model.trim="newGroupName" class="group-input" :placeholder="t('bookshelf.groups.newGroupPlaceholder')" @keyup.enter="createGroup" />
+              <button class="primary-btn" :disabled="!newGroupName" @click="createGroup">{{ t('bookshelf.groups.create') }}</button>
             </div>
 
             <div class="group-list">
@@ -30,22 +30,22 @@
                   <input
                     type="checkbox"
                     :checked="selectedIds.has(group.groupId)"
-                    :aria-label="`选择分组 ${group.groupName}`"
+                    :aria-label="group.groupName"
                     @change="toggleSelect(group.groupId)"
                   />
                 </label>
                 <input
                   v-model.trim="editingNames[group.groupId]"
                   class="group-name-input"
-                  :aria-label="`分组名称 ${group.groupName}`"
+                  :aria-label="group.groupName"
                   @keyup.enter="renameGroup(group.groupId)"
                 />
                 <div class="group-actions">
-                  <button class="ghost-btn" @click="renameGroup(group.groupId)">保存</button>
-                  <button class="ghost-btn danger" @click="deleteGroup(group.groupId, group.groupName)">删除</button>
+                  <button class="ghost-btn" @click="renameGroup(group.groupId)">{{ t('common.save') }}</button>
+                  <button class="ghost-btn danger" @click="deleteGroup(group.groupId, group.groupName)">{{ t('bookshelf.groups.delete') }}</button>
                 </div>
               </div>
-              <p v-if="!shelfStore.visibleGroups.length" class="empty-hint">还没有分组</p>
+              <p v-if="!shelfStore.visibleGroups.length" class="empty-hint">{{ t('bookshelf.groups.empty') }}</p>
             </div>
           </div>
 
@@ -57,14 +57,14 @@
                 :indeterminate.prop="someSelected && !allSelected"
                 @change="toggleSelectAll"
               />
-              <span>全选</span>
+              <span>{{ t('bookshelf.groups.selectAll') }}</span>
             </label>
-            <span class="selection-count">已选 {{ selectedIds.size }} / {{ shelfStore.visibleGroups.length }}</span>
+            <span class="selection-count">{{ t('bookshelf.groups.selectedCount', { selected: selectedIds.size, total: shelfStore.visibleGroups.length }) }}</span>
             <button
               class="danger-btn"
               :disabled="!selectedIds.size || deleting"
               @click="deleteSelected"
-            >{{ deleting ? '删除中…' : '删除所选' }}</button>
+            >{{ deleting ? t('bookshelf.groups.deleting') : t('bookshelf.groups.deleteSelected') }}</button>
           </div>
         </div>
       </div>
@@ -76,6 +76,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useBookshelfStore } from '../../stores/bookshelf'
 import { useAppStore } from '../../stores/app'
+import { t } from '../../i18n'
 
 defineProps<{
   modelValue: boolean
@@ -122,13 +123,13 @@ function toggleSelectAll() {
 }
 
 async function deleteGroup(groupId: number, groupName: string) {
-  const ok = await appStore.confirmDialog(`确定删除分组“${groupName}”？`, { title: '删除分组', danger: true })
+  const ok = await appStore.confirmDialog(t('bookshelf.groups.deleteSingleConfirm', { name: groupName }), { title: t('bookshelf.groups.delete'), danger: true })
   if (!ok) return
   try {
     await shelfStore.removeGroup(groupId)
-    appStore.showToast('分组已删除', 'success')
+    appStore.showToast(t('bookshelf.groups.groupUpdated'), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '删除分组失败', 'error')
+    appStore.showToast((e as Error).message || t('bookshelf.groups.deleteFailed'), 'error')
   }
 }
 
@@ -137,17 +138,17 @@ async function deleteSelected() {
   const ids = [...selectedIds]
   if (!ids.length || deleting.value) return
   const ok = await appStore.confirmDialog(
-    `确定删除选中的 ${ids.length} 个分组？分组内的书会移到未分组，不会被删除。`,
-    { title: '批量删除分组', danger: true },
+    t('bookshelf.groups.deleteConfirm', { count: ids.length }),
+    { title: t('bookshelf.groups.deleteSelected'), danger: true },
   )
   if (!ok) return
   deleting.value = true
   try {
     await shelfStore.removeGroups(ids)
     selectedIds.clear()
-    appStore.showToast(`已删除 ${ids.length} 个分组`, 'success')
+    appStore.showToast(t('bookshelf.groups.selectedCount', { selected: ids.length, total: ids.length }), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '批量删除分组失败', 'error')
+    appStore.showToast((e as Error).message || t('bookshelf.groups.batchDeleteFailed'), 'error')
   } finally {
     deleting.value = false
   }
@@ -158,9 +159,9 @@ async function createGroup() {
   try {
     await shelfStore.saveGroup(newGroupName.value)
     newGroupName.value = ''
-    appStore.showToast('分组已创建', 'success')
+    appStore.showToast(t('bookshelf.groups.groupCreated'), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '创建分组失败', 'error')
+    appStore.showToast((e as Error).message || t('bookshelf.groups.createFailed'), 'error')
   }
 }
 
@@ -169,9 +170,9 @@ async function renameGroup(groupId: number) {
   if (!name) return
   try {
     await shelfStore.saveGroup(name, groupId)
-    appStore.showToast('分组已更新', 'success')
+    appStore.showToast(t('bookshelf.groups.groupUpdated'), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '更新分组失败', 'error')
+    appStore.showToast((e as Error).message || t('bookshelf.groups.updateFailed'), 'error')
   }
 }
 </script>

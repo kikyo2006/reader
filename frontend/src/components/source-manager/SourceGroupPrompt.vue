@@ -30,9 +30,9 @@
               {{ group }}
             </button>
           </div>
-          <p class="prompt-hint">多个分组用逗号分隔，如：玄幻,都市</p>
+          <p class="prompt-hint">{{ t('source.prompt.hint') }}</p>
           <div class="prompt-actions">
-            <button class="prompt-btn" type="button" @click="$emit('close')">取消</button>
+            <button class="prompt-btn" type="button" @click="$emit('close')">{{ t('source.prompt.cancel') }}</button>
             <button class="prompt-btn primary" type="button" :disabled="!hasInput" @click="confirm">
               {{ confirmText }}
             </button>
@@ -45,6 +45,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { t } from '../../i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -57,8 +58,8 @@ const props = withDefaults(
   }>(),
   {
     message: '',
-    placeholder: '分组名',
-    confirmText: '确定',
+    placeholder: () => t('source.prompt.groupNamePlaceholder'),
+    confirmText: () => t('common.confirm'),
     suggestions: () => [],
   },
 )

@@ -9,35 +9,35 @@
     >
       <div
         class="reader-search-header"
-        title="按住拖动面板"
+        :title="t('reader.holdToDragPanel')"
         @pointerdown="startDrag"
         @pointermove="moveDrag"
         @pointerup="endDrag"
         @pointercancel="endDrag"
       >
-        <div class="reader-search-title">章节搜索</div>
+        <div class="reader-search-title">{{ t('reader.chapterSearchTitle') }}</div>
         <div class="reader-search-header-actions">
           <button
             v-if="dragPosition"
             type="button"
             class="reset-panel-position"
-            title="复位面板位置"
-            aria-label="复位面板位置"
+            :title="t('reader.resetPanelPosition')"
+            :aria-label="t('reader.resetPanelPosition')"
             @click="resetDrag"
-          >复位</button>
+          >{{ t('reader.reset') }}</button>
           <button @click="$emit('close')" class="close-search">×</button>
         </div>
       </div>
       <div class="reader-search-form">
         <input
           :value="query"
-          placeholder="搜索当前章节内容..."
+          :placeholder="t('reader.searchCurrentChapterPlaceholder')"
           ref="inputRef"
           @input="$emit('update:query', ($event.target as HTMLInputElement).value)"
           @keyup.enter="$emit('search')"
         />
         <button class="search-submit" @click="$emit('search')" :disabled="!query">
-          搜索
+          {{ t('common.search') }}
         </button>
       </div>
       <div class="search-status-row">
@@ -49,8 +49,8 @@
         </div>
       </div>
       <div class="reader-search-results">
-        <div v-if="!query" class="search-empty">输入关键词开始搜索</div>
-        <div v-else-if="!results.length" class="search-empty">当前章节没有匹配内容</div>
+        <div v-if="!query" class="search-empty">{{ t('reader.inputKeywordToSearch') }}</div>
+        <div v-else-if="!results.length" class="search-empty">{{ t('reader.noMatchingContentInChapter') }}</div>
         <button
           v-for="(result, idx) in results"
           :key="`${result.chapterIndex}-${idx}-${result.snippet}`"
@@ -68,6 +68,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { t } from '../../i18n'
 import type { SearchResultItem } from '../../composables/useReaderSearch'
 import type { ThemePreset } from '../../stores/reader'
 

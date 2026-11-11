@@ -2,25 +2,25 @@
   <div class="rss-manage-view">
     <header class="rss-manage-hero">
       <div>
-        <h1>RSS 源管理</h1>
-        <p>共 {{ store.sources.length }} 个，已启用 {{ enabledCount }} 个，当前筛选 {{ filteredSources.length }} 个。</p>
+        <h1>{{ t('rss.manageTitle') }}</h1>
+        <p>{{ t('rss.manageStats', { total: store.sources.length, enabled: enabledCount, filtered: filteredSources.length }) }}</p>
       </div>
       <div class="rss-manage-actions">
-        <button class="ghost-btn" @click="goBack">返回 RSS</button>
-        <button class="ghost-btn" @click="refreshAll">刷新</button>
-        <button class="ghost-btn" @click="exportSources">导出 JSON</button>
+        <button class="ghost-btn" @click="goBack">{{ t('rss.backToRss') }}</button>
+        <button class="ghost-btn" @click="refreshAll">{{ t('common.refresh') }}</button>
+        <button class="ghost-btn" @click="exportSources">{{ t('rss.exportJson') }}</button>
       </div>
     </header>
 
     <section class="rss-manage-tools">
-      <button class="tool-btn" @click="triggerFileImport">本地导入 JSON</button>
+      <button class="tool-btn" @click="triggerFileImport">{{ t('rss.importLocalJson') }}</button>
       <div class="remote-import-group">
-        <input v-model.trim="remoteJsonUrl" class="remote-input" placeholder="输入 Legado RSS JSON 链接" />
-        <button class="tool-btn" @click="importRemoteJson">远程导入 JSON</button>
+        <input v-model.trim="remoteJsonUrl" class="remote-input" :placeholder="t('rss.remoteJsonPlaceholder')" />
+        <button class="tool-btn" @click="importRemoteJson">{{ t('rss.importRemoteJson') }}</button>
       </div>
-      <button class="tool-btn" :class="{ primary: !editingSource }" @click="createSource">新增 RSS 源</button>
+      <button class="tool-btn" :class="{ primary: !editingSource }" @click="createSource">{{ t('rss.newSource') }}</button>
       <button class="tool-btn danger" :disabled="!selectedFilteredSources.length" @click="handleBulkDelete">
-        批量删除{{ selectedFilteredSources.length ? ` (${selectedFilteredSources.length})` : '' }}
+        {{ selectedFilteredSources.length ? t('rss.batchDeleteWithCount', { count: selectedFilteredSources.length }) : t('rss.batchDelete') }}
       </button>
       <input ref="fileInputRef" type="file" accept=".json,.txt" class="hidden-input" @change="handleFileImport" />
     </section>
@@ -28,8 +28,8 @@
     <section class="rss-manage-layout">
       <aside class="rss-sources">
         <div class="panel-title-row compact">
-          <div class="panel-title">RSS 源 ({{ filteredSources.length }})</div>
-          <button v-if="selectedFilteredSources.length" class="mini-btn" @click="clearSelection">清空选择</button>
+          <div class="panel-title">{{ t('rss.sourceCount', { count: filteredSources.length }) }}</div>
+          <button v-if="selectedFilteredSources.length" class="mini-btn" @click="clearSelection">{{ t('rss.clearSelection') }}</button>
         </div>
         <div class="filter-row">
           <label class="bulk-check" :class="{ muted: !filteredSources.length }">
@@ -40,17 +40,17 @@
               :aria-checked="partiallyFilteredSelected ? 'mixed' : allFilteredSelected"
               @change="toggleFilteredSelection"
             />
-            <span>{{ allFilteredSelected ? '取消全选' : '全选当前' }}</span>
+            <span>{{ allFilteredSelected ? t('rss.unselectAll') : t('rss.selectAllCurrent') }}</span>
           </label>
-          <input v-model.trim="filterText" placeholder="搜索源名称或链接" />
+          <input v-model.trim="filterText" :placeholder="t('rss.searchSourcePlaceholder')" />
           <select v-model="filterGroup">
-            <option value="">全部分组</option>
+            <option value="">{{ t('rss.allGroups') }}</option>
             <option v-for="group in groupList" :key="group" :value="group">{{ group }}</option>
           </select>
         </div>
 
         <div v-if="!filteredSources.length" class="empty-box">
-          {{ store.sources.length ? '没有匹配的 RSS 源' : '暂无 RSS 源' }}
+          {{ store.sources.length ? t('rss.noMatchedSources') : t('rss.emptySources') }}
         </div>
         <div
           v-for="source in filteredSources"
@@ -86,36 +86,36 @@
               <input type="checkbox" :checked="source.enabled !== false" @change.stop="toggleSource(source)" />
               <span class="toggle-slider"></span>
             </label>
-            <button class="mini-btn danger" @click.stop="handleDelete(source)">删除</button>
+            <button class="mini-btn danger" @click.stop="handleDelete(source)">{{ t('common.delete') }}</button>
           </div>
         </div>
         <div v-if="selectedFilteredSources.length" class="bulk-action-card">
-          <span>已选择 {{ selectedFilteredSources.length }} 个当前结果</span>
-          <button class="mini-btn danger" @click="handleBulkDelete">删除选中</button>
+          <span>{{ t('rss.selectedCurrentResult', { count: selectedFilteredSources.length }) }}</span>
+          <button class="mini-btn danger" @click="handleBulkDelete">{{ t('rss.deleteSelected') }}</button>
         </div>
       </aside>
 
       <section class="rss-editor">
         <div class="panel-title-row">
-          <div class="panel-title">{{ editingSource ? '编辑 RSS 源' : '新增 RSS 源' }}</div>
+          <div class="panel-title">{{ editingSource ? t('rss.editSource') : t('rss.newSource') }}</div>
           <div class="panel-actions">
-            <button class="ghost-btn" @click="resetEditor">重置</button>
-            <button class="ghost-btn primary" @click="saveEditor">保存</button>
+            <button class="ghost-btn" @click="resetEditor">{{ t('common.reset') }}</button>
+            <button class="ghost-btn primary" @click="saveEditor">{{ t('common.save') }}</button>
           </div>
         </div>
 
         <div class="visual-form">
           <label>
-            <span>源名称</span>
-            <input v-model.trim="formState.sourceName" placeholder="请输入 RSS 名称" />
+            <span>{{ t('rss.sourceName') }}</span>
+            <input v-model.trim="formState.sourceName" :placeholder="t('rss.sourceNamePlaceholder')" />
           </label>
           <label>
-            <span>源链接</span>
-            <input v-model.trim="formState.sourceUrl" placeholder="请输入 RSS 链接" />
+            <span>{{ t('rss.sourceUrl') }}</span>
+            <input v-model.trim="formState.sourceUrl" :placeholder="t('rss.sourceUrlPlaceholder')" />
           </label>
           <label class="group-field">
-            <span>分组</span>
-            <input v-model.trim="formState.sourceGroup" placeholder="多个分组可用逗号分隔" />
+            <span>{{ t('rss.group') }}</span>
+            <input v-model.trim="formState.sourceGroup" :placeholder="t('rss.groupPlaceholder')" />
           </label>
           <div class="group-chip-row" v-if="groupList.length">
             <button
@@ -130,100 +130,100 @@
           </div>
 
           <label>
-            <span>排序链接</span>
-            <input v-model.trim="formState.sortUrl" placeholder="为空时默认使用源链接" />
+            <span>{{ t('rss.sortUrl') }}</span>
+            <input v-model.trim="formState.sortUrl" :placeholder="t('rss.sortUrlPlaceholder')" />
           </label>
           <label>
-            <span>图标链接</span>
-            <input v-model.trim="formState.sourceIcon" placeholder="可选" />
+            <span>{{ t('rss.iconUrl') }}</span>
+            <input v-model.trim="formState.sourceIcon" :placeholder="t('rss.optional')" />
           </label>
           <label class="full-span">
-            <span>备注</span>
-            <textarea v-model.trim="formState.sourceComment" rows="2" placeholder="可选备注"></textarea>
+            <span>{{ t('rss.comment') }}</span>
+            <textarea v-model.trim="formState.sourceComment" rows="2" :placeholder="t('rss.commentPlaceholder')"></textarea>
           </label>
 
           <label class="switch-field">
-            <span>启用源</span>
+            <span>{{ t('rss.enableSource') }}</span>
             <input v-model="formState.enabled" type="checkbox" />
           </label>
           <label class="switch-field">
-            <span>启用 CookieJar</span>
+            <span>{{ t('rss.enableCookieJar') }}</span>
             <input v-model="formState.enabledCookieJar" type="checkbox" />
           </label>
           <label class="switch-field">
-            <span>启用 JS</span>
+            <span>{{ t('rss.enableJs') }}</span>
             <input v-model="formState.enableJs" type="checkbox" />
           </label>
           <label class="switch-field">
-            <span>单链接模式</span>
+            <span>{{ t('rss.singleUrlMode') }}</span>
             <input v-model="formState.singleUrl" type="checkbox" />
           </label>
           <label class="switch-field">
-            <span>基于源地址补全</span>
+            <span>{{ t('rss.loadWithBaseUrl') }}</span>
             <input v-model="formState.loadWithBaseUrl" type="checkbox" />
           </label>
 
           <label>
-            <span>并发频率</span>
-            <input v-model.trim="formState.concurrentRate" placeholder="可选，如 1/1000" />
+            <span>{{ t('rss.concurrentRate') }}</span>
+            <input v-model.trim="formState.concurrentRate" :placeholder="t('rss.concurrentRatePlaceholder')" />
           </label>
           <label>
-            <span>自定义排序</span>
+            <span>{{ t('rss.customOrder') }}</span>
             <input v-model.number="formState.customOrder" type="number" placeholder="0" />
           </label>
           <label>
-            <span>文章样式</span>
+            <span>{{ t('rss.articleStyle') }}</span>
             <input v-model.number="formState.articleStyle" type="number" placeholder="0" />
           </label>
 
           <label class="full-span">
-            <span>请求头</span>
-            <textarea v-model.trim="formState.header" rows="3" placeholder="可选，JSON 字符串"></textarea>
+            <span>{{ t('rss.header') }}</span>
+            <textarea v-model.trim="formState.header" rows="3" :placeholder="t('rss.headerPlaceholder')"></textarea>
           </label>
           <label class="full-span">
-            <span>登录链接</span>
-            <input v-model.trim="formState.loginUrl" placeholder="可选" />
+            <span>{{ t('rss.loginUrl') }}</span>
+            <input v-model.trim="formState.loginUrl" :placeholder="t('rss.optional')" />
           </label>
           <label class="full-span">
-            <span>登录校验 JS</span>
-            <textarea v-model.trim="formState.loginCheckJs" rows="2" placeholder="可选"></textarea>
+            <span>{{ t('rss.loginCheckJs') }}</span>
+            <textarea v-model.trim="formState.loginCheckJs" rows="2" :placeholder="t('rss.optional')"></textarea>
           </label>
 
           <label class="full-span">
-            <span>文章列表规则</span>
+            <span>{{ t('rss.ruleArticles') }}</span>
             <textarea v-model.trim="formState.ruleArticles" rows="2" placeholder="ruleArticles"></textarea>
           </label>
           <label>
-            <span>下一页规则</span>
+            <span>{{ t('rss.ruleNextPage') }}</span>
             <input v-model.trim="formState.ruleNextPage" placeholder="ruleNextPage" />
           </label>
           <label>
-            <span>标题规则</span>
+            <span>{{ t('rss.ruleTitle') }}</span>
             <input v-model.trim="formState.ruleTitle" placeholder="ruleTitle" />
           </label>
           <label>
-            <span>时间规则</span>
+            <span>{{ t('rss.rulePubDate') }}</span>
             <input v-model.trim="formState.rulePubDate" placeholder="rulePubDate" />
           </label>
           <label>
-            <span>摘要规则</span>
+            <span>{{ t('rss.ruleDescription') }}</span>
             <input v-model.trim="formState.ruleDescription" placeholder="ruleDescription" />
           </label>
           <label>
-            <span>图片规则</span>
+            <span>{{ t('rss.ruleImage') }}</span>
             <input v-model.trim="formState.ruleImage" placeholder="ruleImage" />
           </label>
           <label>
-            <span>链接规则</span>
+            <span>{{ t('rss.ruleLink') }}</span>
             <input v-model.trim="formState.ruleLink" placeholder="ruleLink" />
           </label>
           <label class="full-span">
-            <span>正文规则</span>
+            <span>{{ t('rss.ruleContent') }}</span>
             <textarea v-model.trim="formState.ruleContent" rows="3" placeholder="ruleContent"></textarea>
           </label>
           <label class="full-span">
-            <span>样式</span>
-            <textarea v-model.trim="formState.style" rows="2" placeholder="可选"></textarea>
+            <span>{{ t('rss.style') }}</span>
+            <textarea v-model.trim="formState.style" rows="2" :placeholder="t('rss.optional')"></textarea>
           </label>
         </div>
       </section>
@@ -240,6 +240,7 @@ import { useRssStore } from '../stores/rss'
 import { showContextMenu } from '../composables/useContextMenu'
 import type { RssSource } from '../types'
 import { getVisibleSelection } from '../utils/sourceSelection'
+import { t } from '../i18n'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -308,7 +309,7 @@ onMounted(async () => {
 
 function createEmptySource(): RssSource {
   return {
-    sourceName: '新增 RSS 源',
+    sourceName: t('rss.newSource'),
     sourceUrl: '',
     enabled: true,
     enabledCookieJar: true,
@@ -387,17 +388,17 @@ async function saveEditor() {
       ruleContent: formState.ruleContent?.trim() || '',
       style: formState.style?.trim() || '',
     } as RssSource
-    if (!parsed.sourceName?.trim()) throw new Error('RSS 名称不能为空')
-    if (!parsed.sourceUrl?.trim()) throw new Error('RSS 链接不能为空')
+    if (!parsed.sourceName?.trim()) throw new Error(t('rss.nameRequired'))
+    if (!parsed.sourceUrl?.trim()) throw new Error(t('rss.urlRequired'))
     await saveRssSource(parsed)
     await store.fetchSources()
     const latest = store.sources.find((item) => item.sourceUrl === parsed.sourceUrl)
     if (latest) {
       editSource(latest)
     }
-    appStore.showToast('RSS 源已保存', 'success')
+    appStore.showToast(t('rss.savedSuccess'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '保存失败', 'error')
+    appStore.showToast((error as Error).message || t('common.saveFailed'), 'error')
   }
 }
 
@@ -408,30 +409,30 @@ async function toggleSource(source: RssSource) {
   if (editingSource.value?.sourceUrl === source.sourceUrl) {
     editSource(next)
   }
-  appStore.showToast('RSS 源状态已更新', 'success')
+  appStore.showToast(t('rss.statusUpdated'), 'success')
 }
 
 async function handleDelete(source: RssSource) {
-  const ok = await appStore.confirmDialog(`确定删除 RSS 源 "${source.sourceName}"？`, { title: '删除RSS源', danger: true })
+  const ok = await appStore.confirmDialog(t('rss.confirmDeleteSource', { name: source.sourceName }), { title: t('rss.deleteSourceTitle'), danger: true })
   if (!ok) return
   await store.removeSource(source)
   selectedSourceUrls.value.delete(source.sourceUrl)
   if (editingSource.value?.sourceUrl === source.sourceUrl) {
     createSource()
   }
-  appStore.showToast('RSS 源已删除', 'success')
+  appStore.showToast(t('rss.deletedSuccess'), 'success')
 }
 
 function handleSourceContextMenu(event: MouseEvent, source: RssSource) {
   const enabled = source.enabled !== false
   const menuItems = [
-    { label: '编辑', action: () => editSource(source) },
+    { label: t('common.edit'), action: () => editSource(source) },
     {
-      label: enabled ? '停用' : '启用',
+      label: enabled ? t('common.disable') : t('common.enable'),
       action: () => toggleSource(source),
     },
     { divider: true },
-    { label: '删除', danger: true, action: () => handleDelete(source) },
+    { label: t('common.delete'), danger: true, action: () => handleDelete(source) },
   ]
   showContextMenu(event, menuItems, source)
 }
@@ -439,10 +440,10 @@ function handleSourceContextMenu(event: MouseEvent, source: RssSource) {
 async function handleBulkDelete() {
   const targets = selectedFilteredSources.value
   if (!targets.length) {
-    appStore.showToast('请先选择要删除的 RSS 源', 'warning')
+    appStore.showToast(t('rss.selectSourcesToDelete'), 'warning')
     return
   }
-  const ok = await appStore.confirmDialog(`确定删除选中的 ${targets.length} 个 RSS 源？`, { title: '批量删除RSS', danger: true })
+  const ok = await appStore.confirmDialog(t('rss.confirmBulkDelete', { count: targets.length }), { title: t('rss.bulkDeleteTitle'), danger: true })
   if (!ok) return
   try {
     const targetUrls = new Set(targets.map((source) => source.sourceUrl))
@@ -451,9 +452,9 @@ async function handleBulkDelete() {
     if (editingSource.value && targetUrls.has(editingSource.value.sourceUrl)) {
       createSource()
     }
-    appStore.showToast(`已删除 ${deleted || targets.length} 个 RSS 源`, 'success')
+    appStore.showToast(t('rss.bulkDeleteSuccess', { count: deleted || targets.length }), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '批量删除失败', 'error')
+    appStore.showToast((error as Error).message || t('rss.bulkDeleteFailed'), 'error')
   }
 }
 
@@ -498,11 +499,11 @@ async function handleFileImport(event: Event) {
   if (!file) return
   try {
     const imported = await readRssSourceFile(file)
-    if (!imported.length) throw new Error('文件中没有可导入的 RSS 源')
+    if (!imported.length) throw new Error(t('rss.noImportableSources'))
     await store.addSources(imported)
-    appStore.showToast(`成功导入 ${imported.length} 个 RSS 源`, 'success')
+    appStore.showToast(t('rss.importSuccess', { count: imported.length }), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '导入失败', 'error')
+    appStore.showToast((error as Error).message || t('common.importFailed'), 'error')
   } finally {
     input.value = ''
   }
@@ -510,7 +511,7 @@ async function handleFileImport(event: Event) {
 
 async function importRemoteJson() {
   if (!remoteJsonUrl.value) {
-    appStore.showToast('请输入远程 RSS JSON 链接', 'warning')
+    appStore.showToast(t('rss.enterRemoteUrlPrompt'), 'warning')
     return
   }
   try {
@@ -523,11 +524,11 @@ async function importRemoteJson() {
         return []
       }
     }) as RssSource[]
-    if (!parsed.length) throw new Error('远程 RSS JSON 为空或格式错误')
+    if (!parsed.length) throw new Error(t('rss.invalidRemoteJson'))
     await store.addSources(parsed)
-    appStore.showToast(`成功导入 ${parsed.length} 个 RSS 源`, 'success')
+    appStore.showToast(t('rss.importSuccess', { count: parsed.length }), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '远程导入失败', 'error')
+    appStore.showToast((error as Error).message || t('rss.remoteImportFailed'), 'error')
   }
 }
 

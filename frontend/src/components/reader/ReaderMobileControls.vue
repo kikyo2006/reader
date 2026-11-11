@@ -12,13 +12,13 @@
     <Transition name="slide-down">
       <div v-show="show" class="m-top-bar">
         <!--
-          迷你模式只保留上一章/下一章/目录(见下方 nav-row 与这里的目录项),
+          迷你模式只保留{{ t('reader.prevChapter') }}/{{ t('reader.nextChapter') }}/目录(见下方 nav-row 与这里的目录项),
           其余入口(首页/书架/书源/设置)与两侧悬浮钮都不渲染 —— 小窗里那些
           入口既占地方又基本用不到。
         -->
         <div v-if="!mini" class="m-top-item" @click="$emit('goHome')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
-          <span>首页</span>
+          <span>{{ t('common.home') }}</span>
         </div>
         <!--
           顶栏的「书架」位在书**未加入书架**时变成「加入书架」——
@@ -29,11 +29,11 @@
           v-if="!mini && canAddToShelf"
           class="m-top-item add-shelf"
           :class="{ busy: addingToShelf }"
-          :title="addingToShelf ? '正在加入书架' : '把这本书加入书架'"
+          :title="addingToShelf ? t('bookshelf.adding') : t('bookshelf.addToShelf')"
           @click="$emit('addToShelf')"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
-          <span>{{ addingToShelf ? '加入中' : '加入书架' }}</span>
+          <span>{{ addingToShelf ? t('bookshelf.adding') : t('bookshelf.addToShelf') }}</span>
         </div>
         <div
           v-else-if="!mini"
@@ -42,7 +42,7 @@
           @click="store.togglePanel('bookshelf')"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
-          <span>书架</span>
+          <span>{{ t('bookshelf.title') }}</span>
         </div>
         <!--
           Web 端不提供「书源」入口: 换源面板靠 `getAvailableBookSourceSSE`
@@ -56,15 +56,15 @@
           @click="store.togglePanel('source')"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /></svg>
-          <span>书源</span>
+          <span>{{ t('source.title') }}</span>
         </div>
         <div class="m-top-item" :class="{ active: store.activePanel === 'catalog' }" @click="store.togglePanel('catalog')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
-          <span>目录</span>
+          <span>{{ t('reader.catalog') }}</span>
         </div>
         <div v-if="!mini" class="m-top-item" :class="{ active: store.activePanel === 'settings' }" @click="store.togglePanel('settings')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
-          <span>设置</span>
+          <span>{{ t('reader.settings') }}</span>
         </div>
       </div>
     </Transition>
@@ -86,7 +86,7 @@
             :aria-valuemin="1"
             :aria-valuemax="Math.max(1, store.chapters.length)"
             :aria-valuenow="store.currentIndex + 1"
-            aria-label="阅读进度"
+            :aria-label="t('reader.readingProgress')"
             tabindex="0"
             @click.stop="seekToPointer($event)"
             @pointerdown.stop="startSeek($event)"
@@ -104,7 +104,7 @@
             type="button"
             class="page-text"
             :disabled="appStore.isWebMode"
-            :title="appStore.isWebMode ? '缓存管理请在桌面端使用' : undefined"
+            :title="appStore.isWebMode ? t('reader.cacheManageDesktopOnly') : undefined"
             @click="$emit('progress')"
           >
             {{ chapterPositionText }}
@@ -113,11 +113,11 @@
         <div v-if="!mini" class="nav-row">
           <div class="nav-btn" :class="{ disabled: !store.hasPrev }" @click="$emit('prev')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
-            上一章
+            {{ t('reader.prevChapter') }}
           </div>
-          <div class="progress-percent">阅读进度: {{ store.readingProgress }}</div>
+          <div class="progress-percent">{{ t('reader.progressPercent', { percent: store.readingProgress }) }}</div>
           <div class="nav-btn" :class="{ disabled: !store.hasNext }" @click="$emit('next')">
-            下一章
+            {{ t('reader.nextChapter') }}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" /></svg>
           </div>
         </div>
@@ -130,17 +130,17 @@
           <template v-if="miniFontOpen">
             <button
               class="mini-font-toggle active"
-              title="收起字体设置"
+              :title="t('common.collapse')"
               @click="miniFontOpen = false"
             >Aa</button>
             <div class="mini-font-group">
-              <span class="mini-font-label">字号</span>
+              <span class="mini-font-label">{{ t('reader.fontSize') }}</span>
               <button class="mini-step" :disabled="store.config.fontSize <= READER_FONT_SIZE_MIN" @click="stepFontSize(-1)">−</button>
               <span class="mini-step-val">{{ store.config.fontSize }}</span>
               <button class="mini-step" :disabled="store.config.fontSize >= READER_FONT_SIZE_MAX" @click="stepFontSize(1)">+</button>
             </div>
             <div class="mini-font-group">
-              <span class="mini-font-label">字重</span>
+              <span class="mini-font-label">{{ t('reader.fontWeight') }}</span>
               <button class="mini-step" :disabled="store.config.fontWeight <= MIN_FONT_WEIGHT" @click="stepFontWeight(-100)">−</button>
               <span class="mini-step-val">{{ store.config.fontWeight }}</span>
               <button class="mini-step" :disabled="store.config.fontWeight >= MAX_FONT_WEIGHT" @click="stepFontWeight(100)">+</button>
@@ -149,11 +149,11 @@
           <template v-else>
             <div class="nav-btn" :class="{ disabled: !store.hasPrev }" @click="$emit('prev')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
-              上一章
+              {{ t('reader.prevChapter') }}
             </div>
-            <button class="mini-font-toggle" title="字体大小与粗细" @click="miniFontOpen = true">Aa</button>
+            <button class="mini-font-toggle" :title="t('reader.fontSettings')" @click="miniFontOpen = true">Aa</button>
             <div class="nav-btn" :class="{ disabled: !store.hasNext }" @click="$emit('next')">
-              下一章
+              {{ t('reader.nextChapter') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" /></svg>
             </div>
           </template>
@@ -207,6 +207,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { t } from '../../i18n'
 import { useReaderStore } from '../../stores/reader'
 import { useAppStore } from '../../stores/app'
 import {
@@ -229,7 +230,7 @@ const theme = computed(() => store.currentTheme)
 const chapterPositionText = computed(() => {
   const total = store.chapters.length
   if (total === 0) return '—'
-  return `第 ${store.currentIndex + 1}/${total} 章`
+  return t('reader.chapterPosition', { current: store.currentIndex + 1, total })
 })
 
 const progressTrackRef = ref<HTMLElement | null>(null)
@@ -263,7 +264,7 @@ const props = defineProps<{
   show: boolean
   isSpeaking?: boolean
   isPaused?: boolean
-  /** 迷你模式: 只保留上一章/下一章/目录。 */
+  /** 迷你模式: 只保留{{ t('reader.prevChapter') }}/{{ t('reader.nextChapter') }}/目录。 */
   mini?: boolean
   /** 当前书是否未加入书架 —— 决定顶栏「书架」位显示「加入书架」。 */
   canAddToShelf?: boolean

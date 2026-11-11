@@ -1,264 +1,246 @@
 # Reader
 
-[![Release](https://img.shields.io/github/v/release/hadc188/reader?display_name=tag&style=flat-square)](https://github.com/hadc188/reader/releases)
-[![Build](https://img.shields.io/github/actions/workflow/status/hadc188/reader/release.yml?style=flat-square&label=build)](https://github.com/hadc188/reader/actions/workflows/release.yml)
-[![License](https://img.shields.io/github/license/hadc188/reader?style=flat-square)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/kikyo2006/reader?display_name=tag&style=flat-square)](https://github.com/kikyo2006/reader/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/kikyo2006/reader/release.yml?style=flat-square&label=build)](https://github.com/kikyo2006/reader/actions/workflows/release.yml)
+[![License](https://img.shields.io/github/license/kikyo2006/reader?style=flat-square)](LICENSE)
 
-> 一个面向桌面端的本地阅读器：管理自己的书源与书架，也能阅读本地书籍、订阅 RSS，并按喜欢的方式定制阅读界面。
+> A modern local desktop reading client: manage your own book sources and bookshelf, read local files, subscribe to RSS feeds, and customize your reading experience just the way you like.
 
-Reader 是「阅读3.0」（[Legado](https://github.com/Rimchars/legado)）的跨平台桌面移植版，支持 Windows、macOS 和 Linux，使用 Rust、Tauri v2 与 Vue 3 构建。
+Reader is a cross-platform desktop port inspired by "Legado" ([阅读 3.0](https://github.com/Rimchars/legado)), supporting Windows, macOS, and Linux. Built with Rust, Tauri v2, and Vue 3.
 
-项目采用纯单机设计，不需要部署服务端、数据库容器或注册账号。界面与本地核心运行在同一个桌面进程中，书架、阅读进度、缓存和配置由用户自己保存和管理。
+Designed with a local-first philosophy, it requires no backend servers, database containers, or user account registrations. The UI and local core run inside the same desktop process, leaving your bookshelf, reading progress, caches, and preferences entirely under your ownership.
 
-项目源自 [reader](https://github.com/hectorqin/reader)，并参考 [reader-rust](https://github.com/givenge/reader-rust) 进行重构。
+Originated from [reader](https://github.com/hectorqin/reader) and refactored with reference to [reader-rust](https://github.com/givenge/reader-rust).
 
 > [!IMPORTANT]
-> 本项目不内置书源，也不提供任何书籍内容。首次启动后可导入自己拥有合法使用权的书源、本地 TXT、EPUB 或 PDF 文件。
+> This software does not bundle any book sources or host copyrighted literary content. Upon first launch, you can import your own legally authorized book sources or local TXT, EPUB, and PDF files.
 
-## 界面预览
+## UI Preview
 
-### 书架与阅读
+### Bookshelf & Reading
 
-<p align="center"><img src="desktop/image/1.1.png" alt="书架" width="100%" /></p>
-<p align="center"><img src="desktop/image/3.1.png" alt="阅读页面" width="100%" /></p>
+<p align="center"><img src="desktop/image/1.1.png" alt="Bookshelf" width="100%" /></p>
+<p align="center"><img src="desktop/image/3.1.png" alt="Reader View" width="100%" /></p>
 
-### 书源与发现
-
-<p align="center">
-  <img src="desktop/image/2.1.png" alt="书源管理" width="49%" />
-  <img src="desktop/image/4.png" alt="发现书海" width="49%" />
-</p>
-
-### 统计与 RSS
+### Book Sources & Explore
 
 <p align="center">
-  <img src="desktop/image/5.png" alt="阅读数据统计" width="49%" />
-  <img src="desktop/image/6.png" alt="RSS 阅读" width="49%" />
+  <img src="desktop/image/2.1.png" alt="Source Manager" width="49%" />
+  <img src="desktop/image/4.png" alt="Explore" width="49%" />
 </p>
 
-## 项目亮点
+### Statistics & RSS
 
-- **本地优先**：不依赖常驻服务端，数据保存在自己的设备中。
-- **兼容阅读生态**：支持 Legado 书源、RSS 源及备份数据的导入与恢复。
-- **完整书源工具**：从导入、编辑、测试到登录调试都可以在桌面应用内完成。
-- **可定制阅读体验**：阅读主题、字体、排版、翻页方式、背景图片与透明度均可调整。
-- **多种听书方式**：支持系统语音及多种第三方语音接口格式。
-- **跨平台发布**：自动构建 Windows、macOS 和 Linux 桌面安装包或便携包。
+<p align="center">
+  <img src="desktop/image/5.png" alt="Reading Stats" width="49%" />
+  <img src="desktop/image/6.png" alt="RSS Feeds" width="49%" />
+</p>
 
-## 功能一览
+### Multi-Language Support
 
-### 书源、搜索与缓存
+<p align="center"><img src="desktop/image/language-support.png" alt="Multi-Language Support" width="55%" /></p>
 
-- 导入、导出、新增、编辑和批量测试 JSON 书源
-- 书源列表支持批量删除，测试过程中可随时中止
-- 远程书源订阅与一键同步更新
-- 支持 CSS 选择器、JSONPath、XPath、正则表达式及 JavaScript 解析规则
-- 多书源并行搜索，按书名和作者合并结果并显示来源数量，结果较多时分页展示
-- 书籍详情、目录获取、换源、章节缓存与离线阅读
-- 书源可视化编辑器、原始响应查看和分步骤规则调试
-- 书源登录预览及 Cookie 登录状态支持
-- 支持书源自定义登录表单、按钮操作与登录状态保存
+Reader provides comprehensive localization out-of-the-box for:
+- **English** (`en-US`)
+- **Tiếng Việt** (`vi-VN`)
+- **简体中文** (`zh-CN`)
 
-### 阅读体验
+Switch display languages on-the-fly anytime in **Settings → Language** (`Cài đặt → Ngôn ngữ` / `设置 → 界面语言`) without needing to restart the application.
 
-- 书架分组、最近阅读、书签和阅读进度记录
-- 本地 TXT、EPUB、PDF 与网络书籍阅读
-- 日间、夜间及多种阅读主题，可跟随应用外观切换
-- 字体、字号、字重、行高、段距、缩进和页面宽度调节，支持导入自定义字体
-- 滚动、左右翻页、点击翻页与自动阅读
-- 简繁转换、文字选择、内容净化与自定义替换规则
-- 阅读页右键菜单，可搜索、添加书签、换源、自动翻页和刷新
-- 自定义桌面背景，可选择是否应用到阅读页并调节透明度
-- 应用窗口整体不透明度可调（Windows，10%–100%），可选择是否应用到阅读页
-- 阅读页点击正文即可呼出上下工具栏与左右悬浮按钮，不占用正文空间
-- 迷你模式：一键缩成小窗并自动置顶，只保留上一章、下一章与目录，可直接调节字号和字重
+---
 
-### 阅读数据与订阅
+## Highlights
 
-- 统计累计阅读时长、阅读字数和活跃天数
-- 按时间范围查看每日阅读趋势及每本书的阅读时长
-- RSS 源的本地导入、远程导入、编辑、订阅与文章阅读
-- RSS 文章与普通书籍统一出现在最近阅读记录中
+- **Local-First**: Zero reliance on cloud servers or external accounts; data stays securely on your machine.
+- **Legado Ecosystem Compatibility**: Seamlessly import, parse, and restore Legado book sources, RSS feeds, and backup archives.
+- **Multi-Language Support**: Fully localized interface in English, Vietnamese, and Simplified Chinese with instant switching.
+- **Complete Source DevTools**: Import, edit, test, and debug book sources and login sessions directly within the desktop UI.
+- **Highly Customizable Reader**: Tailor typography, themes, fonts, paging animations, window transparency, and background images.
+- **Diverse TTS Engines**: Listen to books using system speech voices or cloud-based API speech providers (OpenAI, Fish Audio, ElevenLabs, Azure, Edge).
+- **Cross-Platform**: Automated CI builds for Windows, macOS, and Linux with both installers and portable binaries.
 
-### 数据管理
+## Features
 
-- 本地备份、恢复及备份文件管理
-- 与 Legado 互通书架、书源、RSS、书签、净化规则和阅读进度
-- 通过 WebDAV 与 Legado 手机端双向同步当前阅读章节和位置
-- 支持旧版 JSON 备份以及新版 ZIP 备份
-- 应用关闭时可选择直接退出或隐藏到系统托盘
-- 可配置全局老板键，在其他窗口中快速隐藏或恢复应用
-- 自动记住窗口尺寸与位置；拔掉外接显示器后会自动校正，不会出现窗口跑到屏幕外
+### Book Sources, Search & Caching
 
-### Web 访问（手机阅读）
+- Import, export, create, edit, and batch-test JSON book sources.
+- Multi-source batch operations and non-blocking cancelable testing.
+- Remote source subscription with one-click synchronization.
+- Flexible parsing rules: CSS Selectors, JSONPath, XPath, Regular Expressions, and JavaScript.
+- Concurrent multi-source search with automatic title/author merging and deduplication.
+- Chapter caching, background preloading, and offline reading.
+- Visual rule editor with raw response inspection and step-by-step rule debugger.
+- Built-in source login dialog supporting web views, custom credential forms, and Cookie management.
 
-- 在桌面端「设置 → 应用 → Web 访问」开启后，手机/平板浏览器打开显示的地址即可读书架与正文
-- 默认只监听 `127.0.0.1:1122`；打开「允许局域网访问」后绑定全部网卡，供同一 WiFi 下的设备访问
-- **没有账号密码**（与 Legado 手机端一致）：放开局域网等于同网段的任何人都能读你的书架，请只在可信网络里开启
-- 提供书架、目录、正文、进度、书签、替换规则与 WiFi 传书；搜索、换源、备份、缓存整本等只在桌面端提供
+### Reading Experience
 
-详见 [`docs/web-reader.md`](docs/web-reader.md)。
+- Grouped bookshelf, recent reading records, bookmarks, and auto-synced reading position.
+- Support for local TXT, EPUB, PDF files as well as remote web novels.
+- Day, night, and custom color themes matching system dark/light modes.
+- Rich typography settings: font family, font size, font weight, line height, paragraph spacing, text indent, and page width.
+- Multiple reading modes: single chapter scroll, horizontal paging, continuous reading, auto-scroll, and click-to-flip.
+- Simplified/Traditional Chinese conversion, text selection toolbar, content filtering, and custom regex replacement rules.
+- Context menu for quick search, bookmarking, source switching, and instant content refresh.
+- Custom background images and per-window opacity adjustments (Windows, 10%–100%).
+- Mini Mode: Collapse into a compact, always-on-top floating reader window for discreet reading.
 
-## 快速开始
+### Multi-Language Localization
 
-1. 前往 [Releases](https://github.com/hadc188/reader/releases) 下载适合当前系统的版本。
-2. 启动应用后，导入合法书源或自己的 TXT、EPUB、PDF 文件。
-3. 使用顶部搜索框查找书籍，将结果加入书架后开始阅读。
-4. 在主页设置中调整外观、背景和关闭行为，在阅读设置中调整排版、主题、缓存与听书。
-5. 需要小窗阅读时，点击标题栏的迷你按钮即可切换；也可在设置中配置老板键，随时隐藏或恢复窗口。
+- Complete UI translation for **English**, **Vietnamese** (`Tiếng Việt`), and **Simplified Chinese** (`简体中文`).
+- Instant runtime switching with immediate reactive UI re-render and persistent storage.
+- Auto-localized date formats, reading statistics units, and default section labels.
 
-## 下载与平台
+### Reading Statistics & RSS Feeds
 
-自动构建目前包含以下目标：
+- Track total reading time, read character counts, and active consecutive streak days.
+- Interactive charts showing daily reading trends and per-book reading time breakdown.
+- Full RSS feed reader: subscribe to feeds, parse articles, and view embedded web content.
+- RSS articles and standard books unified within the recent history panel.
 
-| 系统 | 架构 | 安装包 | 便携包 |
+### Data Management & Backup
+
+- Local backup and restore with full ZIP and legacy JSON archive support.
+- Bi-directional WebDAV synchronization compatible with Legado mobile app (`bookProgress` directory).
+- Safe restore mechanism: invalid or corrupt items are gracefully skipped with warnings rather than aborting.
+- System tray minimization and configurable global Boss Key (anti-boss panic hotkey).
+- Multi-monitor awareness: window position and size auto-adjust if an external display is disconnected.
+
+### Web Access (Mobile Reading)
+
+- Read your desktop bookshelf from your mobile phone or tablet browser via the embedded web server (**Settings → App → Web Access**).
+- Listens on `127.0.0.1:1122` by default; enable LAN access to read from any device on your local Wi-Fi.
+- Read bookshelf, table of contents, chapters, and bookmarks with Wi-Fi file upload support.
+
+See [`docs/web-reader.md`](docs/web-reader.md) for full details.
+
+## Quick Start
+
+1. Download the latest installer or portable archive for your OS from [Releases](https://github.com/kikyo2006/reader/releases).
+2. Launch the app and import your book sources or local TXT, EPUB, or PDF files.
+3. Search for titles from the top search bar, add them to your shelf, and start reading.
+4. Adjust themes and backgrounds in General Settings, or fine-tune typography and TTS in Reader Settings.
+5. Switch to Mini Mode via the title bar button for compact reading, or configure a Boss Key for instant privacy.
+
+## Downloads & Supported Platforms
+
+Automated release builds support the following targets:
+
+| OS | Architecture | Installer | Portable Package |
 | --- | --- | --- | --- |
-| Windows | x64 | NSIS | ZIP |
-| macOS | Intel + Apple Silicon | DMG | APP 压缩包 |
-| Linux | x64 | DEB | AppImage |
+| Windows | x64 | NSIS (`.exe`) | ZIP (`.zip`) |
+| macOS | Intel + Apple Silicon | DMG (`.dmg`) | Universal APP (`.zip`) |
+| Linux | x64 | DEB (`.deb`) | AppImage (`.AppImage`) |
 
-macOS 构建目前未使用苹果开发者证书签名，系统可能提示“无法验证开发者”，需要用户在系统安全设置中手动允许。Linux 桌面环境较多，如 AppImage 无法正常启动，可以尝试 DEB 包并检查系统 WebKitGTK 运行库。
+*Note for macOS users:* macOS packages are not signed with an Apple Developer certificate. On first launch, macOS Gatekeeper may show a warning; right-click the app and choose "Open", or allow it in System Settings → Privacy & Security.
 
-Windows 便携版解压后可直接运行 `Reader.exe`。正式版本会优先在程序同级创建 `data/` 数据目录；如果安装位置不可写，则自动使用当前系统的用户数据目录。移动或卸载应用前，建议先在设置中创建备份。
+Windows portable builds run directly from `Reader.exe` and store all user data in a portable `data/` directory alongside the executable.
 
-每个 `data/` 目录是一份独立的数据：书库、设置、浏览器存储（含背景图等界面偏好）都放在里面。因此可以把便携包解压到多个文件夹同时运行，彼此互不影响；整个文件夹拷到别的机器上也能带走全部状态。
+On macOS, data is stored at `~/Library/Application Support/reader/data` to ensure persistence across application updates.
 
-**macOS 例外**：macOS 版的数据固定存放在 `~/Library/Application Support/reader/data`（即「访达 → 个人文件夹 → 资源库 → Application Support → reader → data」）。原因是 `.app` 的升级方式就是整体替换 bundle —— 应用内「检查更新」下载的是 DMG，由用户把 `Reader.app` 拖进「应用程序」覆盖，旧包会被 Finder 移进废纸篓；手动替换或删除重装同理。数据放在包内会随包一起消失。旧版本曾把数据写在 `Reader.app/Contents/MacOS/data`，升级到本版后首次启动会自动搬过来，旧目录原样保留；如果旧包已被覆盖进废纸篓，也会从废纸篓里最近的那份 `Reader.app` 中找回书库。
+## TTS (Text-to-Speech) Setup
 
-> Release 页同时提供 `macos-universal.zip`（APP 压缩包），供手动解压安装；应用内更新只用 DMG。
+Open **Reader Settings → Speech** in the reading view to configure reading voices:
 
-从旧版本升级时，第一次启动会把旧的界面偏好自动搬到新的 `data/webview/` 下，旧的共享缓存目录会原样保留（可以手动删除）。如果升级时还开着另一个旧版窗口，会跳过迁移并提示你手动处理。
+- **System Speech**: Uses the operating system's built-in voice synthesizers with speed, pitch, and timer controls.
+- **API Speech**: Sends requests directly to cloud-based speech providers supporting OpenAI, Fish Audio, ElevenLabs, and Azure compatible formats.
 
-## 听书设置
-
-在小说阅读页打开右侧「阅读设置」，在「朗读引擎」中选择系统语音或 API 语音：
-
-- **系统语音**：使用系统中已经安装的语音，可设置音色、语速、语调和定时停止。
-- **API 语音**：请求由桌面端直接发出，支持 OpenAI、Fish、ElevenLabs、Azure 兼容格式，可设置语速、音频格式和定时停止。
-
-API 语音需要填写对应服务商提供的配置：
-
-| 接口格式 | 服务地址示例 | 模型或语言代码 | 语音音色 |
+| API Format | Service Base URL Example | Model / Language Code | Voice Identifier |
 | --- | --- | --- | --- |
-| OpenAI 兼容格式 | `https://api.openai.com` | 服务商提供的 TTS 模型 | 音色名称 |
-| Fish 兼容格式 | `https://api.fish.audio` | 服务商提供的 TTS 模型 | 音色 ID |
-| ElevenLabs 兼容格式 | `https://api.elevenlabs.io` | 服务商提供的 TTS 模型 | Voice ID |
-| Azure 兼容格式 | Azure 语音资源地址 | 语言代码，如 `zh-CN` | 音色名称 |
+| OpenAI Compatible | `https://api.openai.com` | TTS Model name (e.g., `tts-1`) | Voice Name |
+| Fish Audio Compatible | `https://api.fish.audio` | TTS Model name | Voice ID |
+| ElevenLabs Compatible | `https://api.elevenlabs.io` | TTS Model name | Voice ID |
+| Azure Compatible | Azure Speech Resource Endpoint | Language code (e.g., `zh-CN`, `en-US`, `vi-VN`) | Voice Name |
 
-服务地址既可以填写 API 根地址，也可以填写完整的语音接口地址。HTTP 代理只作用于 API 语音请求，可在无法直连服务时填写。
-
-「少字多请求」能更及时地切换当前朗读段落；「多字少请求」可以减少请求次数，并根据音频播放进度估算高亮段落。
+HTTP proxies can be configured specifically for TTS requests if cloud providers require proxy routing.
 
 > [!WARNING]
-> 访问密钥保存在本机阅读配置中，备份阅读配置时也会进入备份文件。请勿公开分享包含访问密钥的备份。
+> API access tokens are stored in your local configuration. If you export your reading configuration, make sure not to publicly share backups containing confidential API keys.
 
-## 备份与恢复
+## Backup & Restore
 
-在「设置 → 数据 → 备份与恢复」中可以手动创建、上传和恢复备份。新版备份使用 ZIP 格式，本应用也会继续识别旧版 JSON 备份。
+Manage your backups under **Settings → Data → Backup & Restore**:
 
-备份窗口支持配置 `WebDAV`（网盘协议）服务地址、账号、应用密码和子目录。保存配置并测试连接后，可按需手动上传、刷新远端列表、下载、恢复或删除备份；不会自动上传或恢复。远端备份放在配置子目录根目录，文件名以 `backup` 开头，与 `Legado`（阅读）备份目录兼容，手机端可直接识别。
+- Backups are compressed into standardized ZIP archives (fully compatible with Legado).
+- Built-in WebDAV client allows manual upload, download, and synchronization with cloud storage providers (Nextcloud, TeraCloud, InfiniCLOUD, etc.).
+- Reading progress syncs automatically with Legado's `bookProgress` format upon opening or closing books.
 
-“同步阅读进度”默认开启，可在同一窗口关闭。开启后，进入、退出阅读页以及阅读过程中会与 `Legado`（阅读）的 `bookProgress`（阅读进度目录）同步当前章节和位置。
+## Data & Privacy
 
-本应用可以恢复 Legado 生成的 ZIP 备份；Legado 也可以读取本应用备份中的书架、书源、RSS、书签、净化规则与阅读进度。
+- No centralized accounts or tracking: your books, configurations, notes, and history remain strictly on your local disk.
+- Network requests for book search and content fetching automatically respect system proxies when available.
+- TTS requests are only sent to the specific API provider configured by the user.
+- Reader does not distribute or endorse third-party book sources; users should verify the legitimacy and safety of their imported sources.
 
-恢复时若备份中存在个别无效条目（例如名称为空的残缺书源），会跳过这些条目并提示跳过数量，不会因此中断整份备份的恢复。若某类数据全部无效，恢复会清空该类且不写回，因此会先弹窗确认，避免误清空现有数据。
+## Development & Build
 
-由于不同设备及应用的本地文件路径不通用，跨应用恢复时只迁移网络书籍。本地书籍文件、Legado 专属界面配置、登录状态和缓存不会迁移；Reader 自己的阅读配置仅在 Reader 恢复时使用。
-
-## 数据与隐私
-
-- 应用没有集中式账号系统，书架、配置、缓存与阅读记录默认保存在本机。
-- 书源搜索、正文加载和 RSS 订阅等网络请求会自动读取本机系统代理，未启用时直接连接。
-- 搜索、正文加载和 RSS 订阅需要访问用户配置的来源网站。
-- 使用 API 语音时，待朗读文字会发送给用户自己配置的语音服务商。
-- 应用不会提供、维护或推荐任何第三方书源，用户应自行判断来源的安全性与合法性。
-
-## 开发与构建
-
-环境要求：Node.js 22、Rust stable，以及 Tauri v2 对应平台的系统依赖。
+Prerequisites: Node.js 22, Rust stable, and system dependencies required by Tauri v2.
 
 ```bash
-# 前端
+# Frontend
 cd frontend
 npm install
 npm run dev
 npm run build
 npm test
 
-# 桌面应用
+# Desktop App
 cd desktop
 npm install
 npm run dev
 npm run build
 ```
 
-开发模式由 `npm run dev` 同时启动 Vite 热更新和 Tauri 桌面窗口，数据保存在 `desktop/.dev-data/`。Windows 本地执行 `npm run build` 后，安装包和便携包位于 `desktop/dist/`。
-
-Rust 库测试：
+Running unit tests:
 
 ```bash
+# Rust core tests
 cargo test -j 4
+
+# Frontend tests
+cd frontend && npm test
 ```
 
-推送 `v*` 标签后，GitHub Actions 会分别在 Windows、macOS 和 Linux 环境中构建，创建草稿 Release 并在全部平台成功后自动转为正式发布。
+## Architecture
 
-也可以在 Actions 页面手动触发（`workflow_dispatch`）：此时构建目标取当前最新的 Release，用于重新构建或补齐某个平台的产物（要求仓库中已存在至少一个 Release）。构建前会校验标签与各处版本号是否一致，不一致会直接失败。
+- **Desktop Shell**: Tauri v2, native webview wrapper.
+- **Frontend**: Vue 3, Vite, TypeScript, Pinia, Vue Router, ECharts.
+- **Core Engine**: Rust, Tokio, Reqwest, SQLx, SQLite, rquickjs.
+- **IPC Protocol**: Strongly typed Tauri commands and custom application protocols for streaming EPUB assets and media.
+- **Local Storage**: Embedded SQLite database for relational metadata; local filesystem for book covers, cached chapters, and backups.
 
-## 技术架构
+Directory layout:
 
-- **桌面层**：Tauri v2，使用各系统自带的 WebView。
-- **前端**：Vue 3、Vite、TypeScript、Pinia、Vue Router、ECharts。
-- **本地核心**：Rust、Tokio、Reqwest、SQLx、SQLite、rquickjs。
-- **通信方式**：前端通过 Tauri IPC 调用本地命令，封面与 EPUB 资源通过应用自定义协议加载。
-- **Web 访问**：可选的进程内 axum 服务，与桌面端共用同一套 `*_core` 业务实现，只做协议适配。
-- **数据存储**：SQLite 保存业务数据，文件目录保存封面、章节缓存、本地书籍和备份。
-
-主要目录：
-
-| 目录 | 说明 |
+| Path | Description |
 | --- | --- |
-| `frontend/` | Vue 3 桌面界面、状态管理与前端测试 |
-| `src/api/` | Tauri 命令、自定义协议与桌面接口 |
-| `src/server/` | Web 访问：axum 路由、静态资源、配置与启停 |
-| `src/app/` | 应用配置、启动流程与窗口状态持久化 |
-| `src/service/` | 书籍、书源、用户数据等业务逻辑 |
-| `src/parser/` | CSS、XPath、JSONPath、正则和 JavaScript 解析引擎 |
-| `src/crawler/` | 网络请求、请求头规则和 URL 分析 |
-| `src/storage/` | SQLite、数据库迁移、文件缓存与数据目录 |
-| `desktop/src-tauri/` | 桌面窗口、托盘、单实例、平台适配与打包配置 |
-| `scripts/` | 发布元数据校验、产物收集与打包辅助脚本 |
-| `vendor/` | 本地补丁过的第三方依赖（如 `pdf-extract`） |
+| `frontend/` | Vue 3 UI, Pinia stores, i18n locales, and unit tests |
+| `src/api/` | Tauri command handlers, custom protocols, and desktop IPC |
+| `src/server/` | Web access engine: axum routes, static server, and configuration |
+| `src/app/` | Application lifecycle, bootstrap, and window persistence |
+| `src/service/` | Business logic for books, sources, RSS, TTS, and updates |
+| `src/parser/` | CSS, XPath, JSONPath, Regex, and JavaScript rule parsers |
+| `src/crawler/` | HTTP client, rate limiters, header extractors, and networking |
+| `src/storage/` | SQLite database migrations, cache storage, and data paths |
+| `desktop/src-tauri/` | Desktop windowing, tray menus, single-instance lock, and packaging |
+| `scripts/` | Release scripts, validation tools, and build helpers |
 
-## 书源格式
+## Contributing
 
-书源使用 JSON 对象描述，常用字段包括 `bookSourceUrl`、`bookSourceName`、`searchUrl`、`exploreUrl`，以及 `ruleSearch`、`ruleBookInfo`、`ruleToc`、`ruleContent` 等规则组。
+- To report bugs or request features, please open an issue on [GitHub Issues](https://github.com/kikyo2006/reader/issues).
+- Pull requests are welcome! Please ensure frontend tests, build steps, and Rust tests pass before submitting.
+- Never commit private tokens, confidential cookies, or copyrighted book contents.
 
-规则支持 `@css:`、`@json:`、`@xpath:`、`@regex:` 与 `js:` 前缀。JavaScript 规则由本地 rquickjs 引擎执行，导入不可信书源前仍应检查其中的请求地址与脚本内容。
+## Disclaimer
 
-在书源管理的「登录」页，可以使用书源提供的网页或自定义表单，也可以手动导入 Cookie。登录信息和 Cookie 按书源保存在本机，重启后仍可使用；可在登录窗口清除 Cookie。书源自带的设置网页支持确认和取消：调整后点击右上角「确认」保存，「取消」会保留原设置。
+This project is an open-source technical tool providing book source parsing, caching, and reading features. It does not contain, host, distribute, or provide copyrighted literature. Users are solely responsible for ensuring their book sources and local files comply with applicable copyright laws in their jurisdiction.
 
-旧版本导入时如果已将书源脚本中的花括号改成尖括号，需要重新导入原始书源文件来恢复规则。更新后的版本会保留现代书源中的脚本和请求参数，并重新生成目录缓存。
+If you are a copyright owner and believe any aspect of this open-source tool infringes upon your rights, please contact the maintainers via GitHub Issues.
 
-## 参与项目
+## License
 
-- 遇到问题时，请在 [Issues](https://github.com/hadc188/reader/issues) 中说明系统版本、应用版本、复现步骤和错误提示。
-- 功能建议请尽量描述使用场景，以及希望解决的实际问题。
-- 欢迎提交 Pull Request；提交前请运行前端测试、前端生产构建和 Rust 测试。
-- 请勿在问题、日志或提交中上传访问密钥、Cookie、私人书源和包含个人数据的备份文件。
+This project is licensed under the [MIT License](LICENSE).
 
-## 免责声明
+## Acknowledgements
 
-本项目仅提供书源管理、内容解析、阅读与缓存等技术能力，不内置、存储、分发或提供任何受版权保护的书籍内容。用户应确保自行添加的书源、上传的本地文件以及通过本应用访问的内容均已获得合法授权，并自行承担由此产生的版权与合规责任。
+Special thanks to [Legado](https://github.com/Rimchars/legado), [reader](https://github.com/hectorqin/reader), and [reader-rust](https://github.com/givenge/reader-rust) for providing the foundational concepts and reference implementations.
 
-如任何权利人认为本项目相关内容或使用方式侵犯了其合法权益，请通过项目 Issues 联系维护者，我们将在核实后及时处理。
-
-## 开源许可
-
-本项目基于 [MIT License](LICENSE) 开源。
-
-## 致谢
-
-感谢 [Legado](https://github.com/Rimchars/legado)、[reader](https://github.com/hectorqin/reader) 和 [reader-rust](https://github.com/givenge/reader-rust) 等开源项目提供的思路与基础。
-
-特别感谢：[LinuxDO](https://linux.do/)。
+Special thanks: [LinuxDO](https://linux.do/).

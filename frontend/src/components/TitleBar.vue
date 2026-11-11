@@ -12,13 +12,13 @@
     :style="titlebarStyle"
   >
     <div class="titlebar-drag" data-tauri-drag-region @dblclick="toggleMaximize">
-      <span class="titlebar-title" data-tauri-drag-region>阅读</span>
+      <span class="titlebar-title" data-tauri-drag-region>{{ t('topbar.title') }}</span>
     </div>
     <div class="titlebar-controls">
       <button
         class="tb-btn mini"
         :class="{ active: appStore.miniMode }"
-        :title="appStore.miniMode ? '退出迷你模式' : '迷你模式（小窗置顶）'"
+        :title="appStore.miniMode ? t('titlebar.exitMiniMode') : t('titlebar.miniMode')"
         @click="toggleMiniMode"
       >
         <svg v-if="appStore.miniMode" viewBox="0 0 12 12" width="12" height="12">
@@ -30,14 +30,14 @@
           <rect x="5" y="5" width="4.5" height="4.5" fill="currentColor" opacity="0.5" />
         </svg>
       </button>
-      <button class="tb-btn" title="最小化" @click="minimize">
+      <button class="tb-btn" :title="t('titlebar.minimize')" @click="minimize">
         <svg viewBox="0 0 12 12" width="12" height="12"><path d="M2 6h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
       </button>
-      <button class="tb-btn" :title="isMaximized ? '还原' : '最大化'" @click="toggleMaximize">
+      <button class="tb-btn" :title="isMaximized ? t('titlebar.restore') : t('titlebar.maximize')" @click="toggleMaximize">
         <svg v-if="isMaximized" viewBox="0 0 12 12" width="12" height="12"><rect x="2.5" y="2.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1.2" /><path d="M4.5 2.5V4M9.5 4.5H8M4.5 7.5H8" stroke="currentColor" stroke-width="1.2" /></svg>
         <svg v-else viewBox="0 0 12 12" width="12" height="12"><rect x="2.5" y="2.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
       </button>
-      <button class="tb-btn close" title="关闭" @click="close">
+      <button class="tb-btn close" :title="t('titlebar.close')" @click="close">
         <svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
       </button>
     </div>
@@ -48,6 +48,7 @@
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { t } from '../i18n'
 import { useReaderStore } from '../stores/reader'
 import { useAppStore } from '../stores/app'
 import { isTauriRuntime } from '../api/transport'

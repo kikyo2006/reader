@@ -9,7 +9,7 @@
         type="button"
         @click="activeGroup = g.key"
       >
-        {{ g.label }}
+        {{ getGroupLabel(g.key) }}
       </button>
     </div>
 
@@ -17,8 +17,8 @@
       <template v-for="field in activeFields" :key="field.id">
         <label class="field">
           <span class="field-label">
-            {{ field.title }}
-            <small v-if="field.hint" class="field-hint">{{ field.hint }}</small>
+            {{ getFieldTitle(field) }}
+            <small v-if="getFieldHint(field)" class="field-hint">{{ getFieldHint(field) }}</small>
           </span>
 
           <select
@@ -28,7 +28,7 @@
             @change="setField(field, ($event.target as HTMLSelectElement).value)"
           >
             <option v-for="opt in field.options" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
+              {{ getOptionLabel(opt) }}
             </option>
           </select>
 
@@ -47,7 +47,7 @@
               type="button"
               @click="setField(field, fieldValue(field) === 'true' ? 'false' : 'true')"
             >
-              {{ fieldValue(field) === 'true' ? '开启' : '关闭' }}
+              {{ fieldValue(field) === 'true' ? t('source.ruleFields.toggleOn') : t('source.ruleFields.toggleOff') }}
             </button>
           </div>
 
@@ -55,7 +55,7 @@
             v-else
             class="field-input field-textarea"
             :value="fieldValue(field)"
-            :placeholder="field.placeholder"
+            :placeholder="getFieldPlaceholder(field)"
             rows="field.rows || 2"
             spellcheck="false"
             @input="setField(field, ($event.target as HTMLTextAreaElement).value)"
@@ -64,7 +64,7 @@
       </template>
 
       <p v-if="!activeFields.length" class="rule-empty">
-        当前书源未配置该组规则，可直接在下方的 JSON 中填写。
+        {{ t('source.ruleFields.emptyRule') }}
       </p>
     </div>
   </div>
@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { BookSource } from '../../types'
+import { t } from '../../i18n'
 
 const props = defineProps<{
   source: BookSource | null
@@ -101,6 +102,68 @@ interface GroupDef {
   key: GroupKey
   label: string
   fields: FieldDef[]
+}
+
+function getGroupLabel(key: GroupKey): string {
+  const map: Record<GroupKey, string> = {
+    base: t('source.ruleTabs.base'),
+    search: t('source.ruleTabs.search'),
+    find: t('source.ruleTabs.find'),
+    detail: t('source.ruleTabs.detail'),
+    directory: t('source.ruleTabs.directory'),
+    content: t('source.ruleTabs.content'),
+    other: t('source.ruleTabs.other'),
+  }
+  return map[key] || key
+}
+
+const titleKeyMap: Record<string, string> = {
+  bookSourceName: 'sourceName',
+  bookSourceUrl: 'sourceUrl',
+  bookSourceGroup: 'group',
+  bookSourceType: 'sourceType',
+  bookSourceComment: 'comment',
+}
+
+function getFieldTitle(field: FieldDef): string {
+  const key = titleKeyMap[field.id] || field.id
+  const translationKey = `source.ruleFields.${key}` as any
+  const val = t(translationKey)
+  return val === translationKey ? field.title : val
+}
+
+function getFieldHint(field: FieldDef): string | undefined {
+  if (field.id === 'bookSourceName') return t('source.ruleFields.required')
+  if (field.id === 'bookSourceUrl') return t('source.ruleFields.requiredHttp')
+  if (field.id === 'bookSourceGroup') return t('source.ruleFields.commaSeparated')
+  if (field.id === 'bookUrlPattern') return t('source.ruleFields.urlRegex')
+  if (field.id === 'header') return t('source.ruleFields.jsonObject')
+  if (field.id === 'concurrentRate') return t('source.ruleFields.rateHint')
+  if (field.id === 'jsLib') return t('source.ruleFields.jsHint')
+  if (field.id === 'searchUrl') return t('source.ruleFields.searchUrlHint')
+  if (field.id === 'checkKeyWord') return t('source.ruleFields.checkKeyWordHint')
+  if (field.id === 'exploreUrl') return t('source.ruleFields.exploreUrlHint')
+  if (field.id === 'sourceRegex' || field.id === 'replaceRegex') return t('source.ruleFields.regexHint')
+  return field.hint
+}
+
+function getFieldPlaceholder(field: FieldDef): string | undefined {
+  if (field.id === 'bookSourceName') return t('source.ruleFields.sourceNamePlaceholder')
+  if (field.id === 'bookSourceGroup') return t('source.ruleFields.groupPlaceholder')
+  if (field.id === 'checkKeyWord') return t('source.ruleFields.keywordPlaceholder')
+  if (field.id === 'exploreUrl') return t('source.ruleFields.exploreUrlPlaceholder')
+  return field.placeholder
+}
+
+function getOptionLabel(opt: { value: string; label: string }): string {
+  const map: Record<string, string> = {
+    '0': t('source.ruleFields.typeText'),
+    '1': t('source.ruleFields.typeAudio'),
+    '2': t('source.ruleFields.typeImage'),
+    '3': t('source.ruleFields.typeFile'),
+    '4': t('source.ruleFields.typeVideo'),
+  }
+  return map[opt.value] || opt.label
 }
 
 const groups: GroupDef[] = [

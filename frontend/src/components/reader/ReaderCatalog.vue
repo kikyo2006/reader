@@ -11,14 +11,14 @@
           :class="{ active: activeTab === 'chapters' }" 
           @click="activeTab = 'chapters'"
         >
-          目录
+          {{ t('reader.catalog') }}
         </div>
         <div 
           class="tab" 
           :class="{ active: activeTab === 'bookmarks' }" 
           @click="activeTab = 'bookmarks'"
         >
-          书签
+          {{ t('reader.bookmarks') }}
         </div>
       </div>
       <div class="header-actions">
@@ -26,8 +26,8 @@
           v-if="activeTab === 'chapters'"
           class="icon-btn"
           type="button"
-          title="刷新目录"
-          aria-label="刷新目录"
+          :title="t('common.refresh')"
+          :aria-label="t('common.refresh')"
           :disabled="store.chaptersLoading"
           @click="refreshCatalog"
         >
@@ -41,7 +41,7 @@
             :class="{ spinning: store.chaptersLoading }"
           ><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
         </button>
-        <button class="close-btn" type="button" title="关闭" aria-label="关闭" @click="store.closePanel()">
+        <button class="close-btn" type="button" :title="t('common.close')" :aria-label="t('common.close')" @click="store.closePanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -50,13 +50,13 @@
     </div>
 
     <div v-if="activeTab === 'bookmarks'" class="bookmark-toolbar">
-      <button class="bookmark-action primary" @click="addCurrentBookmark">添加当前页书签</button>
+      <button class="bookmark-action primary" @click="addCurrentBookmark">{{ t('reader.addCurrentBookmark') }}</button>
       <button
         class="bookmark-action"
         :class="{ danger: bookmarkEditMode && selectedBookmarkKeys.size > 0 }"
         @click="handleBatchAction"
       >
-        {{ bookmarkEditMode ? (selectedBookmarkKeys.size ? `删除选中(${selectedBookmarkKeys.size})` : '完成') : '批量管理' }}
+        {{ bookmarkEditMode ? (selectedBookmarkKeys.size ? t('reader.deleteSelectedBookmarks', { count: selectedBookmarkKeys.size }) : t('common.done')) : t('reader.batchManageBookmarks') }}
       </button>
     </div>
 
@@ -65,7 +65,7 @@
         <input
           v-model="chapterSearch"
           type="text"
-          placeholder="搜索章节..."
+          :placeholder="t('reader.searchChaptersPlaceholder')"
           class="search-input"
         />
         <button v-if="chapterSearch" class="search-clear" @click="chapterSearch = ''">
@@ -75,7 +75,7 @@
       <div class="chapter-jump-actions">
         <button
           class="jump-btn"
-          title="跳到目录顶部"
+          :title="t('reader.jumpToTop')"
           :disabled="!filteredChapters.length"
           @click="scrollCatalogTo('top')"
         >
@@ -86,7 +86,7 @@
         </button>
         <button
           class="jump-btn"
-          title="跳到目录底部"
+          :title="t('reader.jumpToBottom')"
           :disabled="!filteredChapters.length"
           @click="scrollCatalogTo('bottom')"
         >
@@ -105,8 +105,8 @@
       ref="listRef"
       @scroll="hideTitleTip"
     >
-      <div v-if="store.chaptersLoading" class="loading">加载目录中...</div>
-      <div v-else-if="filteredChapters.length === 0" class="empty">未找到匹配的章节</div>
+      <div v-if="store.chaptersLoading" class="loading">{{ t('reader.loadingCatalog') }}</div>
+      <div v-else-if="filteredChapters.length === 0" class="empty">{{ t('reader.noMatchingChapters') }}</div>
       <div
         v-else
         v-for="chapter in filteredChapters"
@@ -121,8 +121,8 @@
             v-if="isChapterCached(chapter.url)"
             class="cached-dot"
             role="img"
-            aria-label="已缓存"
-            title="已缓存"
+            :aria-label="t('reader.cached')"
+            :title="t('reader.cached')"
           ></span>
         </span>
         <span
@@ -135,15 +135,15 @@
           v-if="chapter.index === store.currentIndex || store.isChapterRead(chapter.index)"
           class="item-status"
         >
-          <span v-if="chapter.index === store.currentIndex" class="status-badge current">当前</span>
-          <span v-else class="status-badge read">已读</span>
+          <span v-if="chapter.index === store.currentIndex" class="status-badge current">{{ t('reader.current') }}</span>
+          <span v-else class="status-badge read">{{ t('reader.read') }}</span>
         </div>
       </div>
     </div>
 
     <!-- Bookmarks List -->
     <div v-show="activeTab === 'bookmarks'" class="list-container">
-      <div v-if="!store.bookmarks.length" class="empty">暂无书签</div>
+      <div v-if="!store.bookmarks.length" class="empty">{{ t('reader.noBookmarks') }}</div>
       <div
         v-else
         v-for="(bm, idx) in store.bookmarks"
@@ -179,6 +179,7 @@ import { useReaderStore } from '../../stores/reader'
 import { useAppStore } from '../../stores/app'
 import { getCachedChapterUrls, getChapterWordCounts } from '../../api/bookshelf'
 import type { Bookmark } from '../../types'
+import { t } from '../../i18n'
 
 const props = withDefaults(defineProps<{
   initialTab?: 'chapters' | 'bookmarks'
@@ -454,7 +455,7 @@ function toggleBookmarkSelection(bm: Bookmark) {
 
 async function addCurrentBookmark() {
   await store.addBookmark()
-  appStore.showToast('已添加当前页书签', 'success')
+  appStore.showToast(t('reader.currentBookmarkAdded'), 'success')
 }
 
 async function handleBatchAction() {
@@ -470,7 +471,7 @@ async function handleBatchAction() {
   await store.removeBookmarks(items)
   selectedBookmarkKeys.value.clear()
   bookmarkEditMode.value = false
-  appStore.showToast(`&#x5DF2;&#x5220;&#x9664; ${items.length} &#x6761;&#x4E66;&#x7B7E;`, 'success')
+  appStore.showToast(t('reader.bookmarksDeleted', { count: items.length }), 'success')
 }
 
 function formatDate(ts?: number) {

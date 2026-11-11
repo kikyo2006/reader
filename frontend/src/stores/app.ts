@@ -13,6 +13,7 @@ import { applySystemTheme } from '../utils/systemUi'
 import type { LegadoWebdavConfig } from '../api/webdav'
 import { invokeRaw } from '../api/invoke'
 import { normalizeBossKeyShortcut } from '../utils/bossKey'
+import { currentLocale, setLocale, type SupportedLocale } from '../i18n'
 
 export const useAppStore = defineStore('app', () => {
   const STATS_KEY = 'reader-stats'
@@ -28,6 +29,16 @@ export const useAppStore = defineStore('app', () => {
   const theme = ref<'light' | 'dark'>(
     savedTheme || (legacyReaderNight ? 'dark' : 'light')
   )
+
+  // ─── Language / i18n ───
+  const language = computed({
+    get: () => currentLocale.value,
+    set: (val: SupportedLocale) => setLocale(val),
+  })
+
+  function setLanguage(val: SupportedLocale) {
+    setLocale(val)
+  }
 
   function setTheme(value: 'light' | 'dark') {
     theme.value = value
@@ -647,6 +658,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   return {
+    language, setLanguage,
     theme, setTheme, toggleTheme,
     miniMode, syncWindowMode, toggleMiniMode,
     closeToTray, setCloseToTray, toggleCloseToTray,

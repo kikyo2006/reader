@@ -3,13 +3,13 @@
     <div class="recent-content">
       <div class="recent-header">
         <h1 class="recent-title">
-          最近阅读
+          {{ t('recent.title') }}
           <span class="recent-count">({{ filteredRecentBooks.length }})</span>
         </h1>
         <div class="recent-actions">
           <div class="recent-filters">
-            <button class="filter-chip" :class="{ active: activeFilter === 'all' }" @click="activeFilter = 'all'">全部</button>
-            <button class="filter-chip" :class="{ active: activeFilter === 'book' }" @click="activeFilter = 'book'">书籍</button>
+            <button class="filter-chip" :class="{ active: activeFilter === 'all' }" @click="activeFilter = 'all'">{{ t('common.all') }}</button>
+            <button class="filter-chip" :class="{ active: activeFilter === 'book' }" @click="activeFilter = 'book'">{{ t('nav.bookshelf') }}</button>
             <button class="filter-chip" :class="{ active: activeFilter === 'rss' }" @click="activeFilter = 'rss'">RSS</button>
           </div>
           <button
@@ -17,7 +17,7 @@
             :disabled="!shelfStore.recentBooks.length"
             @click="handleClearRecent"
           >
-            一键清空
+            {{ t('recent.clearHistory') }}
           </button>
         </div>
       </div>
@@ -26,14 +26,14 @@
         <input
           v-model.trim="searchText"
           class="recent-search-input"
-          placeholder="搜索最近阅读"
+          :placeholder="t('recent.title')"
         />
       </div>
 
       <BookGrid
         :books="filteredRecentBooks"
         :loading="shelfStore.loading"
-        empty-text="暂无最近阅读"
+        :empty-text="t('recent.emptyTitle')"
         :show-delete-action="true"
         @click="handleBookClick"
         @info="handleBookInfo"
@@ -59,6 +59,7 @@ import { useBookshelfStore } from '../stores/bookshelf'
 import { useReaderStore } from '../stores/reader'
 import { filterShelfBooks } from '../utils/bookshelfFilter'
 import type { Book, SearchBook } from '../types'
+import { t } from '../i18n'
 
 const router = useRouter()
 const shelfStore = useBookshelfStore()
@@ -138,10 +139,10 @@ function handleBookContextMenu({ book, event }: { book: Book | SearchBook; event
   const currentBook = book as Book
   const isRss = currentBook.recentKind === 'rss'
   const menuItems = [
-    { label: isRss ? '打开文章' : '开始阅读', action: () => handleBookClick(book) },
-    { label: '查看详情', action: () => handleBookInfo(book) },
+    { label: isRss ? t('recent.openArticle') : t('recent.startReading'), action: () => handleBookClick(book) },
+    { label: t('recent.viewDetails'), action: () => handleBookInfo(book) },
     { divider: true },
-    { label: '从最近移除', danger: true, action: () => handleRecentDelete(book) },
+    { label: t('recent.removeFromRecent'), danger: true, action: () => handleRecentDelete(book) },
   ]
   showContextMenu(event, menuItems, book)
 }

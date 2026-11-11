@@ -8,11 +8,11 @@
         <div class="cache-modal">
           <div class="modal-head">
             <div>
-              <h2>缓存管理</h2>
-              <p>查看并清理所有书籍的本地缓存</p>
+              <h2>{{ t('cacheModal.title') }}</h2>
+              <p>{{ t('cacheModal.subtitle') }}</p>
             </div>
             <div class="head-actions">
-              <button class="ghost-btn" @click="refreshData">刷新</button>
+              <button class="ghost-btn" @click="refreshData">{{ t('common.refresh') }}</button>
               <button class="close-btn" @click="close">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M18 6 6 18M6 6l12 12" />
@@ -23,36 +23,36 @@
 
           <div v-if="loading" class="loading-state">
             <div class="loading-spinner"></div>
-            <p>缓存信息加载中...</p>
+            <p>{{ t('cacheModal.loading') }}</p>
           </div>
 
           <div v-else class="cache-list">
             <div class="cache-toolbar">
               <div class="cache-scope">
-                <span class="scope-label">默认缓存范围</span>
+                <span class="scope-label">{{ t('cacheModal.defaultScope') }}</span>
                 <div class="scope-options">
-                  <button class="scope-btn" :class="{ active: cacheCount === 50 }" @click="cacheCount = 50">50章</button>
-                  <button class="scope-btn" :class="{ active: cacheCount === 100 }" @click="cacheCount = 100">100章</button>
-                  <button class="scope-btn" :class="{ active: cacheCount === 0 }" @click="cacheCount = 0">全本</button>
+                  <button class="scope-btn" :class="{ active: cacheCount === 50 }" @click="cacheCount = 50">{{ t('cacheModal.chapters50') }}</button>
+                  <button class="scope-btn" :class="{ active: cacheCount === 100 }" @click="cacheCount = 100">{{ t('cacheModal.chapters100') }}</button>
+                  <button class="scope-btn" :class="{ active: cacheCount === 0 }" @click="cacheCount = 0">{{ t('cacheModal.allChapters') }}</button>
                 </div>
               </div>
               <div class="cache-overview">
-                <span>可离线书籍 {{ offlineReadyCount }} 本</span>
-                <span>本地缓存章节 {{ totalServerCachedCount }} 章</span>
+                <span>{{ t('cacheModal.offlineReadyCount', { count: offlineReadyCount }) }}</span>
+                <span>{{ t('cacheModal.totalCachedChapters', { count: totalServerCachedCount }) }}</span>
               </div>
             </div>
 
             <div v-for="item in mergedBooks" :key="item.bookUrl" class="cache-item">
               <div class="cache-main">
                 <h3>{{ item.name }}</h3>
-                <p>{{ item.author || '未知作者' }}</p>
+                <p>{{ item.author || t('bookDetail.unknownAuthor') }}</p>
                 <div class="cache-stats">
-                  <span>本地 {{ item.serverCachedCount }} 章</span>
+                  <span>{{ t('cacheModal.localChapters', { count: item.serverCachedCount }) }}</span>
                 </div>
                 <div v-if="cacheProgress[item.bookUrl]" class="cache-progress">
                   <div class="progress-text">
-                    <span>正在缓存 {{ cacheProgress[item.bookUrl].cached }}/{{ cacheProgress[item.bookUrl].total || '…' }} 章</span>
-                    <span v-if="cacheProgress[item.bookUrl].failed > 0" class="progress-failed">失败 {{ cacheProgress[item.bookUrl].failed }}</span>
+                    <span>{{ t('cacheModal.cachingProgress', { cached: cacheProgress[item.bookUrl].cached, total: cacheProgress[item.bookUrl].total || '…' }) }}</span>
+                    <span v-if="cacheProgress[item.bookUrl].failed > 0" class="progress-failed">{{ t('cacheModal.failedCount', { count: cacheProgress[item.bookUrl].failed }) }}</span>
                     <span class="progress-percent">{{ progressPercent(item.bookUrl) }}%</span>
                   </div>
                   <div class="progress-bar">
@@ -61,9 +61,9 @@
                 </div>
               </div>
               <div class="cache-actions">
-                <button v-if="cacheProgress[item.bookUrl]" class="abort-btn" @click="abortCache(item.book)">中断缓存</button>
+                <button v-if="cacheProgress[item.bookUrl]" class="abort-btn" @click="abortCache(item.book)">{{ t('cacheModal.abortCache') }}</button>
                 <button v-else @click="cacheServer(item.book)">{{ cacheActionLabel }}</button>
-                <button @click="clearServer(item.book)">清本地</button>
+                <button @click="clearServer(item.book)">{{ t('cacheModal.clearLocal') }}</button>
               </div>
             </div>
           </div>
@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { t } from '../i18n'
 import { useBookshelfStore } from '../stores/bookshelf'
 import { useAppStore } from '../stores/app'
 import { getBookshelfWithCacheInfo, deleteBookCache } from '../api/bookshelf'
@@ -121,7 +122,7 @@ const mergedBooks = computed(() => {
 
 const offlineReadyCount = computed(() => mergedBooks.value.filter((item) => item.serverCachedCount > 0).length)
 const totalServerCachedCount = computed(() => mergedBooks.value.reduce((sum, item) => sum + item.serverCachedCount, 0))
-const cacheActionLabel = computed(() => cacheCount.value === 0 ? '缓存全本到本地' : `缓存后续${cacheCount.value}章到本地`)
+const cacheActionLabel = computed(() => cacheCount.value === 0 ? t('cacheModal.cacheAllToLocal') : t('cacheModal.cacheNextToLocal', { count: cacheCount.value }))
 
 watch(() => props.modelValue, (visible) => {
   if (visible) {
@@ -173,7 +174,7 @@ function cacheServer(book: Book) {
     delete cacheProgress.value[book.bookUrl]
     cacheProgress.value = { ...cacheProgress.value }
     appStore.showToast(
-      aborted ? `已中断"${book.name}"的缓存` : `"${book.name}" 已缓存到本地`,
+      aborted ? t('cacheModal.abortedToast', { name: book.name }) : t('cacheModal.completedToast', { name: book.name }),
       aborted ? 'warning' : 'success',
     )
     await refreshData()
@@ -182,7 +183,7 @@ function cacheServer(book: Book) {
     sse.close()
     delete cacheProgress.value[book.bookUrl]
     cacheProgress.value = { ...cacheProgress.value }
-    appStore.showToast(`"${book.name}" 本地缓存失败`, 'error')
+    appStore.showToast(t('cacheModal.failedToast', { name: book.name }), 'error')
   }
 }
 
@@ -197,7 +198,7 @@ async function abortCache(book: Book) {
 
 async function clearServer(book: Book) {
   await deleteBookCache(book.bookUrl)
-  appStore.showToast(`"${book.name}" 本地缓存已清除`, 'success')
+  appStore.showToast(t('cacheModal.clearedToast', { name: book.name }), 'success')
   await refreshData()
 }
 

@@ -10,26 +10,26 @@
   >
     <header class="panel-head">
       <div class="panel-head-main">
-        <h3>内容净化</h3>
+        <h3>{{ t('reader.contentFilter') }}</h3>
         <p class="panel-sub">{{ subtitle }}</p>
       </div>
       <div class="panel-head-actions">
-        <button class="btn" type="button" :disabled="importing" @click="openImportPanel">导入</button>
-        <button class="btn btn-primary" type="button" @click="openEditModal()">新增</button>
-        <button class="icon-btn" type="button" aria-label="返回" title="返回" @click="handleClose">
+        <button class="btn" type="button" :disabled="importing" @click="openImportPanel">{{ t('common.import') }}</button>
+        <button class="btn btn-primary" type="button" @click="openEditModal()">{{ t('common.add') }}</button>
+        <button class="icon-btn" type="button" :aria-label="t('common.back')" :title="t('common.back')" @click="handleClose">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
         </button>
       </div>
     </header>
 
     <div class="panel-body">
-      <div v-if="loading" class="state">正在读取规则…</div>
+      <div v-if="loading" class="state">{{ t('reader.readingRules') }}</div>
 
       <div v-else-if="!store.replaceRules.length" class="empty">
-        <p class="empty-title">还没有净化规则</p>
+        <p class="empty-title">{{ t('reader.noRulesTitle') }}</p>
         <div class="empty-actions">
-          <button class="btn btn-primary" type="button" @click="openEditModal()">新增规则</button>
-          <button class="btn" type="button" @click="openImportPanel">导入规则</button>
+          <button class="btn btn-primary" type="button" @click="openEditModal()">{{ t('reader.addRule') }}</button>
+          <button class="btn" type="button" @click="openImportPanel">{{ t('reader.importRules') }}</button>
         </div>
       </div>
 
@@ -37,17 +37,17 @@
         <!-- 工具条：分组筛选 + 批量开关。规则多起来（导入几十条很常见）没有这两样没法管。 -->
         <div class="list-tools">
           <label class="group-filter">
-            <select v-model="activeGroup" :aria-label="'按分组筛选'">
-              <option value="">全部分组（{{ store.replaceRules.length }}）</option>
+            <select v-model="activeGroup" :aria-label="t('reader.filterByGroup')">
+              <option value="">{{ t('reader.allGroups') }}（{{ store.replaceRules.length }}）</option>
               <option v-for="g in ruleGroups" :key="g.name" :value="g.name">
                 {{ g.name }}（{{ g.count }}）
               </option>
             </select>
           </label>
           <div class="bulk-actions">
-            <button class="link-btn" type="button" :disabled="bulkBusy" @click="setVisibleEnabled(true)">启用</button>
+            <button class="link-btn" type="button" :disabled="bulkBusy" @click="setVisibleEnabled(true)">{{ t('common.enable') }}</button>
             <span class="bulk-sep" aria-hidden="true"></span>
-            <button class="link-btn" type="button" :disabled="bulkBusy" @click="setVisibleEnabled(false)">停用</button>
+            <button class="link-btn" type="button" :disabled="bulkBusy" @click="setVisibleEnabled(false)">{{ t('common.disable') }}</button>
           </div>
         </div>
 
@@ -63,7 +63,7 @@
               type="button"
               role="switch"
               :aria-checked="rule.isEnabled"
-              :aria-label="`启用规则 ${rule.name}`"
+              :aria-label="rule.name"
               :class="{ on: rule.isEnabled }"
               @click="toggleRule(rule)"
             ></button>
@@ -71,14 +71,14 @@
             <div class="rule-main">
               <div class="rule-title">
                 <span class="rule-name">{{ rule.name }}</span>
-                <span v-if="rule.isRegex" class="tag">正则</span>
-                <span v-if="describeTargets(rule) !== '正文'" class="tag">{{ describeTargets(rule) }}</span>
+                <span v-if="rule.isRegex" class="tag">{{ t('reader.regex') }}</span>
+                <span v-if="describeTargets(rule) !== t('reader.targetContent')" class="tag">{{ describeTargets(rule) }}</span>
                 <!-- Legado 规则是 Java 正则，少数写法在 JS 里没有等价物。 -->
                 <span
                   v-if="ruleIssues.get(rule.name)"
                   class="tag tag-warn"
                   :title="ruleIssues.get(rule.name)"
-                >无法执行</span>
+                >{{ t('reader.cannotExecute') }}</span>
               </div>
               <div class="rule-io">
                 <code class="io-text" :title="rule.pattern">{{ rule.pattern }}</code>
@@ -86,7 +86,7 @@
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
                 <code class="io-text io-text--out" :class="{ 'io-empty': !rule.replacement }" :title="rule.replacement">
-                  {{ rule.replacement || '删除' }}
+                  {{ rule.replacement || t('common.delete') }}
                 </code>
               </div>
               <p class="rule-meta">
@@ -97,8 +97,8 @@
             </div>
 
             <div class="rule-buttons">
-              <button class="link-btn" type="button" @click="openEditModal(rule)">编辑</button>
-              <button class="link-btn danger" type="button" @click="handleDelete(rule)">删除</button>
+              <button class="link-btn" type="button" @click="openEditModal(rule)">{{ t('common.edit') }}</button>
+              <button class="link-btn danger" type="button" @click="handleDelete(rule)">{{ t('common.delete') }}</button>
             </div>
           </article>
         </div>
@@ -109,71 +109,71 @@
     <Transition name="fade">
       <div v-if="editingRule" class="sub-panel" :style="{ background: theme.popup }">
         <header class="sub-head">
-          <button class="icon-btn" type="button" aria-label="返回" @click="editingRule = null">
+          <button class="icon-btn" type="button" :aria-label="t('common.back')" @click="editingRule = null">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
           </button>
-          <h4>{{ editingRule.id ? '编辑规则' : '新增规则' }}</h4>
+          <h4>{{ editingRule.id ? t('reader.editRule') : t('reader.addRule') }}</h4>
         </header>
 
         <div class="sub-body">
           <div class="field">
-            <label for="rule-name">名称</label>
-            <input id="rule-name" v-model="editingRule.name" placeholder="例如：去除站点广告尾巴">
+            <label for="rule-name">{{ t('reader.ruleName') }}</label>
+            <input id="rule-name" v-model="editingRule.name" :placeholder="t('reader.ruleNamePlaceholder')">
           </div>
 
           <div class="field">
-            <label for="rule-pattern">匹配内容</label>
+            <label for="rule-pattern">{{ t('reader.matchContent') }}</label>
             <textarea
               id="rule-pattern"
               v-model="editingRule.pattern"
               rows="3"
-              placeholder="要匹配的文本或正则表达式"
+              :placeholder="t('reader.rulePatternPlaceholder')"
             ></textarea>
           </div>
 
           <div class="field">
-            <label for="rule-replacement">替换为</label>
-            <input id="rule-replacement" v-model="editingRule.replacement" placeholder="留空表示直接删除">
+            <label for="rule-replacement">{{ t('reader.replacement') }}</label>
+            <input id="rule-replacement" v-model="editingRule.replacement" :placeholder="t('reader.ruleReplacementPlaceholder')">
           </div>
 
           <div class="field-split" aria-hidden="true"></div>
 
           <div class="field">
-            <label>生效范围</label>
+            <label>{{ t('reader.effectiveScope') }}</label>
             <div class="segmented">
               <button
                 type="button"
                 :class="{ on: getScopeMode(editingRule) === 'global' }"
                 @click="setScopeMode('global')"
-              >全部书籍</button>
+              >{{ t('reader.scopeAll') }}</button>
               <button
                 type="button"
                 :class="{ on: getScopeMode(editingRule) === 'book' }"
                 @click="setScopeMode('book')"
-              >当前书籍</button>
+              >{{ t('reader.scopeBook') }}</button>
               <button
                 type="button"
                 :class="{ on: getScopeMode(editingRule) === 'source' }"
                 @click="setScopeMode('source')"
-              >当前书源</button>
+              >{{ t('reader.scopeSource') }}</button>
             </div>
           </div>
 
           <div class="field">
-            <label for="rule-exclude">排除范围</label>
-            <input id="rule-exclude" v-model="editingRule.excludeScope" placeholder="不排除">
+            <label for="rule-exclude">{{ t('reader.excludeScope') }}</label>
+            <input id="rule-exclude" v-model="editingRule.excludeScope" :placeholder="t('reader.noExclude')">
           </div>
 
           <div class="field field-inline">
-            <label>作用于</label>
+            <label>{{ t('reader.applyTo') }}</label>
             <div class="check-row">
               <label class="check">
                 <input v-model="editingRule.scopeContent" type="checkbox">
-                <span>正文</span>
+                <span>{{ t('reader.targetContent') }}</span>
               </label>
               <label class="check">
                 <input v-model="editingRule.scopeTitle" type="checkbox">
-                <span>章节标题</span>
+                <span>{{ t('reader.targetTitle') }}</span>
               </label>
             </div>
           </div>
@@ -181,18 +181,18 @@
           <div class="field field-inline">
             <label class="check">
               <input v-model="editingRule.isRegex" type="checkbox">
-              <span>按正则表达式匹配</span>
+              <span>{{ t('reader.matchByRegex') }}</span>
             </label>
             <label class="order">
-              <span>排序</span>
+              <span>{{ t('reader.ruleOrder') }}</span>
               <input v-model.number="editingRule.order" type="number" min="1" step="1">
             </label>
           </div>
         </div>
 
         <footer class="sub-foot">
-          <button class="btn" type="button" @click="editingRule = null">取消</button>
-          <button class="btn btn-primary" type="button" @click="handleSave">保存</button>
+          <button class="btn" type="button" @click="editingRule = null">{{ t('common.cancel') }}</button>
+          <button class="btn btn-primary" type="button" @click="handleSave">{{ t('common.save') }}</button>
         </footer>
       </div>
     </Transition>
@@ -201,15 +201,15 @@
     <Transition name="fade">
       <div v-if="importPanelOpen" class="sub-panel" :style="{ background: theme.popup }">
         <header class="sub-head">
-          <button class="icon-btn" type="button" aria-label="返回" :disabled="importing" @click="closeImportPanel">
+          <button class="icon-btn" type="button" :aria-label="t('common.back')" :disabled="importing" @click="closeImportPanel">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
           </button>
-          <h4>导入规则</h4>
+          <h4>{{ t('reader.importRules') }}</h4>
         </header>
 
         <div class="sub-body">
           <div class="field">
-            <label for="rule-import-url">规则 JSON 链接</label>
+            <label for="rule-import-url">{{ t('reader.ruleJsonUrl') }}</label>
             <input
               id="rule-import-url"
               v-model="importUrl"
@@ -221,17 +221,17 @@
           </div>
 
           <p class="field-hint">
-            支持 Legado 净化规则的 JSON 数组，按规则名合并。
+            {{ t('reader.ruleImportHint') }}
           </p>
 
           <button class="btn" type="button" :disabled="importing" @click="importFromUrl">
-            {{ importing ? '导入中…' : '从网络导入' }}
+            {{ importing ? t('common.loading') : t('reader.importFromWeb') }}
           </button>
 
-          <div class="divider"><span>或</span></div>
+          <div class="divider"><span>{{ t('common.or') }}</span></div>
 
           <button class="btn" type="button" :disabled="importing" @click="localFileInputRef?.click()">
-            选择本地 JSON 文件
+            {{ t('reader.selectLocalJsonFile') }}
           </button>
           <input
             ref="localFileInputRef"
@@ -248,6 +248,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { t } from '../../i18n'
 import { useReaderStore } from '../../stores/reader'
 import { useAppStore } from '../../stores/app'
 import { saveReplaceRule, saveReplaceRules, deleteReplaceRule } from '../../api/replaceRule'
@@ -276,8 +277,8 @@ const editingRule = ref<ReplaceRule | null>(null)
 
 const subtitle = computed(() => (
   store.replaceRules.length
-    ? `${store.replaceRules.length} 条规则 · 按排序依次执行`
-    : '清理正文里的广告与杂项'
+    ? t('reader.ruleCountOrdered', { count: store.replaceRules.length })
+    : t('reader.cleanAdAndMisc')
 ))
 
 /* ─── 导入面板 ─── */
@@ -299,7 +300,7 @@ const bulkBusy = ref(false)
 const ruleGroups = computed(() => {
   const counts = new Map<string, number>()
   for (const rule of store.replaceRules) {
-    const group = (rule.group || '').trim() || '未分组'
+    const group = (rule.group || '').trim() || t('bookshelf.ungrouped')
     counts.set(group, (counts.get(group) || 0) + 1)
   }
   return [...counts.entries()]
@@ -311,7 +312,7 @@ const ruleGroups = computed(() => {
 const visibleRules = computed(() => {
   if (!activeGroup.value) return sortedRules.value
   return sortedRules.value.filter(
-    (rule) => ((rule.group || '').trim() || '未分组') === activeGroup.value,
+    (rule) => ((rule.group || '').trim() || t('bookshelf.ungrouped')) === activeGroup.value,
   )
 })
 
@@ -324,7 +325,7 @@ const visibleRules = computed(() => {
 async function setVisibleEnabled(enabled: boolean) {
   const targets = visibleRules.value.filter((rule) => rule.isEnabled !== enabled)
   if (!targets.length) {
-    appStore.showToast(enabled ? '当前列表已全部启用' : '当前列表已全部停用', 'warning')
+    appStore.showToast(enabled ? t('reader.allRulesEnabled') : t('reader.allRulesDisabled'), 'warning')
     return
   }
   bulkBusy.value = true
@@ -332,11 +333,14 @@ async function setVisibleEnabled(enabled: boolean) {
     await saveReplaceRules(targets.map((rule) => ({ ...rule, isEnabled: enabled })))
     await store.fetchReplaceRules()
     appStore.showToast(
-      `${enabled ? '已启用' : '已停用'} ${targets.length} 条规则`,
+      t('reader.rulesBatchSuccess', {
+        action: enabled ? t('reader.enabledAction') : t('reader.disabledAction'),
+        count: targets.length,
+      }),
       'success',
     )
   } catch (e: any) {
-    appStore.showToast(e.message || '批量操作失败', 'error')
+    appStore.showToast(e.message || t('reader.batchOpFailed'), 'error')
     // 失败后以服务端为准，避免界面停在一个不确定的状态。
     await store.fetchReplaceRules()
   } finally {
@@ -363,12 +367,12 @@ const ruleIssues = computed(() => {
 
 /** 只返回范围本身，前缀「范围:」由模板里的位置表达，避免每行都重复两个字。 */
 function describeScope(scope?: string) {
-  if (!scope || scope === '*') return '全部书籍'
+  if (!scope || scope === '*') return t('reader.scopeAll')
   if (scope.startsWith('source:')) {
-    return `当前书源 (${scope.slice('source:'.length)})`
+    return t('reader.scopeCurrentSource', { name: scope.slice('source:'.length) })
   }
   if (scope.startsWith('book:')) {
-    return `当前书籍 (${scope.slice('book:'.length)})`
+    return t('reader.scopeCurrentBook', { name: scope.slice('book:'.length) })
   }
   return scope
 }
@@ -377,10 +381,10 @@ function describeScope(scope?: string) {
 function describeTargets(rule: ReplaceRule) {
   const content = rule.scopeContent !== false
   const title = rule.scopeTitle === true
-  if (content && title) return '正文+标题'
-  if (title) return '仅标题'
-  if (content) return '正文'
-  return '未生效'
+  if (content && title) return t('reader.targetContentAndTitle')
+  if (title) return t('reader.targetOnlyTitle')
+  if (content) return t('reader.targetContent')
+  return t('reader.targetNotEffective')
 }
 
 function getScopeMode(rule: ReplaceRule) {
@@ -441,11 +445,11 @@ function setScopeMode(mode: 'global' | 'book' | 'source') {
 async function handleSave() {
   if (!editingRule.value) return
   if (!editingRule.value.name || !editingRule.value.pattern) {
-    appStore.showToast('请填写名称和匹配内容', 'warning')
+    appStore.showToast(t('reader.fillNameAndPattern'), 'warning')
     return
   }
   if (editingRule.value.scopeContent === false && editingRule.value.scopeTitle !== true) {
-    appStore.showToast('「正文」和「章节标题」至少勾选一个，否则规则不会生效', 'warning')
+    appStore.showToast(t('reader.atLeastOneScopeTarget'), 'warning')
     return
   }
   try {
@@ -453,7 +457,7 @@ async function handleSave() {
     await store.fetchReplaceRules()
     editingRule.value = null
   } catch (e: any) {
-    appStore.showToast(e.message || '保存失败', 'error')
+    appStore.showToast(e.message || t('common.saveFailed'), 'error')
   }
 }
 
@@ -464,24 +468,27 @@ async function toggleRule(rule: ReplaceRule) {
     await saveReplaceRule(rule)
     await store.fetchReplaceRules()
   } catch (e: any) {
-    appStore.showToast(e.message || '规则状态保存失败', 'error')
+    appStore.showToast(e.message || t('reader.ruleStateSaveFailed'), 'error')
     // saveReplaceRule 可能已在请求发出前就改了本地对象; 用服务端数据恢复真实状态,
     // 不能简单取反(旧实现失败时反而把用户刚点的开关翻回去)。
     const restored = await store.fetchReplaceRules()
     // 恢复也失败时本地开关已不可信, 必须明确告知 —— 否则界面停在一个
     // 既非"用户点的值"也非"服务端值"的状态上而无人察觉。
-    if (!restored) appStore.showToast('规则状态同步失败，请重新打开本面板确认', 'warning')
+    if (!restored) appStore.showToast(t('reader.ruleStateSaveFailed'), 'warning')
   }
 }
 
 async function handleDelete(rule: ReplaceRule) {
-  const ok = await appStore.confirmDialog(`确定删除规则 "${rule.name}" 吗？`, { title: '删除规则', danger: true })
+  const ok = await appStore.confirmDialog(
+    t('reader.confirmDeleteRule', { name: rule.name }),
+    { title: t('reader.deleteRule'), danger: true },
+  )
   if (!ok) return
   try {
     await deleteReplaceRule(rule)
     await store.fetchReplaceRules()
   } catch (e: any) {
-    appStore.showToast(e.message || '删除失败', 'error')
+    appStore.showToast(e.message || t('common.deleteFailed'), 'error')
   }
 }
 
@@ -512,16 +519,16 @@ async function fetchRulesJson(url: string): Promise<unknown> {
   try {
     response = await fetch(url, { cache: 'no-store' })
   } catch {
-    throw new Error('无法从该地址获取规则：请检查网络连接，或该站点不允许跨域访问')
+    throw new Error(t('reader.fetchRulesFailed'))
   }
   if (!response.ok) {
-    throw new Error(`获取规则失败：服务器返回 ${response.status}`)
+    throw new Error(t('reader.fetchRulesStatus', { status: response.status }))
   }
   const text = await response.text()
   try {
     return JSON.parse(text)
   } catch {
-    throw new Error('该地址返回的不是合法 JSON（可能被重定向到了网页）')
+    throw new Error(t('reader.notValidJson'))
   }
 }
 
@@ -540,7 +547,7 @@ async function applyImportedRules(raw: unknown) {
   // 保存成功但列表没拉回来时不能说"导入成功": 面板上看到的仍是旧列表,
   // 用户会以为规则没进去。明确提示需要重开面板确认。
   if (!refreshed) {
-    appStore.showToast(`${feedback.text}，但规则列表刷新失败，请重新打开本面板确认`, 'warning')
+    appStore.showToast(t('reader.refreshRulesListFailedNotice', { feedback: feedback.text }), 'warning')
     return
   }
   appStore.showToast(feedback.text, feedback.type)
@@ -550,14 +557,14 @@ async function importFromUrl() {
   if (importing.value) return
   const url = importUrl.value.trim()
   if (!url) {
-    appStore.showToast('请输入规则 JSON 链接', 'warning')
+    appStore.showToast(t('reader.inputRuleJsonUrlPrompt'), 'warning')
     return
   }
   importing.value = true
   try {
     await applyImportedRules(await fetchRulesJson(url))
   } catch (error) {
-    appStore.showToast((error as Error).message || '导入失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.importFailed'), 'error')
   } finally {
     importing.value = false
   }
@@ -573,11 +580,11 @@ async function handleLocalFile(event: Event) {
     try {
       raw = JSON.parse(await file.text())
     } catch {
-      throw new Error('文件内容不是合法 JSON')
+      throw new Error(t('reader.fileNotValidJson'))
     }
     await applyImportedRules(raw)
   } catch (error) {
-    appStore.showToast((error as Error).message || '导入失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.importFailed'), 'error')
   } finally {
     importing.value = false
     // 清空 value: 否则再次选同一个文件不会触发 change

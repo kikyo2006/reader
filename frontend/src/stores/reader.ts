@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, reactive, watch } from 'vue'
+import { t, currentLocale } from '../i18n'
 import { useAppStore } from './app'
 import { useBookshelfStore } from './bookshelf'
 import { isTauriRuntime } from '../api/transport'
@@ -859,7 +860,25 @@ export const useReaderStore = defineStore('reader', () => {
    * 单独开一个 computed 而不是改 `chapters` 里的原值：原值要参与「按标题定位章节」
    * （换源、进度恢复都靠它），被规则改写后会定位不到。
    */
-  const displayChapterTitle = computed(() => applyTitleReplaceRules(currentChapter.value?.title || ''))
+  function localizeGenericTitle(title: string): string {
+    if (!title) return ''
+    const lang = currentLocale.value
+    if (lang === 'vi-VN') {
+      if (title === '正文') return 'Nội dung chính'
+      if (title === '正文卷') return 'Quyển chính'
+      if (title === '作品相关') return 'Thông tin tác phẩm'
+    } else if (lang === 'en-US') {
+      if (title === '正文') return 'Main Text'
+      if (title === '正文卷') return 'Main Volume'
+      if (title === '作品相关') return 'About the Work'
+    }
+    return title
+  }
+
+  const displayChapterTitle = computed(() => {
+    const raw = applyTitleReplaceRules(currentChapter.value?.title || '')
+    return localizeGenericTitle(raw)
+  })
 
   /**
    * 任意章节的净化标题（连续阅读一次挂多章，不能只算当前章）。
@@ -868,8 +887,9 @@ export const useReaderStore = defineStore('reader', () => {
    */
   function displayTitleOf(chapter: { title?: string } | null | undefined): string {
     const title = chapter?.title || ''
-    if (!title || !enabledTitleReplaceRules.value.length) return title
-    return applyTitleReplaceRules(title)
+    if (!title) return ''
+    const raw = enabledTitleReplaceRules.value.length ? applyTitleReplaceRules(title) : title
+    return localizeGenericTitle(raw)
   }
   const hasNext = computed(() => currentIndex.value < chapters.value.length - 1)
   const hasPrev = computed(() => currentIndex.value > 0)
@@ -1785,11 +1805,11 @@ export const useReaderStore = defineStore('reader', () => {
    */
   const msSpeechConfigured = computed(() => !!speechConfig.msVoice.trim() && appStore.isOnline)
   const speechProviderLabel = computed(() => {
-    if (speechConfig.provider === 'openai') return 'API 语音'
-    if (speechConfig.provider === 'http') return '在线朗读引擎'
-    if (speechConfig.provider === 'edge') return 'Edge 朗读'
-    if (speechConfig.provider === 'msdemo') return '微软朗读'
-    return '系统语音'
+    if (speechConfig.provider === 'openai') return t('reader.engineApiSpeech')
+    if (speechConfig.provider === 'http') return t('reader.engineHttpTts')
+    if (speechConfig.provider === 'edge') return t('reader.engineEdgeTts')
+    if (speechConfig.provider === 'msdemo') return t('reader.engineMsDemo')
+    return t('reader.engineSystemSpeech')
   })
   const speechStopAt = ref(0)
   let speechStopTimer: number | null = null
@@ -3778,7 +3798,7 @@ export const useReaderStore = defineStore('reader', () => {
         initialProgress = options.initialProgressOverride
       }
       currentIndex.value = initialIndex
-      if (!chapters.value.length) throw new Error('目录为空，无法加载正文')
+      if (!chapters.value.length) throw new Error(t('reader.emptyCatalogCannotLoad'))
       await loadChapter(initialIndex, false, initialProgress)
       if (requestId !== bookLoadRequestId || book.value?.bookUrl !== b.bookUrl) return
       if (syncProgress) {

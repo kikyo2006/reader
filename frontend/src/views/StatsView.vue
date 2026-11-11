@@ -4,10 +4,10 @@
       <header class="stats-header">
         <div>
           <p class="stats-eyebrow">READING RECORD</p>
-          <h1 class="stats-title">阅读数据统计</h1>
-          <p class="stats-subtitle">持续记录每一次阅读，看看时间都去了哪里。</p>
+          <h1 class="stats-title">{{ t('stats.title') }}</h1>
+          <p class="stats-subtitle">{{ t('stats.overview') }}</p>
         </div>
-        <div class="stats-range" role="group" aria-label="统计时间范围">
+        <div class="stats-range" role="group" :aria-label="t('stats.timeRangeAria')">
           <button
             v-for="r in ranges"
             :key="r.days"
@@ -22,16 +22,16 @@
 
       <section class="overview-grid">
         <div class="overview-main">
-          <span class="overview-label">累计阅读时长</span>
+          <span class="overview-label">{{ t('stats.totalReading') }}</span>
           <strong class="overview-value">{{ formatDuration(summary.totalSeconds) }}</strong>
-          <span class="overview-note">{{ summary.readBooks }} 本书记录 · {{ summary.activeDays }} 个活跃日</span>
+          <span class="overview-note">{{ summary.readBooks }} {{ t('stats.booksUnit', { count: summary.readBooks }) }} · {{ summary.activeDays }} {{ t('stats.daysUnit', { count: summary.activeDays }) }}</span>
         </div>
         <div class="overview-mini">
-          <span>今日</span>
+          <span>{{ t('stats.todayReading') }}</span>
           <strong>{{ formatDuration(summary.todaySeconds) }}</strong>
         </div>
         <div class="overview-mini">
-          <span>本月</span>
+          <span>{{ t('stats.thisMonth') }}</span>
           <strong>{{ formatDuration(summary.monthSeconds) }}</strong>
         </div>
         <div class="overview-mini">
@@ -43,8 +43,8 @@
       <section class="panel chart-panel">
         <header class="panel-head">
           <div>
-            <h2>每日阅读时长</h2>
-            <p>{{ activeRangeLabel }} · 单位：分钟</p>
+            <h2>{{ t('stats.dailyReadingTime') }}</h2>
+            <p>{{ t('stats.unitMinutes', { range: activeRangeLabel }) }}</p>
           </div>
         </header>
         <div ref="chartRef" class="chart"></div>
@@ -54,8 +54,8 @@
         <section class="panel daily-panel">
           <header class="panel-head">
             <div>
-              <h2>每日明细</h2>
-              <p>最近 14 个有记录的日子</p>
+              <h2>{{ t('stats.dailyDetails') }}</h2>
+              <p>{{ t('stats.recentDaysRecorded', { count: 14 }) }}</p>
             </div>
           </header>
           <div v-if="dailyRows.length" class="daily-list">
@@ -68,16 +68,16 @@
               <strong class="daily-value">{{ formatDuration(row.seconds) }}</strong>
             </div>
           </div>
-          <div v-else class="empty-state">开始阅读后，这里会出现每日记录。</div>
+          <div v-else class="empty-state">{{ t('stats.dailyEmptyHint') }}</div>
         </section>
 
         <section class="panel rank-panel">
           <header class="panel-head">
             <div>
-              <h2>阅读时长排行</h2>
+              <h2>{{ t('stats.rankingTitle') }}</h2>
               <p>{{ activeRangeLabel }}</p>
             </div>
-            <span class="book-total">{{ bookStats.length }} 本</span>
+            <span class="book-total">{{ t('stats.booksUnit', { count: bookStats.length }) }}</span>
           </header>
           <div v-if="bookStats.length" class="book-stats-list">
             <div
@@ -102,7 +102,7 @@
               </div>
             </div>
           </div>
-          <div v-else class="empty-state">当前范围内还没有阅读排行。</div>
+          <div v-else class="empty-state">{{ t('stats.rankingEmptyHint') }}</div>
         </section>
       </div>
     </div>
@@ -123,14 +123,14 @@ import {
 } from '../api/readingStats'
 import { useAppStore } from '../stores/app'
 import { showContextMenu } from '../composables/useContextMenu'
+import { currentLocale, t } from '../i18n'
 
-const ranges = [
-  { days: 7, label: '近7天' },
-  { days: 30, label: '近30天' },
-  { days: 90, label: '近90天' },
-] as const
+const ranges = computed(() => [
+  { days: 7, label: t('stats.range7') },
+  { days: 30, label: t('stats.range30') },
+  { days: 90, label: t('stats.range90') },
+])
 
-const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 const activeRange = ref(30)
 const appStore = useAppStore()
 const chartRef = ref<HTMLElement | null>(null)
@@ -146,7 +146,7 @@ const bookStats = ref<BookReadingStats[]>([])
 let chart: echarts.ECharts | null = null
 let loadToken = 0
 
-const activeRangeLabel = computed(() => ranges.find((range) => range.days === activeRange.value)?.label || '')
+const activeRangeLabel = computed(() => ranges.value.find((range) => range.days === activeRange.value)?.label || '')
 const rangeSummary = computed(() => ({
   totalSeconds: dailyStats.value.reduce((total, day) => total + day.seconds, 0),
   activeDays: dailyStats.value.filter((day) => day.seconds > 0).length,
@@ -163,13 +163,13 @@ const dailyRows = computed(() => dailyStats.value
     width: Math.max(4, Math.round(day.seconds / maxDailySeconds.value * 100)),
   })))
 function formatDuration(seconds: number) {
-  if (seconds <= 0) return '0分钟'
-  if (seconds < 60) return '少于1分钟'
+  if (seconds <= 0) return t('stats.zeroMinutes')
+  if (seconds < 60) return t('stats.lessThanOneMinute')
   const mins = Math.floor(seconds / 60)
   const hours = Math.floor(mins / 60)
   const remMins = mins % 60
-  if (hours > 0) return `${hours}小时${remMins}分`
-  return `${Math.max(1, mins)}分钟`
+  if (hours > 0) return t('stats.hoursAndMinutes', { hours, minutes: remMins })
+  return t('stats.minutesCount', { count: Math.max(1, mins) })
 }
 
 function bookProgressWidth(seconds: number) {
@@ -185,7 +185,7 @@ function bookShare(seconds: number) {
 function handleBookStatsContextMenu(event: MouseEvent, book: BookReadingStats) {
   const menuItems = [
     {
-      label: '删除该书阅读记录',
+      label: t('stats.deleteRecord'),
       danger: true,
       action: () => handleDeleteBookStats(book),
     },
@@ -195,16 +195,16 @@ function handleBookStatsContextMenu(event: MouseEvent, book: BookReadingStats) {
 
 async function handleDeleteBookStats(book: BookReadingStats) {
   const ok = await appStore.confirmDialog(
-    `确定删除「${book.bookName}」的阅读时长记录？此操作不可恢复。`,
-    { title: '删除阅读记录', danger: true },
+    t('stats.deleteConfirm', { name: book.bookName }),
+    { title: t('stats.deleteTitle'), danger: true },
   )
   if (!ok) return
   try {
     await deleteReadingStatsByBook(book.bookUrl)
-    appStore.showToast(`已删除「${book.bookName}」的阅读记录`, 'success')
+    appStore.showToast(t('stats.deletedRecord', { name: book.bookName }), 'success')
     await loadStats()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '删除失败', 'error')
+    appStore.showToast((e as Error).message || t('stats.deleteFailed'), 'error')
   }
 }
 
@@ -215,7 +215,19 @@ function formatMonthDay(value: string) {
 
 function formatWeekday(value: string) {
   const date = new Date(`${value}T00:00:00`)
-  return Number.isNaN(date.getTime()) ? '' : `周${weekdays[(date.getDay() + 6) % 7]}`
+  if (Number.isNaN(date.getTime())) return ''
+  const day = (date.getDay() + 6) % 7
+  const lang = currentLocale.value
+  if (lang === 'vi-VN') {
+    const viDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+    return viDays[day]
+  }
+  if (lang === 'en-US') {
+    const enDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    return enDays[day]
+  }
+  const zhDays = ['一', '二', '三', '四', '五', '六', '日']
+  return `周${zhDays[day]}`
 }
 
 function dateStr(offsetDays: number) {
@@ -272,7 +284,7 @@ function renderChart(daily: DailyReadingStats[], start: string, end: string) {
 
   chart.setOption({
     grid: { left: 8, right: 8, top: 18, bottom: 8, containLabel: true },
-    tooltip: { trigger: 'axis', valueFormatter: (value: number) => `${value} 分钟` },
+    tooltip: { trigger: 'axis', valueFormatter: (value: number) => t('stats.tooltipMinutes', { value }) },
     xAxis: {
       type: 'category',
       data: dates,

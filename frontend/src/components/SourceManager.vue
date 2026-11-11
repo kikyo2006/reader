@@ -59,8 +59,8 @@
               :loading="loading"
               :selected-urls="selectedSourceUrls"
               :active-url="editingSource?.bookSourceUrl"
-              :empty-title="sources.length ? '没有匹配的书源' : '暂无书源'"
-              :empty-description="sources.length ? '调整搜索关键词或分组筛选后再试' : '可以本地导入、网络导入或手动新增'"
+              :empty-title="sources.length ? t('source.list.noMatched') : t('source.list.empty')"
+              :empty-description="sources.length ? t('source.list.noMatchedDesc') : t('source.list.emptyDesc')"
               @edit="editSource"
               @toggle-enabled="toggleSource"
               @toggle-selection="toggleSourceSelection"
@@ -88,7 +88,7 @@
           </div>
 
           <footer class="modal-footer">
-            <span class="count-info">显示 {{ filteredSources.length }} / {{ sources.length }}</span>
+            <span class="count-info">{{ t('source.list.displayCount', { filtered: filteredSources.length, total: sources.length }) }}</span>
           </footer>
         </div>
       </div>
@@ -111,9 +111,9 @@
 
     <SourceGroupPrompt
       :visible="groupPromptVisible"
-      :title="groupPromptMode === 'add' ? '添加到分组' : '从分组移除'"
+      :title="groupPromptMode === 'add' ? t('source.prompt.addToGroup') : t('source.prompt.removeFromGroup')"
       :message="groupPromptMessage"
-      :confirm-text="groupPromptMode === 'add' ? '添加' : '移除'"
+      :confirm-text="groupPromptMode === 'add' ? t('source.prompt.add') : t('source.prompt.remove')"
       :suggestions="groupList"
       @confirm="handleGroupPromptConfirm"
       @close="closeGroupPrompt"
@@ -163,6 +163,7 @@ import { showContextMenu, type MenuItem } from '../composables/useContextMenu'
 import SourceManagerHeader from './source-manager/SourceManagerHeader.vue'
 import SourceSubscriptionPanel from './source-manager/SourceSubscriptionPanel.vue'
 import SourceGroupPrompt from './source-manager/SourceGroupPrompt.vue'
+import { t } from '../i18n'
 
 type SourceSubscription = {
   url: string
@@ -229,13 +230,13 @@ const groupPromptFallbackCount = ref(0)
  *  「0 个」; ② 多元素 explicitTargets 时现算计数会与实际目标不符。
  *  因此计数也取自同一份快照, 在打开时一并算好。 */
 const groupPromptMessage = computed(() => {
-  const verb = groupPromptMode.value === 'add' ? '添加' : '移除'
+  const verb = groupPromptMode.value === 'add' ? t('source.prompt.add') : t('source.prompt.remove')
   const targets = groupPromptTargets.value
   if (targets.length === 1) {
-    return `将对「${targets[0].bookSourceName}」${verb}以下分组`
+    return t('source.messages.groupPromptSingle', { name: targets[0].bookSourceName, verb })
   }
   const count = groupPromptTargets.value.length || groupPromptFallbackCount.value
-  return `将对选中的 ${count} 个书源${verb}以下分组`
+  return t('source.messages.groupPromptMulti', { count, verb })
 })
 
 const groupList = computed(() => getBookSourceGroups(sources.value))
@@ -279,7 +280,7 @@ const canLoginSource = computed(() => {
 
 function createEmptySource(): BookSource {
   return {
-    bookSourceName: '新增书源',
+    bookSourceName: t('source.editor.newSource'),
     bookSourceUrl: '',
     enabled: true,
   }
@@ -322,7 +323,7 @@ let editorStaleWarned = false
 function warnEditorStale() {
   if (editorStaleWarned) return
   editorStaleWarned = true
-  appStore.showToast('编辑框内是打开时的旧内容，直接保存会覆盖刚做的改动；可重新打开该源', 'warning')
+  appStore.showToast(t('source.messages.oldEditorWarning'), 'warning')
 }
 
 /**
@@ -381,7 +382,7 @@ async function toggleSource(source: BookSource) {
         warnEditorStale()
       }
     }
-    appStore.showToast('书源状态已更新', 'success')
+    appStore.showToast(t('source.messages.statusUpdated'), 'success')
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
   }
@@ -390,7 +391,7 @@ async function toggleSource(source: BookSource) {
 async function pinSource(source: BookSource) {
   try {
     await pinBookSource(source.bookSourceUrl)
-    appStore.showToast(`已置顶「${source.bookSourceName}」`, 'success')
+    appStore.showToast(t('source.messages.pinned', { name: source.bookSourceName }), 'success')
     await loadSources()
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
@@ -400,7 +401,7 @@ async function pinSource(source: BookSource) {
 async function unpinSource(source: BookSource) {
   try {
     await unpinBookSource(source.bookSourceUrl)
-    appStore.showToast(`已取消置顶「${source.bookSourceName}」`, 'success')
+    appStore.showToast(t('source.messages.unpinned', { name: source.bookSourceName }), 'success')
     await loadSources()
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
@@ -408,7 +409,10 @@ async function unpinSource(source: BookSource) {
 }
 
 async function removeSource(source: BookSource) {
-  const ok = await appStore.confirmDialog(`确定删除书源 "${source.bookSourceName}"？`, { title: '删除书源', danger: true })
+  const ok = await appStore.confirmDialog(
+    t('source.messages.deleteConfirm', { name: source.bookSourceName }),
+    { title: t('source.messages.deleteTitle'), danger: true },
+  )
   if (!ok) return
   try {
     await deleteBookSource(source.bookSourceUrl)
@@ -419,7 +423,7 @@ async function removeSource(source: BookSource) {
     if (editingSource.value?.bookSourceUrl === source.bookSourceUrl) {
       createSource()
     }
-    appStore.showToast('已删除', 'success')
+    appStore.showToast(t('source.messages.deleted'), 'success')
     await sourceStore.fetchSources(true).catch(() => undefined)
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
@@ -450,49 +454,47 @@ function buildSourceMenuItems(source: BookSource, opts: { includeEdit?: boolean 
   const exploreEnabled = source.enabledExplore === true
   const items: MenuItem[] = []
   if (opts.includeEdit !== false) {
-    items.push({ label: '编辑', action: () => editSource(source) })
+    items.push({ label: t('source.menu.edit'), action: () => editSource(source) })
     items.push({ divider: true })
   }
   items.push(
-    { label: enabled ? '停用' : '启用', action: () => toggleSource(source) },
+    { label: enabled ? t('source.menu.disable') : t('source.menu.enable'), action: () => toggleSource(source) },
     {
-      label: exploreEnabled ? '停用发现' : '启用发现',
+      label: exploreEnabled ? t('source.menu.disableExplore') : t('source.menu.enableExplore'),
       action: () => setSourceExploreEnabled(source, !exploreEnabled),
     },
     { divider: true },
     {
-      label: pinned ? '取消置顶' : '置顶',
+      label: pinned ? t('source.menu.unpin') : t('source.menu.pin'),
       action: () => (pinned ? unpinSource(source) : pinSource(source)),
     },
-    { label: '沉底', action: () => sinkSourceToBottom(source) },
+    { label: t('source.menu.sink'), action: () => sinkSourceToBottom(source) },
     { divider: true },
-    { label: '添加到分组…', action: () => openGroupPrompt('add', [source]) },
-    { label: '从分组移除…', action: () => openGroupPrompt('remove', [source]) },
+    { label: t('source.menu.addToGroup'), action: () => openGroupPrompt('add', [source]) },
+    { label: t('source.menu.removeFromGroup'), action: () => openGroupPrompt('remove', [source]) },
     { divider: true },
-    { label: '导出此书源', action: () => exportSourcesList([source]) },
+    { label: t('source.menu.exportSource'), action: () => exportSourcesList([source]) },
     {
-      label: '测试此书源',
+      label: t('source.menu.testSource'),
       action: () => testSources([source]),
-      // 用 getter 而非快照值: 菜单项存于 reactive 的 `state.items`, 模板渲染时
-      // 读取该属性即会追踪 `testingSources` —— 后台测试跑完后菜单里的禁用态
-      // 会立即解除, 不必关掉菜单再打开。
       get disabled() { return testingSources.value },
     },
     { divider: true },
-    { label: '删除', danger: true, action: () => removeSource(source) },
+    { label: t('source.menu.delete'), danger: true, action: () => removeSource(source) },
   )
   return items
 }
 
 async function removeSelectedSources() {
-  // Snapshot the visible selection before opening the asynchronous confirm
-  // dialog so the deletion target cannot drift with later filter changes.
   const targets = [...selectedFilteredSources.value]
   if (!targets.length) {
-    appStore.showToast('请先选择要删除的书源', 'warning')
+    appStore.showToast(t('source.messages.selectToDelete'), 'warning')
     return
   }
-  const ok = await appStore.confirmDialog(`确定删除选中的 ${targets.length} 个书源？`, { title: '删除书源(批量)', danger: true })
+  const ok = await appStore.confirmDialog(
+    t('source.messages.batchDeleteConfirm', { count: targets.length }),
+    { title: t('source.messages.batchDeleteTitle'), danger: true },
+  )
   if (!ok) return
   try {
     await deleteBookSources(toBookSourceDeletePayload(targets))
@@ -504,40 +506,35 @@ async function removeSelectedSources() {
     if (editingSource.value && targetUrls.has(editingSource.value.bookSourceUrl)) {
       createSource()
     }
-    appStore.showToast(`已删除 ${targets.length} 个书源`, 'success')
+    appStore.showToast(t('source.messages.batchDeleteSuccess', { count: targets.length }), 'success')
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '批量删除失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.batchDeleteFailed'), 'error')
   }
 }
 
-/**
- * "更多"菜单(参考 legado book_source_sel 多选操作菜单):
- * 启用/停用、分组增删、发现开关、置顶/沉底、导出/测试所选。
- * 分享与校验间隔两项为 Android 特有语义, 桌面端由导出替代、间隔无数据模型, 不做。
- */
 function handleSelectionMore(event: MouseEvent) {
   const count = selectedFilteredSources.value.length
   if (!count) {
-    appStore.showToast('请先选择要操作的书源', 'warning')
+    appStore.showToast(t('source.messages.selectToOperate'), 'warning')
     return
   }
   showContextMenu(event, [
-    { label: `启用选中（${count}）`, action: () => setSelectedEnabled(true) },
-    { label: `停用选中（${count}）`, action: () => setSelectedEnabled(false) },
+    { label: t('source.menu.enableSelected', { count }), action: () => setSelectedEnabled(true) },
+    { label: t('source.menu.disableSelected', { count }), action: () => setSelectedEnabled(false) },
     { divider: true },
-    { label: '添加到分组…', action: () => openGroupPrompt('add') },
-    { label: '从分组移除…', action: () => openGroupPrompt('remove') },
+    { label: t('source.menu.addToGroup'), action: () => openGroupPrompt('add') },
+    { label: t('source.menu.removeFromGroup'), action: () => openGroupPrompt('remove') },
     { divider: true },
-    { label: '启用发现', action: () => setSelectedExploreEnabled(true) },
-    { label: '停用发现', action: () => setSelectedExploreEnabled(false) },
+    { label: t('source.menu.enableExplore'), action: () => setSelectedExploreEnabled(true) },
+    { label: t('source.menu.disableExplore'), action: () => setSelectedExploreEnabled(false) },
     { divider: true },
-    { label: '置顶所选', action: () => moveSelectedSources('top') },
-    { label: '沉底所选', action: () => moveSelectedSources('bottom') },
+    { label: t('source.menu.pinSelected'), action: () => moveSelectedSources('top') },
+    { label: t('source.menu.sinkSelected'), action: () => moveSelectedSources('bottom') },
     { divider: true },
-    { label: '导出所选', action: () => exportSelectedSources() },
+    { label: t('source.menu.exportSelected'), action: () => exportSelectedSources() },
     {
-      label: '测试所选',
+      label: t('source.menu.testSelected'),
       action: () => testSources(),
       disabled: testingSources.value,
     },
@@ -554,7 +551,7 @@ async function applySelectedSources(
   // explicitTargets 用于单源菜单等"目标已确定"的入口。
   const targets = explicitTargets?.length ? [...explicitTargets] : [...selectedFilteredSources.value]
   if (!targets.length) {
-    appStore.showToast('请先选择要操作的书源', 'warning')
+    appStore.showToast(t('source.messages.selectToOperate'), 'warning')
     return
   }
   try {
@@ -562,65 +559,66 @@ async function applySelectedSources(
     appStore.showToast(successMessage(targets.length), 'success')
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '批量操作失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.batchActionFailed'), 'error')
   }
 }
 
 function setSelectedEnabled(enabled: boolean) {
   return applySelectedSources(
     (source) => ({ ...source, enabled }),
-    (count) => (enabled ? `已启用 ${count} 个书源` : `已停用 ${count} 个书源`),
+    (count) => (enabled ? t('source.messages.enabledSources', { count }) : t('source.messages.disabledSources', { count })),
   )
 }
 
 function setSelectedExploreEnabled(enabled: boolean) {
   return applySelectedSources(
     (source) => ({ ...source, enabledExplore: enabled }),
-    (count) => (enabled ? `已启用 ${count} 个书源的发现` : `已停用 ${count} 个书源的发现`),
+    (count) => (enabled ? t('source.messages.enabledExplore', { count }) : t('source.messages.disabledExplore', { count })),
   )
 }
 
 async function moveSelectedSources(edge: 'top' | 'bottom') {
   const targets = [...selectedFilteredSources.value]
   if (!targets.length) {
-    appStore.showToast('请先选择要操作的书源', 'warning')
+    appStore.showToast(t('source.messages.selectToOperate'), 'warning')
     return
   }
   try {
     const targetUrls = new Set(targets.map((source) => source.bookSourceUrl))
     const updated = moveBookSourcesToEdge(sources.value, targetUrls, edge)
-    // 选中项的 customOrder 必被改写(top 恒为负/bottom 恒为正, 必异于任何原值),
-    // 因此按选中集合过滤出的就是需要写回的全部变更。
     const changed = updated.filter((source) => targetUrls.has(source.bookSourceUrl))
     await saveBookSources(changed)
     appStore.showToast(
-      edge === 'top' ? `已置顶 ${targets.length} 个书源` : `已沉底 ${targets.length} 个书源`,
+      edge === 'top'
+        ? t('source.messages.pinnedSources', { count: targets.length })
+        : t('source.messages.sinkedSources', { count: targets.length }),
       'success',
     )
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '批量操作失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.batchActionFailed'), 'error')
   }
 }
 
-/** 单源沉底: 复用批量的排序计算, 但提示语按单源措辞。置顶走后端 pinSource(数值等价)。 */
 async function sinkSourceToBottom(source: BookSource) {
   const targetUrls = new Set([source.bookSourceUrl])
   try {
     const updated = moveBookSourcesToEdge(sources.value, targetUrls, 'bottom')
     const changed = updated.filter((item) => targetUrls.has(item.bookSourceUrl))
     await saveBookSources(changed)
-    appStore.showToast(`已沉底「${source.bookSourceName}」`, 'success')
+    appStore.showToast(t('source.messages.sinked', { name: source.bookSourceName }), 'success')
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '操作失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.actionFailed'), 'error')
   }
 }
 
 function setSourceExploreEnabled(source: BookSource, enabled: boolean) {
   return applySelectedSources(
     (item) => ({ ...item, enabledExplore: enabled }),
-    () => (enabled ? `已启用「${source.bookSourceName}」的发现` : `已停用「${source.bookSourceName}」的发现`),
+    () => (enabled
+      ? t('source.messages.sourceExploreEnabled', { name: source.bookSourceName })
+      : t('source.messages.sourceExploreDisabled', { name: source.bookSourceName })),
     [source],
   )
 }
@@ -628,11 +626,10 @@ function setSourceExploreEnabled(source: BookSource, enabled: boolean) {
 function openGroupPrompt(mode: 'add' | 'remove', explicitTargets?: BookSource[]) {
   const count = explicitTargets?.length || selectedFilteredSources.value.length
   if (!count) {
-    appStore.showToast('请先选择要操作的书源', 'warning')
+    appStore.showToast(t('source.messages.selectToOperate'), 'warning')
     return
   }
   groupPromptTargets.value = explicitTargets ? [...explicitTargets] : []
-  // 与 targets 同批快照: 关闭动画期间 targets 会被清空, 计数不能依赖现算。
   groupPromptFallbackCount.value = selectedFilteredSources.value.length
   groupPromptMode.value = mode
   groupPromptVisible.value = true
@@ -649,7 +646,9 @@ async function handleGroupPromptConfirm(groupsInput: string) {
   closeGroupPrompt()
   await applySelectedSources(
     (source) => (mode === 'add' ? addBookSourceGroups(source, groupsInput) : removeBookSourceGroups(source, groupsInput)),
-    (count) => (mode === 'add' ? `已将 ${count} 个书源加入分组` : `已将 ${count} 个书源移出分组`),
+    (count) => (mode === 'add'
+      ? t('source.messages.groupsAdded', { count })
+      : t('source.messages.groupsRemoved', { count })),
     targets.length ? targets : undefined,
   )
 }
@@ -659,15 +658,20 @@ async function testSources(explicitTargets?: BookSource[]) {
     ? explicitTargets
     : (selectedFilteredSources.value.length ? selectedFilteredSources.value : sources.value)
   if (!targets.length) {
-    appStore.showToast('没有可测试的书源', 'warning')
+    appStore.showToast(t('source.messages.noSourcesToTest'), 'warning')
     return
   }
   // 单源入口与批量入口的措辞分开: 前者点名书源, 后者说数量。
   const single = explicitTargets?.length === 1 ? explicitTargets[0] : null
   const scopeText = single
-    ? `「${single.bookSourceName}」这 1`
-    : (selectedFilteredSources.value.length ? `选中的 ${targets.length}` : `全部 ${targets.length}`)
-  const ok = await appStore.confirmDialog(`将测试${scopeText} 个书源。测试会请求外部站点，耗时可能较长，是否继续？`, { title: '测试书源' })
+    ? t('source.messages.testSingleScope', { name: single.bookSourceName })
+    : (selectedFilteredSources.value.length
+      ? t('source.messages.testSelectedScope', { count: targets.length })
+      : t('source.messages.testAllScope', { count: targets.length }))
+  const ok = await appStore.confirmDialog(
+    t('source.messages.testConfirm', { scope: scopeText }),
+    { title: t('source.messages.testTitle') },
+  )
   if (!ok) return
 
   testingSources.value = true
@@ -711,25 +715,26 @@ async function testSources(explicitTargets?: BookSource[]) {
       filterGroup.value = '失效'
     }
     if (sourceTestStopRequested.value || result.cancelled) {
-      // 如实区分三种数: 已完成(有效/失效)与未检测的。不能把未完成的算成"失效"。
-      //
-      // 未检测数必须用 `targets.length - valid - invalid`:
-      // 后端 `valid + invalid` 恰好等于"真正完成检测的源数"(被取消的不计入),
-      // 所以这个差集天然覆盖「从未派发」「派发了但结果被丢弃」「已返回已取消」
-      // 三种情况。不能用 `cancelledCount`(只含最后一种) 或 `total`(含已取消条目),
-      // 否则 100 个源只测 5 个就中止时会显示成"2 个未检测"。
       const undone = Math.max(0, targets.length - result.valid - result.invalid)
-      const parts = [`测试已中止`, `有效 ${result.valid}`, `失效 ${result.invalid}`]
-      if (undone > 0) parts.push(`${undone} 个未检测`)
+      const parts = [
+        t('source.messages.testStopped'),
+        t('source.messages.validCount', { count: result.valid }),
+        t('source.messages.invalidCount', { count: result.invalid }),
+      ]
+      if (undone > 0) parts.push(t('source.messages.undoneCount', { count: undone }))
       appStore.showToast(parts.join('，'), 'warning')
     } else {
       appStore.showToast(
-        `测试完成：有效 ${result.valid} 个，失效 ${result.invalid} 个，更新分组 ${result.markedInvalid} 个`,
+        t('source.messages.testResultComplete', {
+          valid: result.valid,
+          invalid: result.invalid,
+          marked: result.markedInvalid,
+        }),
         result.invalid > 0 ? 'warning' : 'success'
       )
     }
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '书源测试失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.testFailed'), 'error')
   } finally {
     stopSourceTestProgressListener?.()
     stopSourceTestProgressListener = null
@@ -759,10 +764,13 @@ onBeforeUnmount(() => {
 
 async function removeInvalidSources() {
   if (!invalidSources.value.length) {
-    appStore.showToast('没有失效书源', 'warning')
+    appStore.showToast(t('source.messages.noInvalidSources'), 'warning')
     return
   }
-  const ok = await appStore.confirmDialog(`确定删除 ${invalidSources.value.length} 个失效书源？此操作不可撤销。`, { title: '删除失效书源', danger: true })
+  const ok = await appStore.confirmDialog(
+    t('source.messages.deleteInvalidConfirm', { count: invalidSources.value.length }),
+    { title: t('source.messages.deleteInvalidTitle'), danger: true },
+  )
   if (!ok) return
   try {
     const result = await deleteInvalidBookSources()
@@ -772,9 +780,9 @@ async function removeInvalidSources() {
     if (editingSource.value && invalidUrls.has(editingSource.value.bookSourceUrl)) {
       createSource()
     }
-    appStore.showToast(`已删除 ${result.deleted} 个失效书源`, 'success')
+    appStore.showToast(t('source.messages.deleteInvalidSuccess', { count: result.deleted }), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '删除失效书源失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.deleteInvalidFailed'), 'error')
   }
 }
 
@@ -831,7 +839,7 @@ function formatEditor() {
     const parsed = JSON.parse(editorText.value)
     editorText.value = JSON.stringify(parsed, null, 2)
   } catch {
-    appStore.showToast('JSON 格式错误，无法格式化', 'error')
+    appStore.showToast(t('source.messages.jsonFormatError'), 'error')
   }
 }
 
@@ -840,25 +848,25 @@ async function saveEditor() {
     const raw = JSON.parse(editorText.value)
     const parsed = (Array.isArray(raw) ? raw : [raw]) as BookSource[]
     if (!parsed.length) {
-      throw new Error('书源内容为空')
+      throw new Error(t('source.messages.emptySourceContent'))
     }
     for (const source of parsed) {
       if (!source.bookSourceName?.trim()) {
-        throw new Error('书源名称不能为空')
+        throw new Error(t('source.messages.emptySourceName'))
       }
       if (!source.bookSourceUrl?.trim()) {
-        throw new Error('书源链接不能为空')
+        throw new Error(t('source.messages.emptySourceUrl'))
       }
     }
     await saveBookSources(parsed)
-    appStore.showToast(`保存书源成功（${parsed.length} 个）`, 'success')
+    appStore.showToast(t('source.messages.saveSourceSuccess', { count: parsed.length }), 'success')
     await loadSources()
     const latest = sources.value.find((item) => item.bookSourceUrl === parsed[0].bookSourceUrl)
     if (latest) {
       editSource(latest)
     }
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '保存失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.saveSourceFailed'), 'error')
   }
 }
 
@@ -866,7 +874,7 @@ async function handleSourceLogin() {
   try {
     const parsed = JSON.parse(editorText.value) as BookSource
     if (!parsed.bookSourceUrl?.trim() || !parsed.bookSourceName?.trim()) {
-      throw new Error('请填写书源名称和地址')
+      throw new Error(t('source.login.descCannotLogin'))
     }
     sourceLoginLoading.value = true
     await saveBookSource(parsed)
@@ -875,7 +883,7 @@ async function handleSourceLogin() {
     loginSource.value = parsed
     loginPreviewVisible.value = true
   } catch (error: unknown) {
-    appStore.showToast(error instanceof Error ? error.message : '打开登录失败', 'error')
+    appStore.showToast(error instanceof Error ? error.message : t('source.messages.openLoginFailed'), 'error')
   } finally {
     sourceLoginLoading.value = false
   }
@@ -892,13 +900,13 @@ async function handleFileImport(event: Event) {
   try {
     const imported = await readSourceFile(file)
     if (!imported.length) {
-      throw new Error('文件中没有可导入的书源')
+      throw new Error(t('source.messages.noImportableSources'))
     }
     await saveBookSources(imported)
-    appStore.showToast(`成功导入 ${imported.length} 个书源`, 'success')
+    appStore.showToast(t('source.messages.importSourcesSuccess', { count: imported.length }), 'success')
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '导入失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.importSourcesFailed'), 'error')
   } finally {
     input.value = ''
   }
@@ -906,7 +914,7 @@ async function handleFileImport(event: Event) {
 
 async function importRemoteSource() {
   if (!remoteUrl.value) {
-    appStore.showToast('请输入远程书源链接', 'warning')
+    appStore.showToast(t('source.messages.remoteUrlRequired'), 'warning')
     return
   }
   // 同步期间锁定入口: 转圈只是反馈, 还得防住重复点击造成的并发拉取与重复入库。
@@ -924,14 +932,14 @@ async function importRemoteSource() {
       }
     }) as BookSource[]
     if (!parsed.length) {
-      throw new Error('远程书源文件为空或格式错误')
+      throw new Error(t('source.messages.remoteFileEmptyOrInvalid'))
     }
     await saveBookSources(parsed)
     touchSubscription(targetUrl)
-    appStore.showToast(`成功导入 ${parsed.length} 个书源`, 'success')
+    appStore.showToast(t('source.messages.remoteImportSuccess', { count: parsed.length }), 'success')
     await loadSources()
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '网络导入失败', 'error')
+    appStore.showToast((e as Error).message || t('source.messages.remoteImportFailed'), 'error')
   } finally {
     syncingSubscriptionUrl.value = ''
   }
@@ -939,13 +947,13 @@ async function importRemoteSource() {
 
 function saveSubscription() {
   if (!remoteUrl.value) {
-    appStore.showToast('请输入远程书源链接', 'warning')
+    appStore.showToast(t('source.messages.remoteUrlRequired'), 'warning')
     return
   }
   if (!subscriptions.value.find((item) => item.url === remoteUrl.value)) {
     subscriptions.value.unshift({ url: remoteUrl.value })
     persistSubscriptions()
-    appStore.showToast('导入链接已保存', 'success')
+    appStore.showToast(t('source.messages.remoteLinkSaved'), 'success')
   }
 }
 
@@ -974,10 +982,10 @@ async function exportSourcesList(list: BookSource[]) {
     try {
       const result = await exportBookSources(list)
       if (result.cancelled) return
-      appStore.showToast('书源已导出', 'success')
+      appStore.showToast(t('source.messages.sourcesExported'), 'success')
       return
     } catch (error) {
-      appStore.showToast((error as Error).message || '导出失败', 'error')
+      appStore.showToast((error as Error).message || t('source.messages.exportFailed'), 'error')
       return
     }
   }
@@ -998,7 +1006,7 @@ function exportSources() {
 function exportSelectedSources() {
   const targets = [...selectedFilteredSources.value]
   if (!targets.length) {
-    appStore.showToast('请先选择要导出的书源', 'warning')
+    appStore.showToast(t('source.messages.selectSourcesToExport'), 'warning')
     return
   }
   return exportSourcesList(targets)

@@ -9,15 +9,15 @@
     }"
   >
     <div class="settings-header">
-      <h3 class="settings-title">阅读设置</h3>
+      <h3 class="settings-title">{{ t('reader.readingSettings') }}</h3>
       <button
         class="reset-btn"
-        title="重置排版参数；阅读配色与背景图会保留"
+        :title="t('reader.resetConfigTip')"
         @click="store.resetConfig()"
-      >重置为默认</button>
+      >{{ t('reader.resetToDefault') }}</button>
     </div>
 
-    <nav class="reader-settings-tabs" aria-label="阅读设置分类">
+    <nav class="reader-settings-tabs" :aria-label="t('reader.readingSettings')">
       <button
         v-for="tab in visibleTabs"
         :key="tab.value"
@@ -31,10 +31,10 @@
       <section v-show="activeSettingsTab === 'display'" class="settings-group">
       <!-- ── 主题与外观 ── -->
       <div class="group">
-        <div class="group-head"><h3>主题与外观</h3></div>
+        <div class="group-head"><h3>{{ t('reader.themeAndAppearance') }}</h3></div>
         <div class="group-card">
           <div class="setting-row">
-            <label>阅读主题</label>
+            <label>{{ t('reader.readerTheme') }}</label>
             <div class="swatch-row">
               <button
                 v-for="(t, i) in themePresets"
@@ -52,10 +52,10 @@
           </div>
 
           <div class="setting-row setting-row-top">
-            <label>阅读配色</label>
+            <label>{{ t('reader.readerColor') }}</label>
             <div class="color-grid">
               <div class="color-card" :class="{ customized: config.readerBackgroundColor }">
-                <span class="color-card-label">背景</span>
+                <span class="color-card-label">{{ t('reader.background') }}</span>
                 <label class="color-swatch" :style="{ background: config.readerBackgroundColor || readerTheme.body }">
                   <input
                     class="color-input"
@@ -64,16 +64,16 @@
                     @input="store.updateConfig('readerBackgroundColor', ($event.target as HTMLInputElement).value)"
                   >
                 </label>
-                <span class="color-card-value">{{ config.readerBackgroundColor || '跟随主题' }}</span>
+                <span class="color-card-value">{{ config.readerBackgroundColor || t('reader.followTheme') }}</span>
                 <button
                   v-if="config.readerBackgroundColor"
                   class="icon-btn"
-                  title="还原为跟随主题"
+                  :title="t('reader.restoreFollowTheme')"
                   @click="store.updateConfig('readerBackgroundColor', '')"
                 >×</button>
               </div>
               <div class="color-card" :class="{ customized: config.fontColor }">
-                <span class="color-card-label">文字</span>
+                <span class="color-card-label">{{ t('reader.text') }}</span>
                 <label class="color-swatch" :style="{ background: config.fontColor || readerTheme.fontColor }">
                   <input
                     class="color-input"
@@ -82,11 +82,11 @@
                     @input="store.updateConfig('fontColor', ($event.target as HTMLInputElement).value)"
                   >
                 </label>
-                <span class="color-card-value">{{ config.fontColor || '跟随主题' }}</span>
+                <span class="color-card-value">{{ config.fontColor || t('reader.followTheme') }}</span>
                 <button
                   v-if="config.fontColor"
                   class="icon-btn"
-                  title="还原为跟随主题"
+                  :title="t('reader.restoreFollowTheme')"
                   @click="store.updateConfig('fontColor', '')"
                 >×</button>
               </div>
@@ -95,12 +95,12 @@
               v-if="config.readerBackgroundColor || config.fontColor"
               class="link-btn color-reset"
               @click="resetReaderColors"
-            >还原为跟随主题</button>
+            >{{ t('reader.restoreFollowTheme') }}</button>
           </div>
 
           <!-- 背景图走 Tauri 上传通道，Web 端不显示（浏览器里没有等价路由）。 -->
           <div v-if="!appStore.isWebMode" class="setting-row setting-row-top">
-            <label>阅读页背景图</label>
+            <label>{{ t('reader.readerBackground') }}</label>
             <div class="image-picker">
               <button
                 class="image-thumb"
@@ -112,21 +112,21 @@
                   : undefined"
                 @click="readerImageInputRef?.click()"
               >
-                <span v-if="!config.readerBackgroundImage">选择图片</span>
+                <span v-if="!config.readerBackgroundImage">{{ t('bookDetail.selectImage') }}</span>
               </button>
               <div class="image-picker-meta">
                 <div class="image-picker-actions">
                   <button class="opt-btn" type="button" :disabled="processingReaderImage" @click="readerImageInputRef?.click()">
-                    {{ processingReaderImage ? '正在处理…' : (config.readerBackgroundImage ? '更换图片' : '选择图片') }}
+                    {{ processingReaderImage ? t('bookDetail.uploadingCover') : (config.readerBackgroundImage ? t('bookDetail.changeImage') : t('bookDetail.selectImage')) }}
                   </button>
                   <button
                     v-if="config.readerBackgroundImage"
                     class="link-btn danger"
                     type="button"
                     @click="removeReaderBackgroundImage"
-                  >移除</button>
+                  >{{ t('common.remove') }}</button>
                 </div>
-                <span class="image-picker-note">仅用于阅读页，与桌面背景图互不影响</span>
+                <span class="image-picker-note">{{ t('reader.readerBgNote') }}</span>
               </div>
               <input
                 ref="readerImageInputRef"
@@ -140,7 +140,7 @@
           </div>
 
           <div v-if="!appStore.isWebMode && config.readerBackgroundImage" class="setting-row">
-            <label>图片透明度</label>
+            <label>{{ t('reader.imageOpacity') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': readerImageOpacityPercent + '%' }">
                 <input
@@ -168,7 +168,7 @@
           </div>
 
           <div class="setting-row">
-            <label>面板不透明度</label>
+            <label>{{ t('reader.panelOpacity') }}</label>
             <div class="range-field">
               <!-- 滑块只在有效区间里跑：最左 = 下限(50%)，填充为空；往右到 100% 填满。
                    这样「拖柄位置 = 填充比例 = 右侧数字在区间里的位置」三者永远一致，
@@ -176,7 +176,7 @@
               <div
                 class="range-track"
                 :style="{ '--fill': panelOpacityPercent + '%' }"
-                :title="`最低 ${panelOpacityFloorPercent}%，再低抽屉里的文字会透出正文`"
+                :title="t('reader.panelOpacityFloorTip', { percent: panelOpacityFloorPercent })"
               >
                 <input
                   class="settings-slider"
@@ -184,7 +184,7 @@
                   :min="panelOpacityFloorPercent"
                   max="100"
                   step="1"
-                  aria-label="面板不透明度"
+                  :aria-label="t('reader.panelOpacity')"
                   :value="readerOpacityToPercent(config.panelOpacity)"
                   @input="updatePanelOpacityPercent(($event.target as HTMLInputElement).value)"
                 >
@@ -205,9 +205,9 @@
               <button
                 class="link-btn reset-solid"
                 :disabled="config.panelOpacity >= 1"
-                title="把面板恢复为实色（100%）"
+                :title="t('reader.resetOpacityToSolid')"
                 @click="resetPanelOpacity"
-              >实色</button>
+              >{{ t('reader.solidColor') }}</button>
             </div>
           </div>
 
@@ -218,14 +218,14 @@
                - 开启时阅读页跟随应用窗口，这里只读显示共享值；
                - 关闭时阅读页用自己的 `readerWindowOpacity`，可独立调整。 -->
           <div v-if="!appStore.isWebMode && store.windowOpacitySupported" class="setting-row">
-            <label>窗口不透明度</label>
+            <label>{{ t('reader.windowOpacity') }}</label>
             <div class="range-field">
               <div
                 class="range-track"
                 :style="{ '--fill': windowOpacityPercent + '%' }"
                 :title="config.applyWindowOpacityToReader
-                  ? '当前跟随「设置 → 外观 → 窗口透明度」，可在那里统一调整'
-                  : `最低 ${windowOpacityFloorPercent}%，再低正文会淡到难以阅读`"
+                  ? t('reader.windowOpacityFollowTip')
+                  : t('reader.windowOpacityFloorTip', { percent: windowOpacityFloorPercent })"
               >
                 <input
                   class="settings-slider"
@@ -233,7 +233,7 @@
                   :min="windowOpacityFloorPercent"
                   max="100"
                   step="1"
-                  aria-label="窗口不透明度"
+                  :aria-label="t('reader.windowOpacity')"
                   :disabled="config.applyWindowOpacityToReader"
                   :value="readerOpacityToPercent(readerWindowOpacityValue)"
                   @input="updateWindowOpacityPercent(($event.target as HTMLInputElement).value)"
@@ -255,10 +255,10 @@
                 class="link-btn reset-solid"
                 :disabled="config.applyWindowOpacityToReader || config.readerWindowOpacity >= 1"
                 :title="config.applyWindowOpacityToReader
-                  ? '请先在「设置 → 外观」里关闭「应用到阅读页」'
-                  : '把阅读页窗口恢复为不透明（100%）'"
+                  ? t('reader.windowOpacityCloseFollowFirst')
+                  : t('reader.resetWindowOpacitySolid')"
                 @click="resetWindowOpacity"
-              >实色</button>
+              >{{ t('reader.solidColor') }}</button>
             </div>
           </div>
         </div>
@@ -266,10 +266,10 @@
 
       <!-- ── 排版 ── -->
       <div class="group">
-        <div class="group-head"><h3>排版</h3></div>
+        <div class="group-head"><h3>{{ t('reader.typography') }}</h3></div>
         <div class="group-card">
           <div class="setting-row setting-row-top">
-            <label>正文字体</label>
+            <label>{{ t('reader.fontFamily') }}</label>
             <div class="font-picker">
               <div class="font-grid">
                 <button
@@ -291,13 +291,13 @@
                 >{{ font.name }}</button>
               </div>
               <div v-if="!appStore.isWebMode" class="font-actions">
-                <button class="link-btn" type="button" @click="fontInputRef?.click()">导入字体</button>
+                <button class="link-btn" type="button" @click="fontInputRef?.click()">{{ t('reader.importFont') }}</button>
                 <button
                   v-if="activeCustomFont"
                   class="link-btn danger"
                   type="button"
                   @click="removeActiveCustomFont"
-                >删除当前字体</button>
+                >{{ t('reader.deleteCurrentFont') }}</button>
                 <input
                   ref="fontInputRef"
                   type="file"
@@ -310,7 +310,7 @@
           </div>
 
           <div class="setting-row">
-            <label>字体大小</label>
+            <label>{{ t('reader.fontSize') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': fontSizePercent + '%' }">
                 <input
@@ -337,7 +337,7 @@
           </div>
 
           <div class="setting-row">
-            <label>字体粗细</label>
+            <label>{{ t('reader.fontWeight') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': fontWeightPercent + '%' }">
                 <input
@@ -355,7 +355,7 @@
           </div>
 
           <div class="setting-row">
-            <label>段落行高</label>
+            <label>{{ t('reader.lineHeight') }}</label>
             <div class="stepper">
               <button class="step-btn" @click="stepFloat('lineHeight', -0.1, 1.0, 3.0)">−</button>
               <span class="step-val">{{ config.lineHeight.toFixed(1) }}</span>
@@ -364,7 +364,7 @@
           </div>
 
           <div class="setting-row">
-            <label>段落间距</label>
+            <label>{{ t('reader.paragraphSpacing') }}</label>
             <div class="stepper">
               <button class="step-btn" @click="stepFloat('paragraphSpacing', -0.1, 0, 2.0)">−</button>
               <span class="step-val">{{ config.paragraphSpacing.toFixed(1) }}</span>
@@ -373,7 +373,7 @@
           </div>
 
           <div class="setting-row">
-            <label>首行缩进</label>
+            <label>{{ t('reader.firstLineIndent') }}</label>
             <div class="switch-line">
               <button
                 class="switch"
@@ -382,7 +382,7 @@
                 :class="{ on: config.firstLineIndent }"
                 @click="store.updateConfig('firstLineIndent', !config.firstLineIndent)"
               ></button>
-              <span class="switch-note">段首空两字</span>
+              <span class="switch-note">{{ t('reader.indentTwoChars') }}</span>
             </div>
           </div>
         </div>
@@ -391,12 +391,12 @@
       <!-- ── 页面 ── -->
       <div class="group">
         <div class="group-head">
-          <h3>页面</h3>
-          <span class="group-note">左右分页时生效</span>
+          <h3>{{ t('reader.page') }}</h3>
+          <span class="group-note">{{ t('reader.pageNote') }}</span>
         </div>
         <div class="group-card">
           <div class="setting-row">
-            <label>页面宽度</label>
+            <label>{{ t('reader.pageWidth') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': pageWidthPercent + '%' }">
                 <input
@@ -424,7 +424,7 @@
           </div>
 
           <div class="setting-row">
-            <label>上下边距</label>
+            <label>{{ t('reader.topBottomPadding') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': pageVerticalPercent + '%' }">
                 <input
@@ -452,8 +452,8 @@
           </div>
 
           <div class="setting-row">
-            <label>简繁转换</label>
-            <div class="segmented" role="group" aria-label="简繁转换">
+            <label>{{ t('reader.chineseConversion') }}</label>
+            <div class="segmented" role="group" :aria-label="t('reader.chineseConversion')">
               <button
                 v-for="mode in chineseModes"
                 :key="mode.value"
@@ -464,7 +464,7 @@
           </div>
 
           <div class="setting-row">
-            <label>预加载</label>
+            <label>{{ t('reader.preload') }}</label>
             <div class="switch-line">
               <button
                 class="switch"
@@ -473,7 +473,7 @@
                 :class="{ on: config.enablePreload }"
                 @click="store.updateConfig('enablePreload', !config.enablePreload)"
               ></button>
-              <span class="switch-note">提前取下一章</span>
+              <span class="switch-note">{{ t('reader.preloadNextChapter') }}</span>
             </div>
           </div>
         </div>
@@ -484,11 +484,11 @@
       <section v-show="activeSettingsTab === 'paging'" class="settings-group">
       <!-- ── 翻页方式 ── -->
       <div class="group">
-        <div class="group-head"><h3>翻页方式</h3></div>
+        <div class="group-head"><h3>{{ t('reader.pagingMethods') }}</h3></div>
         <div class="group-card">
           <div class="setting-row">
-            <label>阅读模式</label>
-            <div class="segmented segmented--wrap" role="group" aria-label="翻页方式">
+            <label>{{ t('reader.readingMode') }}</label>
+            <div class="segmented segmented--wrap" role="group" :aria-label="t('reader.pageTurnMethod')">
               <button
                 v-for="mode in readMethods"
                 :key="mode.value"
@@ -500,7 +500,7 @@
           </div>
 
           <div class="setting-row">
-            <label>动画时长</label>
+            <label>{{ t('reader.animationDuration') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': animateDurationPercent + '%' }">
                 <input
@@ -514,7 +514,7 @@
                 >
               </div>
               <span class="range-value range-value--text">
-                {{ config.animateDuration === 0 ? '关闭' : `${config.animateDuration} ms` }}
+                {{ config.animateDuration === 0 ? t('common.off') : `${config.animateDuration} ms` }}
               </span>
             </div>
           </div>
@@ -523,10 +523,10 @@
 
       <!-- ── 自动阅读 ── -->
       <div class="group">
-        <div class="group-head"><h3>自动阅读</h3></div>
+        <div class="group-head"><h3>{{ t('reader.autoReadingSection') }}</h3></div>
         <div class="group-card">
           <div class="setting-row">
-            <label>平滑滚动</label>
+            <label>{{ t('reader.smoothScroll') }}</label>
             <div class="switch-line">
               <button
                 class="switch"
@@ -535,12 +535,12 @@
                 :class="{ on: store.isAutoScrolling }"
                 @click="store.isAutoScrolling = !store.isAutoScrolling"
               ></button>
-              <span class="switch-note">{{ store.isAutoScrolling ? '滚动中，点此暂停' : '按设定速度向下滚动' }}</span>
+              <span class="switch-note">{{ store.isAutoScrolling ? t('reader.scrollingClickPause') : t('reader.scrollSpeedDesc') }}</span>
             </div>
           </div>
 
           <div class="setting-row">
-            <label>滚动速度</label>
+            <label>{{ t('reader.scrollSpeed') }}</label>
             <div class="range-field">
               <div class="range-track" :style="{ '--fill': autoScrollSpeedSlider + '%' }">
                 <input
@@ -553,7 +553,7 @@
                   @input="updateAutoScrollSpeedSlider"
                 >
               </div>
-              <span class="range-value range-value--text">{{ config.autoScrollSpeed }} px/秒</span>
+              <span class="range-value range-value--text">{{ t('reader.pxPerSecond', { speed: config.autoScrollSpeed }) }}</span>
             </div>
           </div>
         </div>
@@ -561,31 +561,31 @@
 
       <!-- ── 交互 ── -->
       <div class="group">
-        <div class="group-head"><h3>交互</h3></div>
+        <div class="group-head"><h3>{{ t('reader.interaction') }}</h3></div>
         <div class="group-card">
           <div class="setting-row">
-            <label>点击翻页</label>
+            <label>{{ t('reader.clickToFlip') }}</label>
             <div class="segmented">
               <button
                 :class="{ on: config.clickAction === 'auto' && currentClickAreaMode === 'auto' }"
-                title="点击上方后退，点击下方前进，到章节边界时自动切换章节"
+                :title="t('reader.clickActionAutoTip')"
                 @click="useDefaultClickArea('auto')"
-              >自动</button>
+              >{{ t('reader.clickActionAuto') }}</button>
               <button
                 :class="{ on: config.clickAction === 'next' && currentClickAreaMode === 'auto' }"
-                title="点击正文上方或下方，都只向后阅读"
+                :title="t('reader.clickActionNextTip')"
                 @click="useDefaultClickArea('next')"
-              >仅下滚</button>
+              >{{ t('reader.clickActionNext') }}</button>
               <button
                 :class="{ on: config.clickAction === 'none' && currentClickAreaMode === 'auto' }"
-                title="点击正文不执行翻页或滚动"
+                :title="t('reader.clickActionNoneTip')"
                 @click="useDefaultClickArea('none')"
-              >禁用</button>
+              >{{ t('reader.clickActionNone') }}</button>
             </div>
           </div>
 
           <div class="setting-row">
-            <label>点击区域</label>
+            <label>{{ t('reader.clickArea') }}</label>
             <div class="click-area-entry">
               <button
                 class="opt-btn wide"
@@ -593,16 +593,16 @@
                 @click="emit('openClickArea')"
               >{{ clickAreaSummary }}</button>
               <span class="field-hint">
-                左右翻页与上下滚动各有一套九宫格，可分别设置；用九宫格时上面的「点击翻页」不再生效。
+                {{ t('reader.clickAreaDesc') }}
               </span>
             </div>
           </div>
 
           <div class="setting-row">
-            <label>选择文字</label>
+            <label>{{ t('reader.selectText') }}</label>
             <div class="segmented">
-              <button :class="{ on: config.selectAction === 'popup' }" @click="store.updateConfig('selectAction', 'popup')">弹窗操作</button>
-              <button :class="{ on: config.selectAction === 'ignore' }" @click="store.updateConfig('selectAction', 'ignore')">忽略</button>
+              <button :class="{ on: config.selectAction === 'popup' }" @click="store.updateConfig('selectAction', 'popup')">{{ t('reader.popupAction') }}</button>
+              <button :class="{ on: config.selectAction === 'ignore' }" @click="store.updateConfig('selectAction', 'ignore')">{{ t('reader.ignoreAction') }}</button>
             </div>
           </div>
         </div>
@@ -613,71 +613,71 @@
 
       <!-- ── 朗读通道 ── -->
       <div class="group">
-        <div class="group-head"><h3>朗读通道</h3></div>
+        <div class="group-head"><h3>{{ t('reader.ttsChannel') }}</h3></div>
         <div class="group-card">
 
       <!-- 朗读引擎 -->
       <div class="setting-row">
-        <label>朗读引擎</label>
+        <label>{{ t('tts.engine') }}</label>
         <div class="btn-group">
           <button
             class="opt-btn"
             :class="{ active: store.speechConfig.provider === 'system' }"
             :disabled="!store.systemSpeechSupported"
-            :title="store.systemSpeechSupported ? '使用系统语音' : '当前系统不支持系统语音，请改用 API 语音'"
+            :title="store.systemSpeechSupported ? t('reader.systemSpeechTipAvailable') : t('reader.systemSpeechTipUnavailable')"
             @click="store.setSpeechProvider('system')"
-          >系统语音</button>
-          <button class="opt-btn" :class="{ active: store.speechConfig.provider === 'openai' }" @click="store.setSpeechProvider('openai')">API 语音</button>
+          >{{ t('reader.engineSystemSpeech') }}</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.provider === 'openai' }" @click="store.setSpeechProvider('openai')">{{ t('reader.engineApiSpeech') }}</button>
           <button
             class="opt-btn"
             :class="{ active: store.speechConfig.provider === 'http' }"
             :disabled="appStore.isWebMode"
-            :title="appStore.isWebMode ? '在线朗读引擎走 Tauri 命令，Web 阅读模式没有对应接口' : '使用 Legado 在线朗读引擎（httpTTS）'"
+            :title="appStore.isWebMode ? t('reader.httpTtsWebModeTip') : t('reader.httpTtsDesktopTip')"
             @click="store.setSpeechProvider('http')"
-          >在线朗读引擎</button>
+          >{{ t('reader.engineHttpTts') }}</button>
           <button
             class="opt-btn"
             :class="{ active: store.speechConfig.provider === 'edge' }"
             :disabled="appStore.isWebMode"
-            :title="appStore.isWebMode ? 'Edge 朗读需要 WebSocket 直连，浏览器跨域会被拦' : '使用微软 Edge 在线朗读（无需 API Key）'"
+            :title="appStore.isWebMode ? t('reader.edgeTtsWebModeTip') : t('reader.edgeTtsDesktopTip')"
             @click="store.setSpeechProvider('edge')"
-          >Edge 朗读</button>
+          >{{ t('reader.engineEdgeTts') }}</button>
           <button
             class="opt-btn"
             :class="{ active: store.speechConfig.provider === 'msdemo' }"
             :disabled="appStore.isWebMode"
-            :title="appStore.isWebMode ? '微软朗读走 Tauri 命令，Web 阅读模式没有对应接口' : '微软朗读（演示接口）：支持风格与更高音质，无需 API Key'"
+            :title="appStore.isWebMode ? t('reader.msDemoWebModeTip') : t('reader.msDemoDesktopTip')"
             @click="store.setSpeechProvider('msdemo')"
-          >微软朗读</button>
+          >{{ t('reader.engineMsDemo') }}</button>
         </div>
       </div>
 
       <!-- 旁白/对话模式：先选模式再配音色（原来在页签末尾，用户实测找不到）。 -->
       <div class="setting-row">
-        <label>旁白/对话</label>
+        <label>{{ t('reader.dualVoice') }}</label>
         <div class="btn-group">
           <button
             class="opt-btn"
             :class="{ active: !store.speechConfig.dualVoiceEnabled }"
             @click="store.setDualVoiceEnabled(false)"
-          >同音色</button>
+          >{{ t('reader.sameVoice') }}</button>
           <button
             class="opt-btn"
             :class="{ active: store.speechConfig.dualVoiceEnabled }"
-            title="按中文引号切分正文：旁白与对话分别用不同音色"
+            :title="t('reader.dualVoiceDesc')"
             @click="store.setDualVoiceEnabled(true)"
-          >分音色</button>
+          >{{ t('reader.diffVoice') }}</button>
         </div>
       </div>
       <p v-if="store.speechConfig.dualVoiceEnabled" class="setting-hint">
-        对话指中文引号（“…” / 「…」 / 『…』）内的内容；引号未闭合时，其后一直按对话朗读。
+        {{ t('reader.dialogueRuleTip') }}
       </p>
         </div>
       </div>
 
       <!-- ── 音色与声音 ── -->
       <div class="group">
-        <div class="group-head"><h3>音色与声音</h3></div>
+        <div class="group-head"><h3>{{ t('reader.voiceAndSound') }}</h3></div>
         <div class="group-card">
 
       <!-- 系统语音：整块包在 template 里，保证下面其它通道仍能与它组成
@@ -686,22 +686,22 @@
       <template v-if="store.speechConfig.provider === 'system'">
         <template v-if="store.speechConfig.dualVoiceEnabled">
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>旁白</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.narrator') }}</label></div>
             <select class="voice-select" :value="store.speechConfig.voiceName" @change="handleVoiceChange">
-              <option value="">系统默认</option>
+              <option value="">{{ t('tts.systemDefault') }}</option>
               <option v-for="voice in store.voiceList" :key="voice.name" :value="voice.name">
                 {{ voice.name }} ({{ voice.lang }})
               </option>
             </select>
           </div>
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>对话</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.dialogue') }}</label></div>
             <select
               class="voice-select"
               :value="store.speechConfig.dialogueVoiceName"
               @change="store.setDialogueVoiceName(($event.target as HTMLSelectElement).value)"
             >
-              <option value="">跟随旁白音色</option>
+              <option value="">{{ t('reader.followNarratorVoice') }}</option>
               <option v-for="voice in store.voiceList" :key="voice.name" :value="voice.name">
                 {{ voice.name }} ({{ voice.lang }})
               </option>
@@ -709,9 +709,9 @@
           </div>
         </template>
         <div v-else class="setting-block">
-          <div class="setting-block-head"><label>音色</label></div>
+          <div class="setting-block-head"><label>{{ t('reader.voice') }}</label></div>
           <select class="voice-select" :value="store.speechConfig.voiceName" @change="handleVoiceChange">
-            <option value="">系统默认</option>
+            <option value="">{{ t('tts.systemDefault') }}</option>
             <option v-for="voice in store.voiceList" :key="voice.name" :value="voice.name">
               {{ voice.name }} ({{ voice.lang }})
             </option>
@@ -725,7 +725,7 @@
         <!-- 音色放在最前：旁白/对话两个独立分区，后面才是共享的接口参数。 -->
         <template v-if="store.speechConfig.dualVoiceEnabled">
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>旁白</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.narrator') }}</label></div>
             <input
               class="voice-select"
               type="text"
@@ -735,18 +735,18 @@
             >
           </div>
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>对话</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.dialogue') }}</label></div>
             <input
               class="voice-select"
               type="text"
               :value="store.speechConfig.dialogueOpenaiVoice"
-              :placeholder="`留空跟随旁白音色（${store.speechConfig.openaiVoice || '默认'}）`"
+              :placeholder="t('reader.dialogueVoicePlaceholder', { voice: store.speechConfig.openaiVoice || t('common.default') })"
               @input="store.setDialogueOpenaiVoice(($event.target as HTMLInputElement).value)"
             >
           </div>
         </template>
         <div v-else class="setting-block">
-          <div class="setting-block-head"><label>音色</label></div>
+          <div class="setting-block-head"><label>{{ t('reader.voice') }}</label></div>
           <input
             class="voice-select"
             type="text"
@@ -757,20 +757,20 @@
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>接口格式</label>
+          <label>{{ t('reader.apiFormat') }}</label>
           <select
             class="voice-select"
             :value="store.speechConfig.apiFormat"
             @change="store.setSpeechApiFormat(($event.target as HTMLSelectElement).value as SpeechApiFormat)"
           >
             <option v-for="option in speechApiFormatOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
+              {{ formatApiOptionLabel(option) }}
             </option>
           </select>
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>服务地址</label>
+          <label>{{ t('reader.serviceUrl') }}</label>
           <input
             class="voice-select"
             type="url"
@@ -781,30 +781,30 @@
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>HTTP 代理</label>
+          <label>{{ t('reader.httpProxy') }}</label>
           <input
             class="voice-select"
             type="url"
             :value="store.speechConfig.speechProxyUrl"
-            placeholder="可选，例如 http://127.0.0.1:7890"
+            :placeholder="t('reader.httpProxyPlaceholder')"
             @input="store.setSpeechProxyUrl(($event.target as HTMLInputElement).value)"
           >
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>访问密钥</label>
+          <label>{{ t('reader.apiKey') }}</label>
           <input
             class="voice-select"
             type="password"
             :value="store.speechConfig.openaiApiKey"
-            placeholder="请输入服务密钥"
+            :placeholder="t('reader.apiKeyPlaceholder')"
             autocomplete="off"
             @input="store.setOpenAISpeechApiKey(($event.target as HTMLInputElement).value)"
           >
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>{{ selectedSpeechApiFormat.modelLabel }}</label>
+          <label>{{ selectedSpeechApiFormat.value === 'azure' ? t('reader.languageCode') : t('reader.voiceModel') }}</label>
           <input
             class="voice-select"
             type="text"
@@ -815,7 +815,7 @@
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>音频格式</label>
+          <label>{{ t('reader.audioFormat') }}</label>
           <select
             class="voice-select"
             :value="store.speechConfig.openaiFormat"
@@ -828,21 +828,21 @@
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>请求模式</label>
+          <label>{{ t('reader.requestMode') }}</label>
           <div class="btn-group">
             <button
               class="opt-btn"
               :class="{ active: store.speechConfig.openaiRequestMode === 'chunked' }"
               @click="store.setOpenAISpeechRequestMode('chunked')"
             >
-              少字多请求
+              {{ t('reader.fewWordsMoreRequests') }}
             </button>
             <button
               class="opt-btn"
               :class="{ active: store.speechConfig.openaiRequestMode === 'merged' }"
               @click="store.setOpenAISpeechRequestMode('merged')"
             >
-              多字少请求
+              {{ t('reader.moreWordsFewerRequests') }}
             </button>
           </div>
         </div>
@@ -853,26 +853,26 @@
              引擎管理入口放在两块之后（共享操作）。 -->
         <template v-if="store.speechConfig.dualVoiceEnabled">
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>旁白</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.narrator') }}</label></div>
             <select
               class="voice-select"
               :value="selectedHttpTtsId"
               @change="handleHttpTtsChange"
             >
-              <option value="">请选择在线朗读引擎</option>
+              <option value="">{{ t('reader.selectHttpEngine') }}</option>
               <option v-for="engine in httpTtsList" :key="engine.id" :value="String(engine.id)">
                 {{ engine.name }}
               </option>
             </select>
           </div>
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>对话</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.dialogue') }}</label></div>
             <select
               class="voice-select"
               :value="selectedDialogueHttpTtsId"
               @change="handleDialogueHttpTtsChange"
             >
-              <option value="">跟随旁白引擎</option>
+              <option value="">{{ t('reader.followNarratorEngine') }}</option>
               <option v-for="engine in httpTtsList" :key="engine.id" :value="String(engine.id)">
                 {{ engine.name }}
               </option>
@@ -880,14 +880,14 @@
           </div>
         </template>
         <div v-else class="setting-block">
-          <div class="setting-block-head"><label>音色</label></div>
+          <div class="setting-block-head"><label>{{ t('reader.voice') }}</label></div>
           <div class="http-tts-picker">
             <select
               class="voice-select"
               :value="selectedHttpTtsId"
               @change="handleHttpTtsChange"
             >
-              <option value="">请选择在线朗读引擎</option>
+              <option value="">{{ t('reader.selectHttpEngine') }}</option>
               <option v-for="engine in httpTtsList" :key="engine.id" :value="String(engine.id)">
                 {{ engine.name }}
               </option>
@@ -895,15 +895,15 @@
           </div>
         </div>
         <div class="setting-row">
-          <label>引擎管理</label>
+          <label>{{ t('reader.manageEngines') }}</label>
           <div class="btn-group">
-            <button class="opt-btn" type="button" @click="showHttpTtsManager = true">管理引擎</button>
+            <button class="opt-btn" type="button" @click="showHttpTtsManager = true">{{ t('reader.manageEngines') }}</button>
           </div>
         </div>
         <p v-if="!httpTtsList.length" class="setting-hint">
           {{ httpTtsLoading
-            ? '正在读取已导入的引擎…'
-            : '还没有导入在线朗读引擎。点「管理引擎」，可从直链或本地 JSON 文件导入。' }}
+            ? t('reader.readingEngines')
+            : t('reader.noHttpEnginesTip') }}
         </p>
       </template>
 
@@ -914,9 +914,9 @@
         <template v-if="store.speechConfig.dualVoiceEnabled">
           <div class="setting-block voice-partition">
             <div class="setting-block-head">
-              <label>旁白</label>
+              <label>{{ t('reader.narrator') }}</label>
               <button class="link-btn" type="button" @click="showAllEdgeLocales = !showAllEdgeLocales">
-                {{ showAllEdgeLocales ? '只看中文' : '显示全部语言' }}
+                {{ showAllEdgeLocales ? t('reader.chineseOnly') : t('reader.allLanguages') }}
               </button>
             </div>
             <select
@@ -933,13 +933,13 @@
             </select>
           </div>
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>对话</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.dialogue') }}</label></div>
             <select
               class="voice-select"
               :value="store.speechConfig.edgeDialogueVoice"
               @change="store.setEdgeDialogueVoice(($event.target as HTMLSelectElement).value)"
             >
-              <option value="">跟随旁白音色</option>
+              <option value="">{{ t('reader.followNarratorVoice') }}</option>
               <option v-for="voice in edgeVoiceOptions" :key="voice.shortName" :value="voice.shortName">
                 {{ edgeVoiceLabel(voice) }}
               </option>
@@ -948,9 +948,9 @@
         </template>
         <div v-else class="setting-block">
           <div class="setting-block-head">
-            <label>音色</label>
+            <label>{{ t('reader.voice') }}</label>
             <button class="link-btn" type="button" @click="showAllEdgeLocales = !showAllEdgeLocales">
-              {{ showAllEdgeLocales ? '只看中文' : '显示全部语言' }}
+              {{ showAllEdgeLocales ? t('reader.chineseOnly') : t('reader.allLanguages') }}
             </button>
           </div>
           <select
@@ -971,14 +971,14 @@
              语速继续用全局「朗读语速」，不在这里重复。 -->
         <div class="setting-row slider-row">
           <div class="slider-head">
-            <label>音调</label>
+            <label>{{ t('reader.pitch') }}</label>
             <span class="slider-value">{{ store.speechConfig.edgePitch }} Hz</span>
             <button
               v-if="store.speechConfig.edgePitch !== 0"
               class="link-btn"
               type="button"
               @click="store.setEdgePitch(0)"
-            >回正</button>
+            >{{ t('reader.reset') }}</button>
           </div>
           <input
             class="settings-slider"
@@ -992,14 +992,14 @@
         </div>
         <div class="setting-row slider-row">
           <div class="slider-head">
-            <label>音量</label>
+            <label>{{ t('tts.volume') }}</label>
             <span class="slider-value">{{ store.speechConfig.edgeVolume }} %</span>
             <button
               v-if="store.speechConfig.edgeVolume !== 0"
               class="link-btn"
               type="button"
               @click="store.setEdgeVolume(0)"
-            >回正</button>
+            >{{ t('reader.reset') }}</button>
           </div>
           <input
             class="settings-slider"
@@ -1013,25 +1013,25 @@
         </div>
         <!-- 音质：Edge 只支持 48k/96k 两档 outputFormat，96k 字节数约为 2 倍。 -->
         <div class="setting-row setting-row-top">
-          <label>音质</label>
+          <label>{{ t('reader.audioQuality') }}</label>
           <select
             class="voice-select"
             :value="store.speechConfig.edgeFormat"
             @change="store.setEdgeFormat(($event.target as HTMLSelectElement).value as EdgeTtsFormat)"
           >
-            <option value="48k">标准（48kbps）</option>
-            <option value="96k">高（96kbps，音质更好、流量约 2 倍）</option>
+            <option value="48k">{{ t('reader.audioQualityStandard') }}</option>
+            <option value="96k">{{ t('reader.audioQualityHigh') }}</option>
           </select>
         </div>
 
         <p class="setting-hint">
-          音调 / 音量 / 音质只对 Edge 通道生效；语速请用下方「朗读语速」。
+          {{ t('reader.edgeTtsNote') }}
         </p>
 
         <p class="setting-hint">
           {{ edgeVoicesLoading
-            ? '正在读取 Edge 音色…'
-            : '无需 API Key；这是微软的公共接口，偶尔可能不可用。' }}
+            ? t('reader.readingEdgeVoices')
+            : t('reader.edgePublicApiTip') }}
           <template v-if="edgeVoiceError">（{{ edgeVoiceError }}）</template>
         </p>
       </template>
@@ -1043,13 +1043,13 @@
         <template v-if="store.speechConfig.dualVoiceEnabled">
           <div class="setting-block voice-partition">
             <div class="setting-block-head">
-              <label>旁白</label>
+              <label>{{ t('reader.narrator') }}</label>
               <button class="link-btn" type="button" @click="showAllMsLocales = !showAllMsLocales">
-                {{ showAllMsLocales ? '只看中文' : '显示全部语言' }}
+                {{ showAllMsLocales ? t('reader.chineseOnly') : t('reader.allLanguages') }}
               </button>
             </div>
             <div class="setting-row setting-row-top">
-              <label>音色</label>
+              <label>{{ t('reader.voice') }}</label>
               <select
                 class="voice-select"
                 :value="store.speechConfig.msVoice"
@@ -1064,40 +1064,40 @@
               </select>
             </div>
             <div class="setting-row setting-row-top">
-              <label>风格</label>
+              <label>{{ t('reader.voiceStyle') }}</label>
               <select
                 class="voice-select"
                 :value="store.speechConfig.msStyle"
                 @change="store.setMsStyle(($event.target as HTMLSelectElement).value)"
               >
-                <option value="">无风格</option>
+                <option value="">{{ t('reader.noStyle') }}</option>
                 <option v-for="style in msStyleOptions" :key="style" :value="style">{{ style }}</option>
               </select>
             </div>
           </div>
           <div class="setting-block voice-partition">
-            <div class="setting-block-head"><label>对话</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.dialogue') }}</label></div>
             <div class="setting-row setting-row-top">
-              <label>音色</label>
+              <label>{{ t('reader.voice') }}</label>
               <select
                 class="voice-select"
                 :value="store.speechConfig.msDialogueVoice"
                 @change="store.setMsDialogueVoice(($event.target as HTMLSelectElement).value)"
               >
-                <option value="">跟随旁白音色</option>
+                <option value="">{{ t('reader.followNarratorVoice') }}</option>
                 <option v-for="voice in msVoiceOptions" :key="voice.shortName" :value="voice.shortName">
                   {{ msVoiceLabel(voice) }}
                 </option>
               </select>
             </div>
             <div class="setting-row setting-row-top">
-              <label>风格</label>
+              <label>{{ t('reader.voiceStyle') }}</label>
               <select
                 class="voice-select"
                 :value="store.speechConfig.msDialogueStyle"
                 @change="store.setMsDialogueStyle(($event.target as HTMLSelectElement).value)"
               >
-                <option value="">跟随旁白风格</option>
+                <option value="">{{ t('reader.followNarratorStyle') }}</option>
                 <option v-for="style in msDialogueStyleOptions" :key="style" :value="style">{{ style }}</option>
               </select>
             </div>
@@ -1106,9 +1106,9 @@
         <template v-else>
           <div class="setting-block">
             <div class="setting-block-head">
-              <label>音色</label>
+              <label>{{ t('reader.voice') }}</label>
               <button class="link-btn" type="button" @click="showAllMsLocales = !showAllMsLocales">
-                {{ showAllMsLocales ? '只看中文' : '显示全部语言' }}
+                {{ showAllMsLocales ? t('reader.chineseOnly') : t('reader.allLanguages') }}
               </button>
             </div>
             <select
@@ -1126,13 +1126,13 @@
           </div>
           <!-- 风格选项来自当前音色自带的 StyleList；没有风格的音色只有「无风格」。 -->
           <div class="setting-block">
-            <div class="setting-block-head"><label>风格</label></div>
+            <div class="setting-block-head"><label>{{ t('reader.voiceStyle') }}</label></div>
             <select
               class="voice-select"
               :value="store.speechConfig.msStyle"
               @change="store.setMsStyle(($event.target as HTMLSelectElement).value)"
             >
-              <option value="">无风格</option>
+              <option value="">{{ t('reader.noStyle') }}</option>
               <option v-for="style in msStyleOptions" :key="style" :value="style">{{ style }}</option>
             </select>
           </div>
@@ -1142,7 +1142,7 @@
         <!-- 风格强度只在有风格时生效，所以没有风格时不显示，避免误导。 -->
         <div v-if="showMsStyleDegree" class="setting-row slider-row">
           <div class="slider-head">
-            <label>风格强度</label>
+            <label>{{ t('reader.styleDegree') }}</label>
             <span class="slider-value">{{ store.speechConfig.msStyleDegree.toFixed(1) }}</span>
           </div>
           <input
@@ -1158,14 +1158,14 @@
 
         <div class="setting-row slider-row">
           <div class="slider-head">
-            <label>音调</label>
+            <label>{{ t('reader.pitch') }}</label>
             <span class="slider-value">{{ store.speechConfig.msPitch }} %</span>
             <button
               v-if="store.speechConfig.msPitch !== 0"
               class="link-btn"
               type="button"
               @click="store.setMsPitch(0)"
-            >回正</button>
+            >{{ t('reader.reset') }}</button>
           </div>
           <input
             class="settings-slider"
@@ -1179,14 +1179,14 @@
         </div>
         <div class="setting-row slider-row">
           <div class="slider-head">
-            <label>音量</label>
+            <label>{{ t('tts.volume') }}</label>
             <span class="slider-value">{{ store.speechConfig.msVolume }} %</span>
             <button
               v-if="store.speechConfig.msVolume !== 0"
               class="link-btn"
               type="button"
               @click="store.setMsVolume(0)"
-            >回正</button>
+            >{{ t('reader.reset') }}</button>
           </div>
           <input
             class="settings-slider"
@@ -1200,22 +1200,22 @@
         </div>
 
         <div class="setting-row setting-row-top">
-          <label>音质</label>
+          <label>{{ t('reader.audioQuality') }}</label>
           <select
             class="voice-select"
             :value="store.speechConfig.msFormat"
             @change="store.setMsFormat(($event.target as HTMLSelectElement).value as MsTtsFormat)"
           >
             <option v-for="format in MS_FORMATS" :key="format" :value="format">
-              {{ format === '48k' ? '标准 48k' : format === '96k' ? '高 96k（默认）' : '超高 48kHz·192k' }}
+              {{ format === '48k' ? t('reader.msFormat48k') : format === '96k' ? t('reader.msFormat96k') : t('reader.msFormat192k') }}
             </option>
           </select>
         </div>
 
         <p class="setting-hint">
           {{ msVoicesLoading
-            ? '正在读取微软朗读音色…'
-            : '无需 API Key；这是微软翻译客户端的演示接口，风格仅部分音色支持。' }}
+            ? t('reader.readingMsVoices')
+            : t('reader.msDemoApiTip') }}
           <template v-if="msVoiceError">（{{ msVoiceError }}）</template>
         </p>
       </template>
@@ -1226,8 +1226,8 @@
         class="setting-row slider-row"
       >
         <div class="slider-head">
-          <label>缓冲字符数</label>
-          <span class="slider-value">{{ store.speechConfig.bufferChars }} 字</span>
+          <label>{{ t('reader.bufferChars') }}</label>
+          <span class="slider-value">{{ store.speechConfig.bufferChars }} {{ t('reader.charsUnit') }}</span>
         </div>
         <input
           class="settings-slider"
@@ -1243,11 +1243,11 @@
         v-if="usesBufferedSpeech"
         class="setting-hint"
       >
-        自动朗读会提前合成约这么多字的音频再边播边补：调大更抗网络抖动，调小更省请求。
+        {{ t('reader.bufferSpeechTip') }}
       </p>
 
       <div class="setting-row setting-row-top">
-        <label>朗读语速</label>
+        <label>{{ t('reader.speed') }}</label>
         <div class="stepper">
           <button class="step-btn" @click="adjustSpeechRate(-0.1)">—</button>
           <span class="step-val">{{ store.speechConfig.speechRate.toFixed(1) }}</span>
@@ -1256,7 +1256,7 @@
       </div>
 
       <div v-if="store.speechConfig.provider === 'system'" class="setting-row">
-        <label>朗读音调</label>
+        <label>{{ t('reader.pitch') }}</label>
         <div class="stepper">
           <button class="step-btn" @click="adjustSpeechPitch(-0.1)">—</button>
           <span class="step-val">{{ store.speechConfig.speechPitch.toFixed(1) }}</span>
@@ -1265,13 +1265,13 @@
       </div>
 
       <div class="setting-row setting-row-top">
-        <label>定时停止</label>
+        <label>{{ t('reader.sleepTimer') }}</label>
         <div class="btn-group">
-          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 0 }" @click="store.setSpeechStopTimer(0)">关闭</button>
-          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 15 }" @click="store.setSpeechStopTimer(15)">15分钟</button>
-          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 30 }" @click="store.setSpeechStopTimer(30)">30分钟</button>
-          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 60 }" @click="store.setSpeechStopTimer(60)">60分钟</button>
-          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 120 }" @click="store.setSpeechStopTimer(120)">120分钟</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 0 }" @click="store.setSpeechStopTimer(0)">{{ t('common.off') }}</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 15 }" @click="store.setSpeechStopTimer(15)">{{ t('tts.minutes', { m: 15 }) }}</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 30 }" @click="store.setSpeechStopTimer(30)">{{ t('tts.minutes', { m: 30 }) }}</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 60 }" @click="store.setSpeechStopTimer(60)">{{ t('tts.minutes', { m: 60 }) }}</button>
+          <button class="opt-btn" :class="{ active: store.speechConfig.stopAfterMinutes === 120 }" @click="store.setSpeechStopTimer(120)">{{ t('tts.minutes', { m: 120 }) }}</button>
         </div>
       </div>
 
@@ -1280,21 +1280,21 @@
 
       <!-- ── 试听 ── -->
       <div class="group">
-        <div class="group-head"><h3>试听</h3></div>
+        <div class="group-head"><h3>{{ t('reader.testListen') }}</h3></div>
         <div class="group-card speech-test-card">
 
       <!-- 语音测试：用当前通道 / 音色 / 参数试听一段可编辑文本。
            试听状态与书内朗读完全隔离（见 store.previewSpeech），绝不改 isSpeaking 等。 -->
       <div class="setting-block speech-test">
         <div class="setting-block-head">
-          <span class="block-tag">当前通道：{{ store.speechProviderLabel }}</span>
+          <span class="block-tag">{{ t('reader.currentChannel', { channel: store.speechProviderLabel }) }}</span>
         </div>
         <textarea
           v-model="speechTestText"
           class="speech-test-input"
           rows="2"
           maxlength="300"
-          placeholder="输入要试听的文本"
+          :placeholder="t('reader.testTextPlaceholder')"
         ></textarea>
         <div class="speech-test-actions">
           <button
@@ -1302,15 +1302,15 @@
             class="opt-btn active"
             type="button"
             @click="store.stopSpeechPreview()"
-          >停止</button>
+          >{{ t('common.stop') }}</button>
           <button
             v-else
             class="opt-btn"
             type="button"
             :disabled="store.isSpeechPreviewLoading"
             @click="store.previewSpeech(speechTestText)"
-          >{{ store.isSpeechPreviewLoading ? '生成中…' : '试听' }}</button>
-          <span class="speech-test-note">试听会先停止书内朗读；用当前音色与参数合成。</span>
+          >{{ store.isSpeechPreviewLoading ? t('reader.generatingSpeech') : t('reader.testListenAction') }}</button>
+          <span class="speech-test-note">{{ t('reader.testSpeechNote') }}</span>
         </div>
       </div>
       </div>
@@ -1321,16 +1321,16 @@
 
       <!-- ── 鼠标与工具栏 ── -->
       <div class="group">
-        <div class="group-head"><h3>鼠标与工具栏</h3></div>
+        <div class="group-head"><h3>{{ t('reader.mouseAndToolbar') }}</h3></div>
         <div class="group-card">
 
       <!-- 悬停呼出工具栏: 默认关闭。开启后鼠标移到阅读区边缘会自动弹出工具栏与悬浮钮,
            代价是边缘热区吃掉正文的点击(左右各 84px), 因此作为可选功能。 -->
       <div class="setting-row">
-        <label>悬停呼出工具栏</label>
+        <label>{{ t('reader.hoverToolbar') }}</label>
         <div class="btn-group">
-          <button class="opt-btn" :class="{ active: config.hoverRevealControls }" title="鼠标移到阅读区上下左右边缘时自动展开工具栏与悬浮钮" @click="store.updateConfig('hoverRevealControls', true)">开启</button>
-          <button class="opt-btn" :class="{ active: !config.hoverRevealControls }" title="鼠标移到边缘不再弹出按钮，边缘区域的点击可以正常用于翻页" @click="store.updateConfig('hoverRevealControls', false)">关闭</button>
+          <button class="opt-btn" :class="{ active: config.hoverRevealControls }" :title="t('reader.hoverToolbarTip')" @click="store.updateConfig('hoverRevealControls', true)">{{ t('common.on') }}</button>
+          <button class="opt-btn" :class="{ active: !config.hoverRevealControls }" :title="t('reader.hoverToolbarOffTip')" @click="store.updateConfig('hoverRevealControls', false)">{{ t('common.off') }}</button>
         </div>
       </div>
 
@@ -1340,33 +1340,33 @@
       <!-- ── 快捷键 ── -->
       <div class="group">
         <div class="group-head">
-          <h3>快捷键</h3>
+          <h3>{{ t('reader.hotkeys') }}</h3>
           <div class="hotkey-head-actions">
-            <span class="block-tag">{{ store.hotkeysAreDefault ? '默认方案' : '自定义' }}</span>
-            <button class="link-btn" type="button" @click="store.resetHotkeyBindings()">恢复默认</button>
+            <span class="block-tag">{{ store.hotkeysAreDefault ? t('reader.hotkeyDefaultScheme') : t('reader.hotkeyCustomScheme') }}</span>
+            <button class="link-btn" type="button" @click="store.resetHotkeyBindings()">{{ t('reader.restoreDefault') }}</button>
           </div>
         </div>
         <div class="group-card hotkey-card">
         <div class="function-list">
           <div v-for="action in bindableActions" :key="action.id" class="function-item">
             <div class="function-name">
-              <span>{{ action.label }}</span>
+              <span>{{ getActionLabel(action.id) }}</span>
               <span v-if="action.scope !== 'both'" class="function-scope">
-                {{ action.scope === 'paged' ? '分页' : '滚动' }}
+                {{ action.scope === 'paged' ? t('reader.scopePaged') : t('reader.scopeScroll') }}
               </span>
             </div>
             <div class="function-keys">
-              <span v-if="!keysForAction(action.id).length" class="function-empty">未绑定</span>
+              <span v-if="!keysForAction(action.id).length" class="function-empty">{{ t('reader.hotkeyUnbound') }}</span>
               <button
                 v-for="keyId in keysForAction(action.id)"
                 :key="keyId"
                 type="button"
                 class="key-chip"
                 :class="{ conflict: keyHasConflict(keyId) }"
-                :title="keyHasConflict(keyId) ? keyConflictTitle(keyId) : '点击解除绑定'"
+                :title="keyHasConflict(keyId) ? keyConflictTitle(keyId) : t('reader.clickToUnbind')"
                 @click="unbindKey(action.id, keyId)"
               >
-                {{ hotkeyLabel(keyId) }}
+                {{ getFormattedHotkeyLabel(keyId) }}
                 <span v-if="keyHasConflict(keyId)" class="key-chip-warn">!</span>
                 <span class="key-chip-remove">×</span>
               </button>
@@ -1377,13 +1377,13 @@
                 v-if="capturingAction !== action.id"
                 type="button"
                 class="key-capture"
-                :title="`按下任意键或鼠标键为「${action.label}」绑定快捷键`"
-                :aria-label="`为「${action.label}」录入快捷键`"
+                :title="t('reader.recordHotkeyTitle', { action: action.label })"
+                :aria-label="t('reader.recordHotkeyAria', { action: action.label })"
                 @click="startCapture(action.id)"
               >＋</button>
               <span v-else class="key-capturing">
-                请按键/鼠标键…
-                <button type="button" class="key-capture-cancel" @click="cancelCapture">取消</button>
+                {{ t('reader.pressKeyPrompt') }}
+                <button type="button" class="key-capture-cancel" @click="cancelCapture">{{ t('common.cancel') }}</button>
               </span>
             </div>
           </div>
@@ -1391,7 +1391,7 @@
         <div v-if="conflictNotices.length" class="conflict-notice">
           <div v-for="notice in conflictNotices" :key="`${notice.key}-${notice.mode}`" class="conflict-line">
             <span class="conflict-key">{{ keyLabel(notice.key) }}</span>
-            在{{ notice.mode }}模式下只会执行「{{ notice.winner }}」，「{{ notice.ignored }}」不会触发
+            {{ t('reader.conflictWarning', { mode: notice.mode, winner: notice.winner, ignored: notice.ignored }) }}
           </div>
         </div>
 
@@ -1400,18 +1400,18 @@
 
       <!-- ── 数据与内容 ── -->
       <div class="group">
-        <div class="group-head"><h3>数据与内容</h3></div>
+        <div class="group-head"><h3>{{ t('reader.dataAndContent') }}</h3></div>
         <div class="group-card">
 
       <!-- 更多操作 -->
       <div class="setting-row">
-        <label>离线缓存</label>
-        <button class="opt-btn wide" @click="store.openPanel('cache', 'settings')">批量缓存章节</button>
+        <label>{{ t('reader.offlineCache') }}</label>
+        <button class="opt-btn wide" @click="store.openPanel('cache', 'settings')">{{ t('reader.batchCacheChapters') }}</button>
       </div>
 
       <div class="setting-row">
-        <label>内容净化</label>
-        <button class="opt-btn wide" @click="store.openPanel('rule', 'settings')">管理净化规则</button>
+        <label>{{ t('reader.contentFilter') }}</label>
+        <button class="opt-btn wide" @click="store.openPanel('rule', 'settings')">{{ t('reader.manageFilterRules') }}</button>
       </div>
       </div>
       </div>
@@ -1487,16 +1487,63 @@ import {
   setHotkeyCaptureActive,
   type HotkeyActionId,
 } from '../../utils/readerHotkeys'
+import { t, currentLocale } from '../../i18n'
 
 const store = useReaderStore()
 const appStore = useAppStore()
 const fontInputRef = ref<HTMLInputElement | null>(null)
-const readerSettingsTabs = [
-  { value: 'display', label: '显示' },
-  { value: 'paging', label: '翻页' },
-  { value: 'speech', label: '朗读' },
-  { value: 'more', label: '更多' },
-] as const
+
+function formatApiOptionLabel(option: { value: string; label: string }): string {
+  const map: Record<string, string> = {
+    openai: t('reader.apiFormatOpenAI'),
+    fish: t('reader.apiFormatFish'),
+    elevenlabs: t('reader.apiFormatElevenLabs'),
+    azure: t('reader.apiFormatAzure'),
+  }
+  return map[option.value] || option.label
+}
+
+function getActionLabel(id: HotkeyActionId): string {
+  const map: Record<HotkeyActionId, string> = {
+    prevPage: t('reader.actionPrevPage'),
+    nextPage: t('reader.actionNextPage'),
+    prevChapter: t('reader.actionPrevChapter'),
+    nextChapter: t('reader.actionNextChapter'),
+    chapterStart: t('reader.actionChapterStart'),
+    chapterEnd: t('reader.actionChapterEnd'),
+    catalog: t('reader.actionCatalog'),
+    settings: t('reader.actionSettings'),
+    search: t('reader.actionSearch'),
+    speech: t('reader.actionSpeech'),
+    autoScroll: t('reader.actionAutoScroll'),
+    fullscreen: t('reader.actionFullscreen'),
+    nightMode: t('reader.actionNightMode'),
+    back: t('reader.actionBack'),
+    none: t('reader.actionNone'),
+  }
+  return map[id] || HOTKEY_ACTION_MAP[id]?.label || id
+}
+
+function getFormattedHotkeyLabel(keyId: string): string {
+  const label = hotkeyLabel(keyId)
+  const map: Record<string, string> = {
+    '上键': t('reader.keyArrowUp'),
+    '下键': t('reader.keyArrowDown'),
+    '左键': t('reader.keyArrowLeft'),
+    '右键': t('reader.keyArrowRight'),
+    '空格': t('reader.keySpace'),
+    '回车': t('reader.keyEnter'),
+    '退格': t('reader.keyBackspace'),
+    '鼠标中键': t('reader.keyMouseMiddle'),
+    '鼠标侧键1': t('reader.keyMouse4'),
+    '鼠标侧键2': t('reader.keyMouse5'),
+    '滚轮上': t('reader.keyWheelUp'),
+    '滚轮下': t('reader.keyWheelDown'),
+  }
+  return map[label] || label
+}
+
+type ReaderSettingsTabValue = 'display' | 'paging' | 'speech' | 'more'
 
 /**
  * 阅读设置面板。只在阅读页里用（`store.openPanel('settings')`），没有独立模式 ——
@@ -1505,8 +1552,13 @@ const readerSettingsTabs = [
  * 一份「没有预览的配置界面」。面板的开合由外层 `reader-drawer` 统一管，这里不提供
  * 自己的关闭入口。
  */
-const visibleTabs = computed(() => readerSettingsTabs)
-const activeSettingsTab = ref<(typeof readerSettingsTabs)[number]['value']>('display')
+const visibleTabs = computed(() => [
+  { value: 'display' as ReaderSettingsTabValue, label: t('reader.tabDisplay') },
+  { value: 'paging' as ReaderSettingsTabValue, label: t('reader.tabPaging') },
+  { value: 'speech' as ReaderSettingsTabValue, label: t('reader.tabSpeech') },
+  { value: 'more' as ReaderSettingsTabValue, label: t('common.more') },
+])
+const activeSettingsTab = ref<ReaderSettingsTabValue>('display')
 const activeCustomFont = computed(() => {
   if (!config.value.fontFamily.startsWith('custom:')) return null
   const id = config.value.fontFamily.slice('custom:'.length)
@@ -1519,9 +1571,9 @@ async function handleFontFile(event: Event) {
   if (!file) return
   try {
     await store.importCustomFont(file)
-    appStore.showToast('字体已导入并应用', 'success')
+    appStore.showToast(t('reader.fontImported'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '字体导入失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.fontImportFailed'), 'error')
   } finally {
     input.value = ''
   }
@@ -1531,9 +1583,9 @@ async function removeActiveCustomFont() {
   if (!activeCustomFont.value) return
   try {
     await store.removeCustomFont(activeCustomFont.value.id)
-    appStore.showToast('字体已删除', 'success')
+    appStore.showToast(t('reader.fontDeleted'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '字体删除失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.fontDeleteFailed'), 'error')
   }
 }
 const config = computed(() => store.config)
@@ -1611,18 +1663,18 @@ function commitNumber(
   input.value = String(next)
 }
 
-const chineseModes = [
-  { value: 'off', label: '关闭' },
-  { value: 'simplified', label: '简体' },
-  { value: 'traditional', label: '繁体' },
-] as const
+const chineseModes = computed(() => [
+  { value: 'off' as const, label: t('reader.chineseModeOff') },
+  { value: 'simplified' as const, label: t('reader.chineseModeSimplified') },
+  { value: 'traditional' as const, label: t('reader.chineseModeTraditional') },
+])
 
-const readMethods = [
-  { value: '上下滑动', label: '单章滚动', hint: '一次阅读一章内容，手动上下滚动' },
-  { value: '左右翻页', label: '左右分页', hint: '将一章内容分成多个页面，左右切换' },
-  { value: '上下滚动', label: '连续阅读', hint: '多章内容首尾相接，向下连续阅读' },
-  { value: '上下滚动2', label: '隐藏已读', hint: '连续阅读，并自动隐藏已经读过的章节' },
-] as const
+const readMethods = computed(() => [
+  { value: '上下滑动' as const, label: t('reader.readMethodSingleScroll'), hint: t('reader.readMethodSingleScrollHint') },
+  { value: '左右翻页' as const, label: t('reader.readMethodHorizontalPage'), hint: t('reader.readMethodHorizontalPageHint') },
+  { value: '上下滚动' as const, label: t('reader.readMethodContinuousScroll'), hint: t('reader.readMethodContinuousScrollHint') },
+  { value: '上下滚动2' as const, label: t('reader.readMethodContinuousScrollHideRead'), hint: t('reader.readMethodContinuousScrollHideReadHint') },
+])
 
 /* ─── 阅读页背景图 ─── */
 const readerImageInputRef = ref<HTMLInputElement | null>(null)
@@ -1638,9 +1690,9 @@ async function handleReaderImageChange(event: Event) {
     const prepared = await prepareReaderBackgroundImage(file)
     const url = await uploadBackgroundImage('reader', prepared.blob, prepared.fileName)
     store.setReaderBackgroundImage(url)
-    appStore.showToast('阅读页背景图已更新', 'success')
+    appStore.showToast(t('reader.bgImageUpdated'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '背景图片处理失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.bgImageProcessFailed'), 'error')
   } finally {
     processingReaderImage.value = false
     input.value = ''
@@ -1649,7 +1701,7 @@ async function handleReaderImageChange(event: Event) {
 
 function removeReaderBackgroundImage() {
   store.clearReaderBackgroundImage()
-  appStore.showToast('已移除阅读页背景图', 'success')
+  appStore.showToast(t('reader.bgImageRemoved'), 'success')
 }
 
 /** 百分比输入框: 非数字输入不写回(保持原值), 越界自动夹到 0-100。
@@ -1818,7 +1870,7 @@ function finishCapture(keyId: string) {
   }
   capturingAction.value = null
   store.bindHotkeyKey(keyId, actionId)
-  appStore.showToast(`已绑定「${hotkeyLabel(keyId)}」`, 'success')
+  appStore.showToast(t('reader.hotkeyBound', { key: getFormattedHotkeyLabel(keyId) }), 'success')
 }
 
 /** 刚录完鼠标键后, 短暂抑制其默认导航的时间窗口(毫秒)。
@@ -1963,26 +2015,26 @@ function keyConflictTitle(keyId: string): string {
   const details = store.hotkeyConflicts
     .filter((conflict) => conflict.keyId === keyId)
     .map((conflict) => {
-      const mode = conflict.mode === 'paged' ? '分页' : '滚动'
-      const first = HOTKEY_ACTION_MAP[conflict.actions[0]]?.label || conflict.actions[0]
+      const mode = conflict.mode === 'paged' ? t('reader.modePaged') : t('reader.modeScroll')
+      const first = getActionLabel(conflict.actions[0])
       const ignored = conflict.actions
         .slice(1)
-        .map((id) => HOTKEY_ACTION_MAP[id]?.label || id)
-        .join('、')
-      return `${mode}模式：只有「${first}」生效，「${ignored}」不会触发`
+        .map((id) => getActionLabel(id))
+        .join(', ')
+      return t('reader.conflictTitle', { mode, first, ignored })
     })
-  return details.join('；')
+  return details.join('; ')
 }
 
 /** 冲突提示文案(只在实际存在冲突时展示)。 */
 const conflictNotices = computed(() => store.hotkeyConflicts.map((conflict) => ({
   key: conflict.keyId,
-  mode: conflict.mode === 'paged' ? '分页' : '滚动',
-  winner: HOTKEY_ACTION_MAP[conflict.actions[0]]?.label || conflict.actions[0],
+  mode: conflict.mode === 'paged' ? t('reader.modePaged') : t('reader.modeScroll'),
+  winner: getActionLabel(conflict.actions[0]),
   ignored: conflict.actions
     .slice(1)
-    .map((id) => HOTKEY_ACTION_MAP[id]?.label || id)
-    .join('、'),
+    .map((id) => getActionLabel(id))
+    .join(', '),
 })))
 
 function keyLabel(keyId: string): string {
@@ -2053,7 +2105,10 @@ function handleVoiceChange(event: Event) {
 }
 
 /** 语音测试的示例文本：含引号，方便验证双音色与标点停顿。 */
-const speechTestText = ref('他推开门，看见她站在窗边。“你来了。”')
+const speechTestText = ref(t('reader.sampleSpeechText'))
+watch(currentLocale, () => {
+  speechTestText.value = t('reader.sampleSpeechText')
+})
 
 /* ─── 在线朗读引擎（httpTTS） ─── */
 const httpTtsList = ref<HttpTts[]>([])
@@ -2097,10 +2152,10 @@ const clickAreaSummary = computed(() => {
   const modes = store.config.clickAreaModes
   const pagedOn = modes.paged === 'custom'
   const scrollOn = modes.scroll === 'custom'
-  if (pagedOn && scrollOn) return '九宫格（两套都自定义）'
-  if (pagedOn) return '九宫格（仅左右翻页）'
-  if (scrollOn) return '九宫格（仅上下滚动）'
-  return '默认三分区'
+  if (pagedOn && scrollOn) return t('reader.clickAreaSummaryBothCustom')
+  if (pagedOn) return t('reader.clickAreaSummaryPagedOnly')
+  if (scrollOn) return t('reader.clickAreaSummaryScrollOnly')
+  return t('reader.clickAreaSummaryDefault')
 })
 
 /** select 的 value 必须是字符串：存储里 id 可能是 number（后端下发）或 string。 */
@@ -2145,7 +2200,7 @@ async function loadHttpTtsList() {
     syncHttpTtsSelection()
   } catch (error) {
     httpTtsList.value = []
-    appStore.showToast((error as Error).message || '读取在线朗读引擎失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.readHttpEnginesFailed'), 'error')
   } finally {
     httpTtsLoading.value = false
   }
@@ -2211,7 +2266,7 @@ async function loadEdgeTtsVoices() {
     edgeVoices.value = await listEdgeTtsVoices()
   } catch (error) {
     // 音色列表拉不到不该阻断其它通道：保留默认音色，只提示一行可读错误。
-    edgeVoiceError.value = (error as Error).message || '读取 Edge 音色失败'
+    edgeVoiceError.value = (error as Error).message || t('reader.readEdgeVoicesFailed')
     appStore.showToast(edgeVoiceError.value, 'error')
   } finally {
     edgeVoicesLoading.value = false
@@ -2289,7 +2344,7 @@ async function loadMsTtsVoices() {
     syncMsStyles()
   } catch (error) {
     // 音色列表拉不到不该阻断其它通道：保留默认音色，只提示一行可读错误。
-    msVoiceError.value = (error as Error).message || '读取微软朗读音色失败'
+    msVoiceError.value = (error as Error).message || t('reader.readMsVoicesFailed')
     appStore.showToast(msVoiceError.value, 'error')
   } finally {
     msVoicesLoading.value = false

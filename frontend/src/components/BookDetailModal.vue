@@ -14,12 +14,12 @@
 
           <!-- ── 编辑态: 只保留可编辑的四项, 不显示书源/目录等只读信息 ── -->
           <div v-if="isEditing" class="edit-form">
-            <h2 class="edit-form-title">编辑书籍信息</h2>
+            <h2 class="edit-form-title">{{ t('bookDetail.editTitle') }}</h2>
 
             <div class="edit-cover-block">
               <div class="edit-cover" :class="{ empty: !coverSrc }">
                 <img v-if="coverSrc" :src="coverSrc" :alt="draft.name" @error="coverFailed = true">
-                <span v-else class="edit-cover-empty">无封面</span>
+                <span v-else class="edit-cover-empty">{{ t('bookDetail.noCover') }}</span>
               </div>
               <div class="edit-cover-side">
                 <div class="edit-cover-buttons">
@@ -28,15 +28,15 @@
                     type="button"
                     :disabled="uploadingCover"
                     @click="coverInputRef?.click()"
-                  >{{ uploadingCover ? '上传中…' : (draft.customCoverUrl ? '更换图片' : '选择图片') }}</button>
+                  >{{ uploadingCover ? t('bookDetail.uploadingCover') : (draft.customCoverUrl ? t('bookDetail.changeImage') : t('bookDetail.selectImage')) }}</button>
                   <button
                     v-if="draft.customCoverUrl"
                     class="cover-edit-btn subtle"
                     type="button"
                     @click="resetCover"
-                  >恢复原始封面</button>
+                  >{{ t('bookDetail.restoreOriginalCover') }}</button>
                 </div>
-                <p class="edit-cover-note">支持 PNG / JPG / GIF / WebP / AVIF，不超过 8 MB</p>
+                <p class="edit-cover-note">{{ t('bookDetail.coverSupportNote') }}</p>
               </div>
               <input
                 ref="coverInputRef"
@@ -48,35 +48,35 @@
             </div>
 
             <label class="edit-field">
-              <span class="edit-field-label">书名</span>
+              <span class="edit-field-label">{{ t('bookDetail.bookTitle') }}</span>
               <input
                 v-model="draft.name"
                 class="edit-field-input"
                 type="text"
                 maxlength="120"
-                placeholder="书名"
+                :placeholder="t('bookDetail.bookTitle')"
               >
             </label>
 
             <label class="edit-field">
-              <span class="edit-field-label">作者</span>
+              <span class="edit-field-label">{{ t('bookDetail.author') }}</span>
               <input
                 v-model="draft.author"
                 class="edit-field-input"
                 type="text"
                 maxlength="120"
-                placeholder="可留空"
+                :placeholder="t('bookDetail.optionalPlaceholder')"
               >
             </label>
 
             <label class="edit-field">
-              <span class="edit-field-label">简介</span>
+              <span class="edit-field-label">{{ t('bookDetail.intro') }}</span>
               <textarea
                 v-model="draft.intro"
                 class="edit-field-textarea"
                 rows="5"
                 maxlength="5000"
-                placeholder="可留空"
+                :placeholder="t('bookDetail.optionalPlaceholder')"
               ></textarea>
             </label>
           </div>
@@ -98,21 +98,21 @@
             </div>
             <div class="book-header-info">
               <h2>{{ displayBook.name }}</h2>
-              <p class="author">{{ displayBook.author || '未知作者' }}</p>
+              <p class="author">{{ displayBook.author || t('bookDetail.unknownAuthor') }}</p>
               <div class="book-tags">
                 <span v-if="book.kind" class="tag">{{ book.kind }}</span>
-                <span v-if="(book as Book).totalChapterNum" class="tag">共{{ (book as Book).totalChapterNum }}章</span>
+                <span v-if="(book as Book).totalChapterNum" class="tag">{{ t('bookDetail.totalChapters', { count: (book as Book).totalChapterNum || 0 }) }}</span>
                 <span v-if="displayOriginName" class="tag origin">{{ displayOriginName }}</span>
               </div>
               <p v-if="(book as Book).durChapterTitle" class="progress">
-                已读至：{{ (book as Book).durChapterTitle }}
+                {{ t('bookDetail.readProgress', { chapter: (book as Book).durChapterTitle || '' }) }}
               </p>
             </div>
           </div>
 
           <!-- Intro -->
           <div v-if="displayBook.intro" class="book-intro">
-            <h3>简介</h3>
+            <h3>{{ t('bookDetail.intro') }}</h3>
             <p
               :class="{ collapsed: !introExpanded }"
               @click="introExpanded = !introExpanded"
@@ -120,7 +120,7 @@
             <button
               class="intro-toggle"
               @click="introExpanded = !introExpanded"
-            >{{ introExpanded ? '收起' : '展开全部' }}</button>
+            >{{ introExpanded ? t('common.collapse') : t('common.expandAll') }}</button>
           </div>
 
           <!-- Available Sources -->
@@ -132,7 +132,7 @@
           -->
           <div v-if="!isLocal && !appStore.isWebMode" class="source-section">
             <div class="section-heading">
-              <h3>{{ singleSourceOnly ? '书源' : '可读书源' }}</h3>
+              <h3>{{ singleSourceOnly ? t('bookDetail.source') : t('bookDetail.availableSources') }}</h3>
               <!-- 与手机端详情页的 menu_refresh 对齐：随时重搜可用书源。
                    打开弹窗时本来就会自动搜一次（旧缓存先铺出来垫底），
                    这里是「再搜一次」的入口，会带上 refresh=1 让后端丢掉自己的
@@ -143,8 +143,8 @@
                 v-if="!singleSourceOnly"
                 type="button"
                 class="section-refresh"
-                :title="sourcesLoading ? '停止搜索其他书源' : '搜索其他书源，获取最新章节'"
-                :aria-label="sourcesLoading ? '停止搜索其他书源' : '搜索其他书源，获取最新章节'"
+                :title="sourcesLoading ? t('bookDetail.stopSourceSearch') : t('bookDetail.searchOtherSources')"
+                :aria-label="sourcesLoading ? t('bookDetail.stopSourceSearch') : t('bookDetail.searchOtherSources')"
                 @click="sourcesLoading ? stopSourceCandidates() : refreshSourceCandidates()"
               >
                 <svg v-if="sourcesLoading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,17 +157,17 @@
             </div>
             <div v-if="sourcesLoading && !sourceCandidates.length" class="source-loading">
               <div class="loading-spinner"></div>
-              正在查找其他书源...
+              {{ t('bookDetail.searchingSources') }}
             </div>
             <!-- 停止后一条都没搜到：不能说"未找到其他书源" —— 那是搜索跑完的
                  结论，而这里是被用户主动打断的。 -->
             <div v-else-if="!sourceCandidates.length && sourcesStopped" class="source-empty">
-              已停止搜索
+              {{ t('bookDetail.searchStopped') }}
             </div>
             <!-- 什么都没搜过 = 打开时没缓存。别写「未找到其他书源」，那是搜完才
                  能下的结论，会让人以为这本书真的没有别的源。 -->
             <div v-else-if="!sourceCandidates.length && !sourcesIncomplete" class="source-empty">
-              尚未搜索其他书源，点右侧按钮开始
+              {{ t('bookDetail.notSearchedYet') }}
             </div>
             <div v-else class="source-list">
               <div
@@ -190,7 +190,7 @@
                  用户看到的就只有 4 个书源了。 -->
             <div v-if="sourcesLoading && sourceCandidates.length" class="source-foot">
               <div class="loading-spinner"></div>
-              继续查找其他书源...
+              {{ t('bookDetail.continuingSearch') }}
             </div>
             <!-- 单源模式下不提供「重试」：它的语义是"再并搜一遍其它源"，
                  而这时我们刻意不搜。 -->
@@ -203,9 +203,9 @@
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7.5v5.5M12 16.5h.01" />
               </svg>
-              <span class="incomplete-text">{{ sourcesStopped ? '已停止搜索' : '部分书源访问失败' }}</span>
+              <span class="incomplete-text">{{ sourcesStopped ? t('bookDetail.searchStopped') : t('bookDetail.someSourcesFailed') }}</span>
               <button type="button" class="incomplete-retry" @click="loadSourceCandidates(detailLoadId, detailKey, true)">
-                {{ sourcesStopped ? '继续搜索' : '重试' }}
+                {{ sourcesStopped ? t('bookDetail.continueSearch') : t('common.retry') }}
               </button>
             </div>
           </div>
@@ -213,7 +213,7 @@
           <!-- Chapters -->
           <div class="chapter-section" v-if="chapters.length > 0">
             <div class="chapter-heading">
-              <h3>目录 ({{ chapters.length }})</h3>
+              <h3>{{ t('bookDetail.catalog') }} ({{ chapters.length }})</h3>
               <span
                 v-if="shownCatalogSourceName || chapterSourceName"
                 class="chapter-source-status"
@@ -240,31 +240,31 @@
               class="show-more-btn"
               @click="showAllChapters = true"
             >
-              显示全部 {{ chapters.length }} 章
+              {{ t('bookDetail.showAllChapters', { count: chapters.length }) }}
             </button>
           </div>
           <div v-else-if="chaptersLoading" class="chapter-loading-state" role="status">
             <div class="chapter-heading">
-              <h3>正在加载目录</h3>
+              <h3>{{ t('bookDetail.loadingCatalog') }}</h3>
               <span v-if="chapterSourceName" class="chapter-source-status" :title="chapterSourceName">
                 {{ chapterSourceName }}
               </span>
             </div>
             <div class="chapter-loading">
               <div class="loading-spinner"></div>
-              正在获取章节列表…
+              {{ t('bookDetail.fetchingChapters') }}
             </div>
           </div>
           <div v-else-if="chapterError" class="chapter-loading-state" role="alert">
             <div class="chapter-heading">
-              <h3>目录加载失败</h3>
+              <h3>{{ t('bookDetail.catalogLoadFailed') }}</h3>
               <span v-if="chapterSourceName" class="chapter-source-status error" :title="chapterSourceName">
                 {{ chapterSourceName }}
               </span>
             </div>
             <div class="chapter-error-message">
-              <span>暂时无法获取该源目录，请重试或切换书源。</span>
-              <button type="button" class="chapter-retry-btn" @click="retryChapters">重试</button>
+              <span>{{ t('bookDetail.catalogLoadFailedDesc') }}</span>
+              <button type="button" class="chapter-retry-btn" @click="retryChapters">{{ t('common.retry') }}</button>
             </div>
           </div>
           </template>
@@ -278,20 +278,20 @@
                 type="button"
                 :disabled="!canRevert || savingEdit"
                 :title="canRevert
-                  ? '放弃已保存的自定义内容，恢复为最初的书籍信息（点保存后生效）'
-                  : '这本书还没有自定义过，没有可还原的内容'"
+                  ? t('bookDetail.revertTooltip')
+                  : t('bookDetail.cannotRevertTooltip')"
                 @click="revertEdit"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                   <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
                   <path d="M3 3v5h5" />
                 </svg>
-                还原
+                {{ t('bookDetail.revert') }}
               </button>
               <button class="action-btn primary" :disabled="savingEdit || uploadingCover" @click="saveEdit">
-                {{ uploadingCover ? '封面上传中…' : (savingEdit ? '正在保存…' : '保存') }}
+                {{ uploadingCover ? t('bookDetail.coverUploading') : (savingEdit ? t('common.saving') : t('common.save')) }}
               </button>
-              <button class="action-btn" :disabled="savingEdit" @click="cancelEdit">取消</button>
+              <button class="action-btn" :disabled="savingEdit" @click="cancelEdit">{{ t('common.cancel') }}</button>
             </template>
             <template v-else>
               <button class="action-btn primary" @click="startReading">
@@ -299,13 +299,13 @@
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
-                {{ (book as Book).durChapterIndex ? '继续阅读' : '开始阅读' }}
+                {{ (book as Book).durChapterIndex ? t('bookDetail.continueReading') : t('bookDetail.startReading') }}
               </button>
               <button v-if="!isShelfBook()" class="action-btn" @click="addToShelf">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                加入书架
+                {{ t('bookshelf.addToShelf') }}
               </button>
               <template v-else>
                 <!--
@@ -318,7 +318,7 @@
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                   </svg>
-                  编辑信息
+                  {{ t('bookDetail.editBook') }}
                 </button>
                 <button
                   v-if="!appStore.isWebMode"
@@ -329,10 +329,10 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                     <path d="M5 12h14" />
                   </svg>
-                  {{ removingFromShelf ? '正在取消...' : '取消加入' }}
+                  {{ removingFromShelf ? t('common.loading') : t('bookDetail.deleteBook') }}
                 </button>
               </template>
-              <button class="action-btn" @click="close">关闭</button>
+              <button class="action-btn" @click="close">{{ t('common.close') }}</button>
             </template>
           </div>
         </div>
@@ -344,6 +344,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { t } from '../i18n'
 import { getCoverUrl, getChapterList, saveBook, setBookSource, getBookInfo } from '../api/bookshelf'
 import { getAvailableBookSourceSSE } from '../api/search'
 import type { SseLike } from '../api/sse'
@@ -916,7 +917,7 @@ async function loadChaptersFor(
     if (!isCurrentDetail(loadId, bookKey) || requestId !== chapterLoadId) return
     chapters.value = []
     loadedCatalogIdentity.value = ''
-    chapterError.value = '目录加载失败，请重试或切换书源'
+    chapterError.value = t('bookDetail.catalogLoadFailedDesc')
   } finally {
     if (requestId === chapterLoadId) chaptersLoading.value = false
   }
@@ -977,7 +978,7 @@ function stopSourceCandidates() {
   // 搜索可能一个结果都还没回来，界面上原本只有一行转圈；给一个明确回执，
   // 否则用户分不清是"停了"还是"卡住没动"。
   const found = Math.max(0, sourceCandidates.value.length - 1)
-  appStore.showToast(found > 0 ? `已停止搜索，保留 ${found} 个其他书源` : '已停止搜索书源', 'success')
+  appStore.showToast(found > 0 ? t('bookDetail.stopSearchNotice', { count: found }) : t('bookDetail.stopSearchNoCountNotice'), 'success')
 }
 
 /** 已经由「打开弹窗」这条路径处理过的书源版本号。
@@ -1111,7 +1112,7 @@ function startEdit() {
   if (!shelfBook) {
     // 右键菜单会立刻调这个函数, 但书架数据是异步拉的 —— 还没到位时静默 return
     // 会让用户以为「编辑信息」这个菜单项坏了。给一句明确反馈。
-    appStore.showToast('书架信息还没加载完，请稍后再试', 'warning')
+    appStore.showToast(t('bookDetail.shelfNotLoadedWarning'), 'warning')
     return
   }
   const baseline = createBookEditDraft(shelfBook)
@@ -1166,7 +1167,7 @@ async function handleCoverFileChange(event: Event) {
     pendingCoverUploads.value = [...pendingCoverUploads.value, url]
     coverFailed.value = false
   } catch (error) {
-    appStore.showToast((error as Error).message || '封面上传失败', 'error')
+    appStore.showToast((error as Error).message || t('bookDetail.coverUploadFailed'), 'error')
   } finally {
     uploadingCover.value = false
   }
@@ -1177,7 +1178,7 @@ async function saveEdit() {
   if (!shelfBook || savingEdit.value) return
   // 上传还没结束就保存的话, 提交的仍是旧封面, 而用户以为保存成功了。
   if (uploadingCover.value) {
-    appStore.showToast('封面还在上传，请稍候再保存', 'error')
+    appStore.showToast(t('bookDetail.coverStillUploading'), 'error')
     return
   }
 
@@ -1211,11 +1212,11 @@ async function saveEdit() {
       await deleteBookCover(url).catch(() => undefined)
     }
     pendingCoverUploads.value = []
-    appStore.showToast('已保存书籍信息', 'success')
+    appStore.showToast(t('bookDetail.bookInfoSaved'), 'success')
     isEditing.value = false
   } catch (error) {
     if (bookKeyAtSave === detailKey.value) {
-      appStore.showToast((error as Error).message || '保存失败', 'error')
+      appStore.showToast((error as Error).message || t('bookDetail.saveFailed'), 'error')
     }
   } finally {
     savingEdit.value = false
@@ -1320,7 +1321,7 @@ async function startReading() {
   // 先跳转、后加载: loadBook 自己会取目录并加载 durChapterIndex 那一章,
   // 阅读页挂载时用 waitForChapterListReady 承接等待。
   void readerStore.loadBook(b).catch((error: unknown) => {
-    appStore.showToast((error as Error).message || '加载书籍失败', 'error')
+    appStore.showToast((error as Error).message || t('bookDetail.loadBookFailed'), 'error')
   })
   router.push('/reader')
 }
@@ -1337,7 +1338,7 @@ async function readChapter(index: number) {
   void shelfStore.moveBookToFront(b.bookUrl).catch(() => undefined)
   close()
   void readerStore.loadBook(b).catch((error: unknown) => {
-    appStore.showToast((error as Error).message || '加载章节失败', 'error')
+    appStore.showToast((error as Error).message || t('bookDetail.loadChaptersFailed'), 'error')
   })
   router.push('/reader')
 }
@@ -1347,9 +1348,9 @@ async function addToShelf() {
   try {
     await saveBook(b)
     await shelfStore.fetchBooks()
-    appStore.showToast('成功加入书架', 'success')
+    appStore.showToast(t('bookDetail.addedToShelf'), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '加入书架失败', 'error')
+    appStore.showToast((e as Error).message || t('bookDetail.addToShelfFailed'), 'error')
   }
 }
 
@@ -1359,9 +1360,9 @@ async function removeFromShelf() {
   removingFromShelf.value = true
   try {
     await shelfStore.removeBook(shelfBook)
-    appStore.showToast('已取消加入书架', 'success')
+    appStore.showToast(t('bookDetail.removedFromShelf'), 'success')
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '取消加入失败', 'error')
+    appStore.showToast((e as Error).message || t('bookDetail.removeFromShelfFailed'), 'error')
   } finally {
     removingFromShelf.value = false
   }

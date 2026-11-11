@@ -10,23 +10,23 @@
         <button
           class="click-area-close"
           type="button"
-          aria-label="关闭"
+          :aria-label="t('common.close')"
           @click="close"
         >×</button>
-        <h3 class="click-area-title">点击区域设置</h3>
-        <div class="click-area-modes" role="group" aria-label="点击区域模式">
+        <h3 class="click-area-title">{{ t('reader.clickAreaTitle') }}</h3>
+        <div class="click-area-modes" role="group" :aria-label="t('reader.clickAreaModeAria')">
           <button
             type="button"
             :class="{ on: currentMode === 'auto' }"
-            title="沿用原来的三分区：两端翻页、中间呼出菜单"
+            :title="t('reader.defaultPartitionTip')"
             @click="currentMode = 'auto'"
-          >默认分区</button>
+          >{{ t('reader.defaultPartition') }}</button>
           <button
             type="button"
             :class="{ on: currentMode === 'custom' }"
-            title="每格动作自己定"
+            :title="t('reader.grid9Tip')"
             @click="enableCustom"
-          >九宫格</button>
+          >{{ t('reader.grid9') }}</button>
         </div>
       </header>
 
@@ -43,14 +43,14 @@
           :disabled="currentMode !== 'custom'"
           @click="editorZone = zone"
         >
-          <span class="click-area-cell-action">{{ clickAreaActionLabel(shownAreas[zone]) }}</span>
+          <span class="click-area-cell-action">{{ getLocalizedActionLabel(shownAreas[zone]) }}</span>
           <span class="click-area-cell-zone">{{ ZONE_LABELS[zone] }}</span>
         </button>
       </div>
 
       <footer class="click-area-bar click-area-bar--footer">
-        <div class="click-area-profiles" role="group" aria-label="切换到另一种阅读模式的九宫格">
-          <span class="click-area-profiles-label">正在设置</span>
+        <div class="click-area-profiles" role="group" :aria-label="t('reader.clickAreaProfilesAria')">
+          <span class="click-area-profiles-label">{{ t('reader.nowConfiguring') }}</span>
           <button
             v-for="profile in CLICK_AREA_PROFILES"
             :key="profile"
@@ -60,24 +60,24 @@
             :title="profileHint(profile)"
             @click="switchProfile(profile)"
           >
-            {{ CLICK_AREA_PROFILE_LABELS[profile] }}
+            {{ profileLabel(profile) }}
             <span v-if="draftModes[profile] === 'custom'" class="click-area-chip-dot" aria-hidden="true"></span>
           </button>
         </div>
         <div class="click-area-confirm">
-          <button type="button" class="click-area-btn" @click="resetToDefault">恢复本套默认</button>
-          <button type="button" class="click-area-btn" @click="close">取消</button>
-          <button type="button" class="click-area-btn primary" @click="save">保存</button>
+          <button type="button" class="click-area-btn" @click="resetToDefault">{{ t('reader.restoreProfileDefault') }}</button>
+          <button type="button" class="click-area-btn" @click="close">{{ t('common.cancel') }}</button>
+          <button type="button" class="click-area-btn primary" @click="save">{{ t('common.save') }}</button>
         </div>
       </footer>
 
       <!-- 选动作：与手机端的 ActionPickerOverlay 一致 —— 点格子弹一层列表，
            选中即写入草稿并关掉列表，不用再点"确定"。 -->
       <div v-if="editorZone" class="click-area-picker" @click.self="editorZone = null">
-        <div class="click-area-picker-panel" role="dialog" :aria-label="`${ZONE_LABELS[editorZone]}的动作`">
+        <div class="click-area-picker-panel" role="dialog" :aria-label="`${ZONE_LABELS[editorZone]}`">
           <div class="click-area-picker-head">
             <span>{{ ZONE_LABELS[editorZone] }}</span>
-            <button type="button" class="click-area-close small" aria-label="关闭" @click="editorZone = null">×</button>
+            <button type="button" class="click-area-close small" :aria-label="t('common.close')" @click="editorZone = null">×</button>
           </div>
           <div class="click-area-picker-list">
             <button
@@ -88,7 +88,7 @@
               :class="{ on: editingAction === action.id }"
               @click="applyAction(action.id)"
             >
-              <span>{{ action.label }}</span>
+              <span>{{ getLocalizedActionLabel(action.id) }}</span>
               <svg v-if="editingAction === action.id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5" /></svg>
             </button>
           </div>
@@ -102,13 +102,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { t } from '../../i18n'
 import { useReaderStore } from '../../stores/reader'
 import {
   CLICK_AREA_ACTIONS,
   CLICK_AREA_PROFILES,
-  CLICK_AREA_PROFILE_LABELS,
   CLICK_AREA_ZONES,
-  clickAreaActionLabel,
   presetClickAreas,
   setClickAreaAction,
   type ClickAreaAction,
@@ -142,10 +141,30 @@ const draftProfile = ref<ClickAreaProfile>(
 const editorZone = ref<ClickAreaZone | null>(null)
 const notice = ref('')
 
-const ZONE_LABELS: Record<ClickAreaZone, string> = {
-  tl: '左上', tc: '中上', tr: '右上',
-  ml: '左中', mc: '正中', mr: '右中',
-  bl: '左下', bc: '中下', br: '右下',
+const ZONE_LABELS = computed<Record<ClickAreaZone, string>>(() => ({
+  tl: t('reader.zoneTl'), tc: t('reader.zoneTc'), tr: t('reader.zoneTr'),
+  ml: t('reader.zoneMl'), mc: t('reader.zoneMc'), mr: t('reader.zoneMr'),
+  bl: t('reader.zoneBl'), bc: t('reader.zoneBc'), br: t('reader.zoneBr'),
+}))
+
+function getLocalizedActionLabel(id: ClickAreaAction): string {
+  const map: Record<ClickAreaAction, string> = {
+    menu: t('reader.actionMenu'),
+    prevPage: t('reader.actionPrevPage'),
+    nextPage: t('reader.actionNextPage'),
+    prevChapter: t('reader.actionPrevChapter'),
+    nextChapter: t('reader.actionNextChapter'),
+    bookmark: t('reader.addSelectionBookmark'),
+    catalog: t('reader.actionCatalog'),
+    search: t('reader.actionSearch'),
+    tts: t('reader.actionSpeech'),
+    none: t('reader.actionNone'),
+  }
+  return map[id] || id
+}
+
+function profileLabel(profile: ClickAreaProfile): string {
+  return profile === 'paged' ? t('reader.profilePaged') : t('reader.profileScroll')
 }
 
 /** 当前这一套的草稿网格。 */
@@ -172,9 +191,10 @@ const editingAction = computed<ClickAreaAction | undefined>(() => (
 ))
 
 function profileHint(profile: ClickAreaProfile) {
+  const name = profileLabel(profile)
   return draftModes.value[profile] === 'custom'
-    ? `${CLICK_AREA_PROFILE_LABELS[profile]}：已启用九宫格`
-    : `${CLICK_AREA_PROFILE_LABELS[profile]}：使用默认三分区`
+    ? t('reader.profileHintCustom', { profile: name })
+    : t('reader.profileHintDefault', { profile: name })
 }
 
 /** 切到另一套。两套草稿互不干扰，切回来还是刚才编辑的样子。 */
@@ -201,7 +221,7 @@ function applyAction(action: ClickAreaAction) {
   editorZone.value = null
   // 手机端的 detectClickArea: 九格都没有菜单时把正中抢回来，否则再也呼不出工具栏。
   notice.value = result.forcedCenterMenu
-    ? '九格都没有「呼出菜单」，已把正中一格设回菜单。'
+    ? t('reader.forcedCenterMenuNotice')
     : ''
 }
 

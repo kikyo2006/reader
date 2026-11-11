@@ -7,7 +7,7 @@
       :class="{ mini }"
       :style="{ background: theme.popup, color: theme.fontColor }"
     >
-      <button class="tts-bubble-play" :aria-label="isPaused ? '继续' : '暂停'" @click="$emit('toggle-play')">
+      <button class="tts-bubble-play" :aria-label="isPaused ? t('common.resume') : t('common.pause')" @click="$emit('toggle-play')">
         <svg v-if="isPaused" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M8 5v14l11-7z" />
         </svg>
@@ -16,7 +16,7 @@
         </svg>
       </button>
       <!-- 圆形态仍要能关掉: 否则只能先展开再关, 等于绕两层。 -->
-      <button class="tts-bubble-close" aria-label="关闭听书并停止朗读" @click="$emit('close')">
+      <button class="tts-bubble-close" :aria-label="t('tts.closeTts')" @click="$emit('close')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
@@ -26,7 +26,7 @@
         强制成气泡(点展开也展不开), 所以索性不渲染这个角标 —— 留个点了没反应的
         按钮比没有更糟。关闭角标保留, 否则迷你模式下关不掉听书。
       -->
-      <button v-if="!mini" class="tts-bubble-expand" aria-label="展开听书面板" @click="setState('bar')">
+      <button v-if="!mini" class="tts-bubble-expand" :aria-label="t('tts.expandPanel')" @click="setState('bar')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="m6 15 6-6 6 6" />
         </svg>
@@ -41,7 +41,7 @@
     >
       <!-- 一行态: 播放控制常驻, 但不挡掉正文一大块。 -->
       <div v-if="state === 'bar'" class="tts-collapsed-row">
-        <button class="tts-icon-btn" :aria-label="isPaused ? '继续' : '暂停'" @click="$emit('toggle-play')">
+        <button class="tts-icon-btn" :aria-label="isPaused ? t('common.resume') : t('common.pause')" @click="$emit('toggle-play')">
           <svg v-if="isPaused" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M8 5v14l11-7z" />
           </svg>
@@ -51,29 +51,29 @@
         </button>
         <div class="tts-collapsed-info">
           <span class="tts-collapsed-title">{{ chapterTitle }}</span>
-          <span class="tts-collapsed-mode">{{ providerLabel }}<span v-if="isLoading"> · 加载中</span></span>
+          <span class="tts-collapsed-mode">{{ providerLabel }}<span v-if="isLoading"> · {{ t('common.loading') }}</span></span>
         </div>
-        <button class="tts-icon-btn" aria-label="上一段" @click="$emit('prev')">
+        <button class="tts-icon-btn" :aria-label="t('tts.prevPara')" @click="$emit('prev')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M19 20 9 12l10-8zM5 19V5" />
           </svg>
         </button>
-        <button class="tts-icon-btn" aria-label="下一段" @click="$emit('next')">
+        <button class="tts-icon-btn" :aria-label="t('tts.nextPara')" @click="$emit('next')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="m5 4 10 8-10 8zM19 5v14" />
           </svg>
         </button>
-        <button class="tts-icon-btn" aria-label="展开听书设置" @click="setState('expanded')">
+        <button class="tts-icon-btn" :aria-label="t('tts.expandSettings')" @click="setState('expanded')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="m6 15 6-6 6 6" />
           </svg>
         </button>
-        <button class="tts-icon-btn" aria-label="收成圆形气泡" @click="setState('bubble')">
+        <button class="tts-icon-btn" :aria-label="t('tts.collapseBubble')" @click="setState('bubble')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="7" />
           </svg>
         </button>
-        <button class="tts-icon-btn tts-icon-danger" aria-label="关闭听书并停止朗读" @click="$emit('close')">
+        <button class="tts-icon-btn tts-icon-danger" :aria-label="t('tts.closeTts')" @click="$emit('close')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
@@ -83,19 +83,19 @@
       <template v-else>
         <div class="tts-head">
           <div class="tts-info">
-            <div>正在朗读: {{ chapterTitle }}</div>
+            <div>{{ t('tts.readingNow', { title: chapterTitle }) }}</div>
             <div class="tts-mode">
-              当前模式: {{ providerLabel }}
+              {{ t('tts.currentMode', { mode: providerLabel }) }}
               <span v-if="provider === 'openai'"> · {{ openaiModel }} / {{ openaiVoice }}</span>
             </div>
           </div>
           <div class="tts-head-actions">
-            <button class="tts-close" @click="setState('bar')" aria-label="收起为一行">
+            <button class="tts-close" @click="setState('bar')" :aria-label="t('tts.collapseBar')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
-            <button class="tts-close tts-icon-danger" @click="$emit('close')" aria-label="关闭听书并停止朗读">
+            <button class="tts-close tts-icon-danger" @click="$emit('close')" :aria-label="t('tts.closeTts')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
@@ -103,16 +103,16 @@
           </div>
         </div>
         <div class="tts-btns">
-          <button @click="$emit('prev')">上一段</button>
-          <button :disabled="isLoading" @click="$emit('toggle-play')">{{ isLoading ? '加载中' : (isPaused ? '恢复' : (isSpeaking ? '暂停' : '开始')) }}</button>
-          <button @click="$emit('stop')">停止</button>
-          <button @click="$emit('next')">下一段</button>
+          <button @click="$emit('prev')">{{ t('tts.prevPara') }}</button>
+          <button :disabled="isLoading" @click="$emit('toggle-play')">{{ isLoading ? t('common.loading') : (isPaused ? t('common.resume') : (isSpeaking ? t('common.pause') : t('common.start'))) }}</button>
+          <button @click="$emit('stop')">{{ t('common.stop') }}</button>
+          <button @click="$emit('next')">{{ t('tts.nextPara') }}</button>
         </div>
         <div v-if="isSpeaking || isLoading || isPaused" class="tts-progress" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
           <div class="tts-progress-fill" :style="{ width: `${progressPercent}%` }"></div>
         </div>
         <select v-if="provider === 'system'" class="tts-voice-select" :value="voiceName" @change="$emit('voice-change', ($event.target as HTMLSelectElement).value)">
-          <option value="">系统默认</option>
+          <option value="">{{ t('tts.systemDefault') }}</option>
           <option v-for="voice in voices" :key="voice.name" :value="voice.name">
             {{ voice.name }} ({{ voice.lang }})
           </option>
@@ -127,25 +127,25 @@
         >
         <div class="tts-tuning">
           <div class="tts-stepper">
-            <span class="tts-label">语速</span>
+            <span class="tts-label">{{ t('tts.speechRate') }}</span>
             <button @click="$emit('rate-change', -0.1)">-</button>
             <span>{{ rate.toFixed(1) }}</span>
             <button @click="$emit('rate-change', 0.1)">+</button>
           </div>
           <div v-if="supportsPitch" class="tts-stepper">
-            <span class="tts-label">语调</span>
+            <span class="tts-label">{{ t('tts.speechPitch') }}</span>
             <button @click="$emit('pitch-change', -0.1)">-</button>
             <span>{{ pitch.toFixed(1) }}</span>
             <button @click="$emit('pitch-change', 0.1)">+</button>
           </div>
         </div>
         <div class="tts-timer-row">
-          <span class="tts-label">定时停止</span>
+          <span class="tts-label">{{ t('tts.timerStop') }}</span>
           <div class="tts-timer-actions">
-            <button :class="{ active: stopAfterMinutes === 0 }" @click="$emit('timer-change', 0)">关闭</button>
-            <button :class="{ active: stopAfterMinutes === 15 }" @click="$emit('timer-change', 15)">15分钟</button>
-            <button :class="{ active: stopAfterMinutes === 30 }" @click="$emit('timer-change', 30)">30分钟</button>
-            <button :class="{ active: stopAfterMinutes === 60 }" @click="$emit('timer-change', 60)">60分钟</button>
+            <button :class="{ active: stopAfterMinutes === 0 }" @click="$emit('timer-change', 0)">{{ t('common.close') }}</button>
+            <button :class="{ active: stopAfterMinutes === 15 }" @click="$emit('timer-change', 15)">{{ t('tts.minutes', { m: 15 }) }}</button>
+            <button :class="{ active: stopAfterMinutes === 30 }" @click="$emit('timer-change', 30)">{{ t('tts.minutes', { m: 30 }) }}</button>
+            <button :class="{ active: stopAfterMinutes === 60 }" @click="$emit('timer-change', 60)">{{ t('tts.minutes', { m: 60 }) }}</button>
           </div>
           <div v-if="timerText" class="tts-timer-text">{{ timerText }}</div>
         </div>
@@ -156,6 +156,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { t } from '../../i18n'
 import type { ThemePreset } from '../../stores/reader'
 
 /** 听书面板的三种形态, 由宽到窄: 展开设置 → 单行控制条 → 圆形气泡。 */

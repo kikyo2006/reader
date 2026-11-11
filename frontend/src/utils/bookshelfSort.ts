@@ -65,23 +65,26 @@ export const BOOK_SORT_OPTIONS: ReadonlyArray<{ value: number; label: string }> 
   { value: BOOK_SORT_KEYS.author, label: '作者' },
 ]
 
+import { t } from '../i18n'
+
 /** 全部排序方式的文案, 按下标取值(与 Legado 的 bookshelfSort 一一对应)。
  *
  *  菜单只用其中的一部分(见 `BOOK_SORT_OPTIONS`), 但「手动排序」的文案仍要
  *  保留: 老偏好或分组设置里存着 3 时, 触发器得如实显示它, 而不是错显成
  *  「最近阅读」。 */
-const BOOK_SORT_LABEL_BY_VALUE = [
-  '最近阅读',
-  '更新时间',
-  '书名',
-  '手动排序',
-  '综合',
-  '作者',
+const BOOK_SORT_I18N_KEYS = [
+  'bookshelf.sortLastRead',
+  'bookshelf.sortUpdate',
+  'bookshelf.sortTitle',
+  'bookshelf.sortManual',
+  'bookshelf.sortComprehensive',
+  'bookshelf.sortAuthor',
 ] as const
 
 /** 排序值 → 文案。用于下拉触发器显示当前选择。 */
 export function bookSortLabel(value: number): string {
-  return BOOK_SORT_LABEL_BY_VALUE[value] ?? BOOK_SORT_LABEL_BY_VALUE[DEFAULT_BOOK_SORT]
+  const key = BOOK_SORT_I18N_KEYS[value] ?? BOOK_SORT_I18N_KEYS[DEFAULT_BOOK_SORT]
+  return t(key)
 }
 
 /** 归一化排序值, 并把已下架的「手动排序」迁到默认档。

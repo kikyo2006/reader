@@ -5,7 +5,7 @@
          换行的控件栏"要吃掉约 250px, 窗口模式下书籍区只剩一半。 -->
     <header class="explore-toolbar">
       <div class="toolbar-primary">
-        <h1 class="view-title">发现书海</h1>
+        <h1 class="view-title">{{ t('nav.explore') }}</h1>
 
         <div class="source-selector" v-if="store.exploreSources.length > 0">
           <select
@@ -23,15 +23,15 @@
             </option>
           </select>
         </div>
-        <span v-else class="no-sources-text">无带有发现规则的书源</span>
+        <span v-else class="no-sources-text">{{ t('explore.noSourcesWithExplore') }}</span>
 
         <span class="toolbar-spacer" />
 
         <span v-if="store.categoriesLoading" class="status-chip">
-          <span class="status-dot loading" />分类加载中
+          <span class="status-dot loading" />{{ t('explore.categoriesLoading') }}
         </span>
         <span v-else-if="store.books.length > 0" class="status-chip">
-          共 {{ store.books.length }} 本
+          {{ t('explore.bookCount', { count: store.books.length }) }}
         </span>
 
         <!-- 登录：与「书源管理」里完全同一套登录面板。
@@ -41,14 +41,14 @@
           v-if="store.currentSource"
           type="button"
           class="field login-button"
-          :title="`登录 ${store.currentSource.bookSourceName}`"
+          :title="t('source.login.titleNamed', { name: store.currentSource.bookSourceName })"
           @click="store.openLogin()"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
             <path d="M10 17l5-5-5-5M15 12H3" />
           </svg>
-          登录
+          {{ t('common.login') }}
         </button>
 
         <!-- 窄窗口下才出现：收起书源控件，把高度让给书籍网格 -->
@@ -59,7 +59,7 @@
           :aria-expanded="!controlsCollapsed"
           @click="controlsCollapsed = !controlsCollapsed"
         >
-          {{ controlsCollapsed ? `筛选 (${store.controls.length})` : '收起筛选' }}
+          {{ controlsCollapsed ? t('explore.filterCount', { count: store.controls.length }) : t('explore.collapseFilter') }}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
             <path :d="controlsCollapsed ? 'M6 9l6 6 6-6' : 'M18 15l-6-6-6 6'" />
           </svg>
@@ -162,7 +162,7 @@
             :is-search="true"
             :shelf-book-urls="shelfBookUrls"
             :shelf-book-keys="shelfBookKeys"
-            empty-text="暂无数据"
+            :empty-text="t('common.empty')"
             @click="handleBookInfo"
             @info="handleBookInfo"
             @addToShelf="handleAddToShelf"
@@ -171,11 +171,11 @@
         </div>
 
         <div class="loading-state" v-if="store.loading">
-          <div class="spinner"></div>加载中...
+          <div class="spinner"></div>{{ t('common.loading') }}
         </div>
 
         <div class="end-state" v-else-if="!store.hasMore && store.books.length > 0">
-          没有更多了
+          {{ t('common.noMore') }}
         </div>
 
         <div class="error-state" v-else-if="store.error">
@@ -227,6 +227,7 @@ import { shelfMatchKey } from '../utils/searchRank'
 import { isBookOnShelf } from '../utils/bookEdit'
 import { useBookshelfStore } from '../stores/bookshelf'
 import { createCoverCacheSession } from '../utils/coverCacheSession'
+import { t } from '../i18n'
 
 const store = useExploreStore()
 const readerStore = useReaderStore()
@@ -259,9 +260,9 @@ const controlsCollapsed = ref(
 )
 
 const emptyCategoryHint = computed(() => {
-  if (store.categoriesLoading) return '分类加载中…'
+  if (store.categoriesLoading) return t('explore.categoriesLoading')
   if (store.categoriesError) return store.categoriesError
-  return '该源暂无可用分类'
+  return t('explore.noCategories')
 })
 
 // 已在书架的书集合, 用于发现页卡片显示「已加入」并禁用重复加入。
@@ -419,7 +420,7 @@ async function handleAddToShelf(book: Book | SearchBook) {
   // 已在书架就不能再走一遍 saveBook: 这里只提交 5 个字段, 而后端对同一本书是
   // 整条覆盖, 会把用户自定义过的封面/简介等清空。卡片按钮与右键菜单两条入口都要挡。
   if (isBookOnShelf(book, shelfStore.books)) {
-    appStore.showToast(`"${book.name}" 已在书架中`, 'warning')
+    appStore.showToast(t('explore.alreadyInShelf', { name: book.name }), 'warning')
     return
   }
   try {
@@ -431,7 +432,7 @@ async function handleAddToShelf(book: Book | SearchBook) {
       coverUrl: book.coverUrl,
     })
     await shelfStore.fetchBooks()
-    appStore.showToast(`"${book.name}" 已加入书架`, 'success')
+    appStore.showToast(t('explore.addedToShelf', { name: book.name }), 'success')
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
   }
@@ -439,10 +440,10 @@ async function handleAddToShelf(book: Book | SearchBook) {
 
 function handleBookContextMenu({ book, event }: { book: Book | SearchBook; event: MouseEvent }) {
   const menuItems = [
-    { label: '开始阅读', action: () => handleBookClick(book) },
-    { label: '查看详情', action: () => handleBookInfo(book) },
+    { label: t('explore.startReading'), action: () => handleBookClick(book) },
+    { label: t('explore.viewDetail'), action: () => handleBookInfo(book) },
     { divider: true },
-    { label: '加入书架', action: () => handleAddToShelf(book) },
+    { label: t('explore.addToShelf'), action: () => handleAddToShelf(book) },
   ]
   showContextMenu(event, menuItems, book)
 }

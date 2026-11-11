@@ -8,10 +8,10 @@
         <section class="export-modal" :class="{ exporting }" aria-labelledby="export-title">
           <header class="modal-head">
             <div>
-              <p class="eyebrow">本地备份</p>
-              <h2 id="export-title">导出书籍</h2>
+              <p class="eyebrow">{{ t('exportModal.localBackup') }}</p>
+              <h2 id="export-title">{{ t('exportModal.title') }}</h2>
             </div>
-            <button v-if="!exporting" class="icon-btn" aria-label="关闭导出" @click="close">
+            <button v-if="!exporting" class="icon-btn" :aria-label="t('common.close')" @click="close">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
@@ -19,9 +19,9 @@
           </header>
 
           <div v-if="!exporting" class="layout">
-            <aside class="book-pane" aria-label="选择书籍">
+            <aside class="book-pane" :aria-label="t('exportModal.selectBooks')">
               <div class="pane-head">
-                <span>书架</span>
+                <span>{{ t('bookshelf.title') }}</span>
                 <strong>{{ selectedBooks.length }}/{{ books.length }}</strong>
               </div>
               <div class="book-list">
@@ -33,48 +33,48 @@
                 >
                   <input type="checkbox" :checked="selectedUrls.has(book.bookUrl)" @change="toggle(book.bookUrl)" />
                   <span class="book-name">{{ book.name }}</span>
-                  <span class="book-author">{{ book.author || '未知作者' }}</span>
+                  <span class="book-author">{{ book.author || t('bookDetail.unknownAuthor') }}</span>
                 </label>
-                <div v-if="books.length === 0" class="empty-hint">书架还没有书籍</div>
+                <div v-if="books.length === 0" class="empty-hint">{{ t('exportModal.emptyBookshelf') }}</div>
               </div>
               <div class="pane-actions">
-                <button type="button" @click="selectAll">全选</button>
-                <button type="button" :disabled="selectedBooks.length === 0" @click="clearSelection">清空</button>
+                <button type="button" @click="selectAll">{{ t('common.selectAll') }}</button>
+                <button type="button" :disabled="selectedBooks.length === 0" @click="clearSelection">{{ t('exportModal.clear') }}</button>
               </div>
             </aside>
 
             <div class="settings-pane">
               <section class="settings-panel">
-                <h3>导出格式</h3>
+                <h3>{{ t('exportModal.format') }}</h3>
                 <div class="format-options">
                   <button type="button" :class="{ active: format === 'txt' }" @click="format = 'txt'">
                     <strong>TXT</strong>
-                    <span>通用纯文本</span>
+                    <span>{{ t('exportModal.plainText') }}</span>
                   </button>
                   <button type="button" :class="{ active: format === 'epub' }" @click="format = 'epub'">
                     <strong>EPUB</strong>
-                    <span>保留目录</span>
+                    <span>{{ t('exportModal.keepCatalog') }}</span>
                   </button>
                 </div>
               </section>
 
               <section class="settings-panel wide">
                 <div class="panel-head">
-                  <h3>章节范围</h3>
+                  <h3>{{ t('exportModal.chapterRange') }}</h3>
                   <button type="button" class="link-btn" :disabled="selectedBooks.length !== 1" @click="useCurrentProgress">
-                    从当前进度起
+                    {{ t('exportModal.fromCurrentProgress') }}
                   </button>
                 </div>
-                <p class="panel-desc">每本书可单独设置；留空表示导出全部章节。</p>
-                <div v-if="selectedBooks.length === 0" class="chapter-empty">先选择要导出的书</div>
+                <p class="panel-desc">{{ t('exportModal.rangeDesc') }}</p>
+                <div v-if="selectedBooks.length === 0" class="chapter-empty">{{ t('exportModal.selectBookFirst') }}</div>
                 <div v-else class="range-list">
                   <div v-for="book in selectedBooks" :key="book.bookUrl" class="range-row">
                     <span class="range-book">{{ book.name }}</span>
-                    <input v-model="chapterRanges[book.bookUrl]" type="text" placeholder="全部章节" spellcheck="false" autocomplete="off" />
+                    <input v-model="chapterRanges[book.bookUrl]" type="text" :placeholder="t('exportModal.allChapters')" spellcheck="false" autocomplete="off" />
                   </div>
                 </div>
                 <p v-if="rangeError" class="range-error">{{ rangeError }}</p>
-                <p class="range-help">例：1-50,80 表示导出第 1 到 50 章和第 80 章。</p>
+                <p class="range-help">{{ t('exportModal.rangeHelp') }}</p>
               </section>
             </div>
           </div>
@@ -82,7 +82,7 @@
           <div v-else class="progress-body">
             <div class="progress-title">
               <div>
-                <p>正在导出</p>
+                <p>{{ t('exportModal.exporting') }}</p>
                 <h3>{{ currentBookName || selectedBooks[0]?.name }}</h3>
               </div>
               <strong>{{ overallPercent }}%</strong>
@@ -91,7 +91,7 @@
               <div class="progress-fill" :style="{ width: `${overallPercent}%` }"></div>
             </div>
             <div class="progress-meta">
-              <span v-if="chapterTotal > 0">{{ doneCount }}/{{ chapterTotal }} 章</span>
+              <span v-if="chapterTotal > 0">{{ t('exportModal.chapterProgress', { done: doneCount, total: chapterTotal }) }}</span>
               <span v-if="chapterTitle">{{ chapterTitle }}</span>
             </div>
             <div v-if="doneItems.length" class="result-list">
@@ -111,12 +111,12 @@
           <footer class="modal-foot">
             <template v-if="!exporting">
               <span class="foot-summary">{{ exportSummary }}</span>
-              <button class="ghost-btn" @click="close">关闭</button>
-              <button class="primary-btn" :disabled="!canExport" @click="startExport">开始导出</button>
+              <button class="ghost-btn" @click="close">{{ t('common.close') }}</button>
+              <button class="primary-btn" :disabled="!canExport" @click="startExport">{{ t('exportModal.startExport') }}</button>
             </template>
             <template v-else>
-              <span class="foot-summary">{{ doneItems.length + failedItems.length }}/{{ exportBookTotal }} 本完成</span>
-              <button class="ghost-btn danger" @click="cancelExport">取消导出</button>
+              <span class="foot-summary">{{ t('exportModal.booksDone', { done: doneItems.length + failedItems.length, total: exportBookTotal }) }}</span>
+              <button class="ghost-btn danger" @click="cancelExport">{{ t('exportModal.cancelExport') }}</button>
             </template>
           </footer>
         </section>
@@ -130,6 +130,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useBookshelfStore } from '../stores/bookshelf'
 import { useAppStore } from '../stores/app'
 import { openSse, type SseLike } from '../api/sse'
+import { t } from '../i18n'
 import type { Book } from '../types'
 
 const props = defineProps<{ modelValue: boolean }>()
@@ -163,13 +164,41 @@ const validRanges = computed(() => {
   return result
 })
 const canExport = computed(() => selectedBooks.value.length > 0 && validRanges.value !== null)
-const selectedChapterCount = computed(() => selectedBooks.value.reduce((sum, book) => (
-  sum + Number(countSelectedChapters((chapterRanges[book.bookUrl] || '').trim()) || 0)
-), 0))
+const hasCustomRanges = computed(() => (
+  selectedBooks.value.some((b) => (chapterRanges[b.bookUrl] || '').trim().length > 0)
+))
+const selectedChapterCount = computed(() => {
+  let sum = 0
+  for (const book of selectedBooks.value) {
+    const totalChapters = Number(book.totalChapterNum) || 0
+    const raw = (chapterRanges[book.bookUrl] || '').trim()
+    if (!raw) {
+      sum += totalChapters
+      continue
+    }
+    const c = countSelectedChapters(raw)
+    if (typeof c === 'number' && !Number.isNaN(c)) {
+      sum += c
+    } else if (c === 'remaining' && totalChapters > 0) {
+      const start = Math.max(1, (Number(book.durChapterIndex) || 0) + 1)
+      sum += Math.max(0, totalChapters - start + 1)
+    } else if (totalChapters > 0) {
+      sum += totalChapters
+    }
+  }
+  return Number.isNaN(sum) ? 0 : sum
+})
 const exportSummary = computed(() => {
-  if (selectedBooks.value.length === 0) return '未选择书籍'
-  if (validRanges.value === null) return '章节范围有误'
-  return `${selectedBooks.value.length} 本书 · 约 ${selectedChapterCount.value} 章`
+  if (selectedBooks.value.length === 0) return t('exportModal.noBooksSelected')
+  if (validRanges.value === null) return t('exportModal.invalidRange')
+  if (!hasCustomRanges.value) {
+    return t('exportModal.summaryAllChapters', { books: selectedBooks.value.length })
+  }
+  const count = selectedChapterCount.value
+  if (count > 0) {
+    return t('exportModal.summaryBooksCount', { books: selectedBooks.value.length, chapters: count })
+  }
+  return t('exportModal.summaryAllChapters', { books: selectedBooks.value.length })
 })
 const overallPercent = computed(() => {
   const total = exportBookTotal.value || selectedBooks.value.length || 1
@@ -217,8 +246,8 @@ function isValidChapterRange(value: string) {
   return value.split(/[,，\s]+/).filter(Boolean).every((part) => /^\d+([-~]\d*)?$/.test(part))
 }
 
-function countSelectedChapters(value: string) {
-  if (!value) return '全部'
+function countSelectedChapters(value: string): number | string {
+  if (!value) return 'all'
   let count = 0
   let hasOpenRange = false
   for (const part of value.split(/[,，\s]+/).filter(Boolean)) {
@@ -231,7 +260,7 @@ function countSelectedChapters(value: string) {
       count += 1
     }
   }
-  return hasOpenRange && count === 0 ? '剩余全部' : count
+  return hasOpenRange && count === 0 ? 'remaining' : count
 }
 
 function close() {
@@ -277,7 +306,7 @@ function startExport() {
       doneCount.value = 0
       chapterTitle.value = ''
     } else if (payload.event === 'book_failed') {
-      failedItems.value.push({ name: payload.bookName ?? '', error: payload.error ?? '导出失败' })
+      failedItems.value.push({ name: payload.bookName ?? '', error: payload.error ?? t('exportModal.exportFailed') })
       chapterTotal.value = 0
       chapterTitle.value = ''
     }
@@ -288,21 +317,21 @@ function startExport() {
     stream?.close()
     stream = null
     if (payload.cancelled) {
-      appStore.showToast('已取消导出', 'warning')
+      appStore.showToast(t('exportModal.exportCancelled'), 'warning')
       return
     }
     const ok = payload.succeeded ?? 0
     const fail = payload.failed ?? 0
-    if (fail === 0) appStore.showToast(`已导出 ${ok} 本到: ${payload.folder ?? ''}`, 'success')
-    else appStore.showToast(`成功 ${ok} 本, 失败 ${fail} 本`, 'warning')
+    if (fail === 0) appStore.showToast(t('exportModal.exportedSuccess', { count: ok, folder: payload.folder ?? '' }), 'success')
+    else appStore.showToast(t('exportModal.exportedMixed', { ok, fail }), 'warning')
   })
   stream.onerror = (event) => {
     exporting.value = false
     stream?.close()
     stream = null
     const msg = typeof event === 'object' && event !== null
-      ? String((event as { data?: unknown }).data ?? '导出失败')
-      : '导出失败'
+      ? String((event as { data?: unknown }).data ?? t('exportModal.exportFailed'))
+      : t('exportModal.exportFailed')
     rangeError.value = msg
     appStore.showToast(msg, 'error')
   }
@@ -312,14 +341,14 @@ function cancelExport() {
   stream?.close()
   stream = null
   exporting.value = false
-  appStore.showToast('已取消导出', 'warning')
+  appStore.showToast(t('exportModal.exportCancelled'), 'warning')
 }
 
 watch(() => props.modelValue, (visible) => {
   if (visible) syncPreset()
 })
 watch(chapterRanges, () => {
-  rangeError.value = validRanges.value === null ? '章节范围格式不正确，请使用如 1-50,80' : ''
+  rangeError.value = validRanges.value === null ? t('exportModal.rangeHelp') : ''
 }, { deep: true })
 </script>
 

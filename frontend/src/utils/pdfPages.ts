@@ -12,6 +12,8 @@ import { isLocalPdfBook } from './localBook'
  * pdf.js), 扫描件与复杂版式都能原样显示。
  */
 
+import { t } from '../i18n'
+
 /** 占位元素上的页号属性 */
 export const PDF_PAGE_ATTR = 'data-pdf-page'
 
@@ -144,6 +146,7 @@ export async function renderPdfChapterPages(
       pageNumber > pdfDocument.numPages
     ) {
       placeholder.classList.add('pdf-page-missing')
+      placeholder.setAttribute('data-error-text', t('reader.pdfPageCannotDisplay'))
       continue
     }
     const canvas = document.createElement('canvas')
@@ -156,6 +159,7 @@ export async function renderPdfChapterPages(
     } catch {
       // 单页失败 (损坏的页面对象) 只留空白, 不牵连整章
       placeholder.classList.add('pdf-page-missing')
+      placeholder.setAttribute('data-error-text', t('reader.pdfPageCannotDisplay'))
     }
   }
   return dispose

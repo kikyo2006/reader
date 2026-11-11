@@ -4,10 +4,10 @@
       <section class="subscription-panel">
         <header class="subscription-header">
           <div>
-            <h3>网络导入</h3>
-            <p>填一个书源合集链接即可导入；保存后可以随时一键重新导入更新。</p>
+            <h3>{{ t('source.subscription.title') }}</h3>
+            <p>{{ t('source.subscription.desc') }}</p>
           </div>
-          <button class="icon-btn" type="button" title="关闭" @click="$emit('close')">
+          <button class="icon-btn" type="button" :title="t('source.subscription.close')" @click="$emit('close')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
@@ -18,21 +18,21 @@
           <input
             :value="remoteUrl"
             type="text"
-            placeholder="输入远程书源合集链接"
+            :placeholder="t('source.subscription.placeholder')"
             @input="$emit('update:remoteUrl', ($event.target as HTMLInputElement).value)"
           />
           <button class="action-btn primary" type="button" :disabled="syncing" @click="$emit('sync')">
             <span v-if="syncing" class="spinner" aria-hidden="true"></span>
-            {{ syncing ? '导入中…' : '立即导入' }}
+            {{ syncing ? t('source.subscription.importing') : t('source.subscription.importNow') }}
           </button>
-          <button class="action-btn" type="button" @click="$emit('save')">保存链接</button>
+          <button class="action-btn" type="button" @click="$emit('save')">{{ t('source.subscription.saveLink') }}</button>
         </div>
 
         <div v-if="subscriptions.length" class="subscription-list">
           <article v-for="item in subscriptions" :key="item.url" class="subscription-item">
             <div class="subscription-main">
               <span class="subscription-url">{{ item.url }}</span>
-              <span v-if="item.lastSyncedAt" class="subscription-time">上次导入 {{ formatTime(item.lastSyncedAt) }}</span>
+              <span v-if="item.lastSyncedAt" class="subscription-time">{{ t('source.subscription.lastSync', { time: formatTime(item.lastSyncedAt) }) }}</span>
             </div>
             <div class="subscription-actions">
               <button
@@ -42,19 +42,20 @@
                 @click="$emit('sync-subscription', item.url)"
               >
                 <span v-if="syncingUrl === item.url" class="spinner" aria-hidden="true"></span>
-                {{ syncingUrl === item.url ? '导入中' : '重新导入' }}
+                {{ syncingUrl === item.url ? t('source.subscription.reimporting') : t('source.subscription.reimport') }}
               </button>
-              <button class="mini-btn danger" type="button" :disabled="syncing" @click="$emit('remove-subscription', item.url)">删除</button>
+              <button class="mini-btn danger" type="button" :disabled="syncing" @click="$emit('remove-subscription', item.url)">{{ t('source.subscription.delete') }}</button>
             </div>
           </article>
         </div>
-        <div v-else class="subscription-empty">还没有保存的网络导入记录。</div>
+        <div v-else class="subscription-empty">{{ t('source.subscription.empty') }}</div>
       </section>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
+import { t } from '../../i18n'
 export type SourceSubscription = {
   url: string
   lastSyncedAt?: number

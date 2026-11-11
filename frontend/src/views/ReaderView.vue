@@ -103,9 +103,9 @@
         @click.stop
       >
         <span class="auto-reading-indicator" aria-hidden="true"></span>
-        <span class="auto-reading-label">自动翻页中</span>
-        <span class="auto-reading-mode">平滑</span>
-        <button type="button" title="停止自动翻页" aria-label="停止自动翻页" @click="stopAutoReadingFromStatus">
+        <span class="auto-reading-label">{{ t('reader.autoReading') }}</span>
+        <span class="auto-reading-mode">{{ t('reader.smooth') }}</span>
+        <button type="button" :title="t('reader.stopAutoReading')" :aria-label="t('reader.stopAutoReading')" @click="stopAutoReadingFromStatus">
           <span aria-hidden="true"></span>
         </button>
       </div>
@@ -173,18 +173,18 @@
       <!-- 打开书失败：不能只留一个转圈。目录抓取失败(书源地址不匹配、tocUrl 为空、
            站点超时)在旧实现里会永久停在加载态，用户只能反复换源摸索。 -->
       <div v-else-if="store.bookLoadError" class="book-load-error">
-        <p class="book-load-error-title">加载失败</p>
+        <p class="book-load-error-title">{{ t('reader.chapterLoadFailed') }}</p>
         <p class="book-load-error-message">{{ store.bookLoadError }}</p>
         <div class="book-load-error-actions">
-          <button type="button" class="book-load-error-btn primary" @click="retryOpenBook">重试</button>
+          <button type="button" class="book-load-error-btn primary" @click="retryOpenBook">{{ t('common.retry') }}</button>
           <!-- 换源面板靠 IPC 流探测可用书源, Web 端没有对应能力(见 ReaderSource) -->
           <button
             v-if="!appStore.isWebMode"
             type="button"
             class="book-load-error-btn"
             @click="openSourcePanelFromError"
-          >换源</button>
-          <button type="button" class="book-load-error-btn" @click="goHome">返回书架</button>
+          >{{ t('bookDetail.changeSource') }}</button>
+          <button type="button" class="book-load-error-btn" @click="goHome">{{ t('nav.bookshelf') }}</button>
         </div>
       </div>
 
@@ -246,14 +246,14 @@
         </div>
 
         <div v-else>
-          <div class="chapter-title">{{ store.displayChapterTitle || '加载中...' }}</div>
+          <div class="chapter-title">{{ store.displayChapterTitle || t('common.loading') }}</div>
 
           <!-- 脚本规则没跑成时正文会回落到「不含脚本」的版本，与脚本本来就没启用
                看起来完全一样。必须显式说明，否则用户只会以为规则没效果。 -->
           <div v-if="store.replaceRulesDegraded" class="replace-rule-degraded">
-            本章有 {{ store.failedScriptRuleCount }} 条净化脚本未能执行，正文按未执行脚本处理。
+            {{ t('reader.failedScriptRules', { count: store.failedScriptRuleCount }) }}
             <button type="button" class="replace-rule-degraded-link" @click="store.openPanel('rule')">
-              查看规则
+              {{ t('reader.viewRules') }}
             </button>
           </div>
 
@@ -268,7 +268,7 @@
 
           <div class="chapter-footer">
             <button class="next-btn" :disabled="!store.hasNext" @click="nextChapter">
-              {{ store.hasNext ? '下一章' : '没有更多了' }}
+              {{ store.hasNext ? t('reader.nextChapter') : t('common.empty') }}
             </button>
           </div>
         </div>
@@ -285,7 +285,7 @@
           lineHeight: config.lineHeight,
         }"
       >
-        <div v-if="continuousLoadingPrev" class="continuous-loading-inline">正在加载上一章...</div>
+        <div v-if="continuousLoadingPrev" class="continuous-loading-inline">{{ t('reader.loadingPrevChapter') }}</div>
 
         <section
           v-for="chapter in continuousChapters"
@@ -311,7 +311,7 @@
           ></div>
         </section>
 
-        <div v-if="continuousLoadingNext" class="continuous-loading-inline">正在加载下一章...</div>
+        <div v-if="continuousLoadingNext" class="continuous-loading-inline">{{ t('reader.loadingNextChapter') }}</div>
       </div>
     </div>
 
@@ -348,9 +348,9 @@
       >
         <div class="selection-menu-text">{{ selectionMenu.text }}</div>
         <div class="selection-menu-actions">
-          <button @click="() => addSelectionBookmark()">加入书签</button>
-          <button @click="addSelectionReplaceRule('book')">按本书替换</button>
-          <button @click="addSelectionReplaceRule('source')">按书源替换</button>
+          <button @click="() => addSelectionBookmark()">{{ t('reader.addSelectionBookmark') }}</button>
+          <button @click="addSelectionReplaceRule('book')">{{ t('reader.replaceByBook') }}</button>
+          <button @click="addSelectionReplaceRule('source')">{{ t('reader.replaceBySource') }}</button>
         </div>
       </div>
     </Transition>
@@ -362,23 +362,23 @@
         :style="{ top: `${readerContextMenu.top}px`, left: `${readerContextMenu.left}px`, background: chromeTheme.popup, color: chromeTheme.fontColor }"
         @click.stop
       >
-        <button v-if="readerContextMenu.text" @click="searchContextSelection">搜索选中内容</button>
-        <button v-if="readerContextMenu.text" @click="replaceContextSelection">替换</button>
-        <button @click="bookmarkContextSelection">加入书签</button>
+        <button v-if="readerContextMenu.text" @click="searchContextSelection">{{ t('reader.searchSelection') }}</button>
+        <button v-if="readerContextMenu.text" @click="replaceContextSelection">{{ t('reader.replaceSelection') }}</button>
+        <button @click="bookmarkContextSelection">{{ t('reader.addSelectionBookmark') }}</button>
         <!-- 未加入书架时才出现（issue #28 第 1 点）。已上架时按需求直接隐藏，
              不在菜单里留一条永远禁用的灰项。 -->
         <button v-if="canAddToShelf" @click="addCurrentBookToShelf">
-          {{ addingToShelf ? '正在加入…' : '加入书架' }}
+          {{ addingToShelf ? t('common.loading') : t('bookshelf.addToShelf') }}
         </button>
-        <button :disabled="store.currentIndex <= 0 || store.loading" @click="prevChapterFromContextMenu">上一章</button>
-        <button :disabled="!store.hasNext || store.loading" @click="nextChapterFromContextMenu">下一章</button>
-        <button @click="openCatalogFromContextMenu">目录</button>
+        <button :disabled="store.currentIndex <= 0 || store.loading" @click="prevChapterFromContextMenu">{{ t('reader.prevChapter') }}</button>
+        <button :disabled="!store.hasNext || store.loading" @click="nextChapterFromContextMenu">{{ t('reader.nextChapter') }}</button>
+        <button @click="openCatalogFromContextMenu">{{ t('reader.catalog') }}</button>
         <button
           v-if="!isLocalBook(store.book) && !appStore.isWebMode"
           @click="openSourceFromContextMenu"
-        >换源</button>
-        <button @click="toggleAutoReadingFromContextMenu">{{ store.isAutoScrolling ? '停止自动翻页' : '开始自动翻页' }}</button>
-        <button @click="refreshFromContextMenu">刷新</button>
+        >{{ t('bookDetail.changeSource') }}</button>
+        <button @click="toggleAutoReadingFromContextMenu">{{ store.isAutoScrolling ? t('reader.stopAutoScroll') : t('reader.startAutoScroll') }}</button>
+        <button @click="refreshFromContextMenu">{{ t('common.refresh') }}</button>
       </div>
     </Transition>
 
@@ -396,31 +396,31 @@
             aria-labelledby="reader-replace-title"
             :style="{ background: chromeTheme.popup, color: chromeTheme.fontColor }"
           >
-            <h3 id="reader-replace-title">替换选中内容</h3>
+            <h3 id="reader-replace-title">{{ t('reader.replaceTitle') }}</h3>
             <label class="reader-replace-field">
-              <span>匹配内容</span>
+              <span>{{ t('reader.matchContent') }}</span>
               <textarea v-model="replaceDialog.pattern" rows="3"></textarea>
             </label>
             <label class="reader-replace-field">
-              <span>替换为</span>
-              <textarea v-model="replaceDialog.replacement" rows="3" placeholder="留空则删除"></textarea>
+              <span>{{ t('reader.replaceWith') }}</span>
+              <textarea v-model="replaceDialog.replacement" rows="3" :placeholder="t('reader.emptyToDelete')"></textarea>
             </label>
             <label class="reader-replace-check">
               <input v-model="replaceDialog.isRegex" type="checkbox">
-              <span>使用正则表达式</span>
+              <span>{{ t('reader.useRegex') }}</span>
             </label>
             <div class="reader-replace-field">
-              <span>生效范围</span>
+              <span>{{ t('reader.scope') }}</span>
               <div class="reader-replace-scopes">
-                <button type="button" :class="{ active: replaceDialog.scope === 'book' }" @click="replaceDialog.scope = 'book'">本书</button>
-                <button type="button" :class="{ active: replaceDialog.scope === 'source' }" @click="replaceDialog.scope = 'source'">当前书源</button>
-                <button type="button" :class="{ active: replaceDialog.scope === 'global' }" @click="replaceDialog.scope = 'global'">全部书籍</button>
+                <button type="button" :class="{ active: replaceDialog.scope === 'book' }" @click="replaceDialog.scope = 'book'">{{ t('reader.scopeCurrentBook') }}</button>
+                <button type="button" :class="{ active: replaceDialog.scope === 'source' }" @click="replaceDialog.scope = 'source'">{{ t('reader.scopeCurrentSource') }}</button>
+                <button type="button" :class="{ active: replaceDialog.scope === 'global' }" @click="replaceDialog.scope = 'global'">{{ t('reader.scopeAllBooks') }}</button>
               </div>
             </div>
             <div class="reader-replace-actions">
-              <button type="button" @click="closeReplaceDialog">取消</button>
+              <button type="button" @click="closeReplaceDialog">{{ t('common.cancel') }}</button>
               <button type="button" class="primary" :disabled="replaceDialog.saving || !replaceDialog.pattern.trim()" @click="saveReplaceDialog">
-                {{ replaceDialog.saving ? '保存中...' : '保存' }}
+                {{ replaceDialog.saving ? t('common.saving') : t('common.save') }}
               </button>
             </div>
           </div>
@@ -478,6 +478,7 @@ import { rewriteCssAssetUrls, toReaderAssetUrl } from '../utils/localEpubAsset'
 import { processSourceImageOptions, reserveImageSpace } from '../utils/sourceImageOptions'
 import { repairSourceImageHtml } from '../utils/sourceImageHtml'
 import { handleReaderFontSizeWheel } from '../utils/readerFontSize'
+import { t } from '../i18n'
 import { createReaderProgressAutoSaveScheduler, createReaderProgressExitSaver } from '../utils/readerProgressAutoSave'
 import {
   animatePageScrollBy,
@@ -571,13 +572,13 @@ const config = computed(() => store.config)
 const loadStageText = computed(() => {
   switch (store.loadStage) {
     case 'fetching':
-      return '正在获取章节…'
+      return t('reader.stageFetching')
     case 'parsing':
-      return '正在解析正文与段评…'
+      return t('reader.stageParsing')
     case 'caching':
-      return '正在保存到本地…'
+      return t('reader.stageCaching')
     default:
-      return store.switchingSource && !store.activePanel ? '正在切换书源…' : ''
+      return store.switchingSource && !store.activePanel ? t('reader.stageSwitchingSource') : ''
   }
 })
 const theme = computed(() => store.readerTheme)
@@ -1106,9 +1107,9 @@ const speechTimerText = computed(() => {
   if (totalMinutes >= 60) {
     const hours = Math.floor(totalMinutes / 60)
     const minutes = totalMinutes % 60
-    return minutes ? `${hours}小时${minutes}分钟后停止` : `${hours}小时后停止`
+    return minutes ? t('reader.stopAfterHoursMinutes', { hours, minutes }) : t('reader.stopAfterHours', { hours })
   }
-  return `${totalMinutes}分钟后停止`
+  return t('reader.stopAfterMinutes', { minutes: totalMinutes })
 })
 const {
   showSearch,
@@ -1155,9 +1156,9 @@ const {
 const offlineBannerText = computed(() => {
   if (appStore.isOnline) return ''
   if (offlineCachedCount.value > 0) {
-    return `离线模式：当前书已缓存 ${offlineCachedCount.value} 章，可继续阅读已缓存章节`
+    return t('reader.offlineCachedNotice', { count: offlineCachedCount.value })
   }
-  return '离线模式：当前书没有本地缓存，未缓存章节将无法打开'
+  return t('reader.offlineNoCacheNotice')
 })
 
 /**
@@ -1421,7 +1422,7 @@ async function handleSourceImageClick(event: MouseEvent) {
     }
   } catch (error) {
     console.warn('[source-click] 执行失败', error)
-    appStore.showToast(error instanceof Error ? error.message : '执行点击脚本失败', 'error')
+    appStore.showToast(error instanceof Error ? error.message : t('reader.executeClickScriptFailed'), 'error')
   }
 }
 
@@ -2122,7 +2123,7 @@ async function nextChapter() {
     // 已到目录末尾: 静默检查书源新章节(60 秒节流), 有更新则接着往下读
     const added = await store.refreshTocFromSource(TOC_END_CHECK_INTERVAL_MS)
     if (added <= 0) {
-      appStore.showToast('已经是最新章节了', 'success')
+      appStore.showToast(t('reader.alreadyLatestChapter'), 'success')
       return
     }
     targetIndex = store.currentIndex + 1
@@ -3030,9 +3031,9 @@ async function bookmarkContextSelection() {
   }
   try {
     await store.addBookmark(scrollContainerRef.value?.scrollTop || 0)
-    appStore.showToast('已添加当前页书签', 'success')
+    appStore.showToast(t('reader.currentBookmarkAdded'), 'success')
   } catch {
-    appStore.showToast('加入书签失败', 'error')
+    appStore.showToast(t('reader.bookmarkAddFailed'), 'error')
   }
 }
 
@@ -3059,7 +3060,7 @@ async function retryOpenBook() {
   try {
     await store.loadBook(current, false)
   } catch (error) {
-    appStore.showToast((error as Error).message || '重试失败', 'error')
+    appStore.showToast((error as Error).message || t('common.failed'), 'error')
   }
 }
 
@@ -3070,21 +3071,21 @@ function openSourcePanelFromError() {
 function toggleAutoReadingFromContextMenu() {
   closeReaderContextMenu()
   store.toggleAutoReading()
-  appStore.showToast(store.isAutoScrolling ? '已开始自动翻页' : '已停止自动翻页', 'success')
+  appStore.showToast(store.isAutoScrolling ? t('reader.autoScrollStarted') : t('reader.autoScrollStopped'), 'success')
 }
 
 function stopAutoReadingFromStatus() {
   store.stopAutoReading()
-  appStore.showToast('已停止自动翻页', 'success')
+  appStore.showToast(t('reader.autoScrollStopped'), 'success')
 }
 
 async function refreshFromContextMenu() {
   closeReaderContextMenu()
   try {
     await store.refreshContent()
-    appStore.showToast('当前章节已刷新', 'success')
+    appStore.showToast(t('reader.chapterRefreshed'), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '刷新失败', 'error')
+    appStore.showToast((error as Error).message || t('common.failed'), 'error')
   }
 }
 
@@ -3180,8 +3181,8 @@ function runClickAreaAction(action: ClickAreaAction) {
       return
     case 'bookmark':
       void store.addBookmark(scrollContainerRef.value?.scrollTop || 0)
-        .then(() => appStore.showToast('已添加当前页书签', 'success'))
-        .catch(() => appStore.showToast('加入书签失败', 'error'))
+        .then(() => appStore.showToast(t('reader.currentBookmarkAdded'), 'success'))
+        .catch(() => appStore.showToast(t('reader.bookmarkAddFailed'), 'error'))
       return
     case 'catalog':
       store.openPanel('catalog')
@@ -3512,7 +3513,7 @@ function toggleFullscreen() {
       // 全屏失败时用户按 F11 毫无反应也没有任何提示，只能反复按。
       // 至少给一条 toast，并清除期望值以免后续取反错乱。
       resetFullscreenIntent()
-      appStore.showToast((error as Error)?.message || '切换全屏失败', 'warning')
+      appStore.showToast((error as Error)?.message || t('reader.toggleFullscreenFailed'), 'warning')
     })
 }
 
@@ -3868,7 +3869,7 @@ async function openInfo() {
       durChapterTitle: store.currentChapter?.title || latest.durChapterTitle || store.book.durChapterTitle,
     }
   } catch {
-    appStore.showToast('获取书籍详情失败，已显示当前缓存信息', 'warning')
+    appStore.showToast(t('reader.fetchBookDetailFailedUseCache'), 'warning')
   }
 }
 
@@ -3899,9 +3900,9 @@ async function addCurrentBookToShelf() {
       durChapterTitle: store.currentChapter?.title || merged.durChapterTitle,
       durChapterTime: Date.now(),
     })
-    appStore.showToast(`已将《${book.name}》加入书架`, 'success')
+    appStore.showToast(t('reader.addedToShelfSuccess', { name: book.name }), 'success')
   } catch (error) {
-    appStore.showToast((error as Error).message || '加入书架失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.addToShelfFailed'), 'error')
   } finally {
     addingToShelf.value = false
   }
@@ -4014,7 +4015,7 @@ onMounted(async () => {
       router.replace('/')
       return
     }
-    appStore.showToast('已恢复最近阅读的离线章节', 'success')
+    appStore.showToast(t('reader.restoredOfflineChapter'), 'success')
   }
   appStore.startReadingSession(store.book?.bookUrl, store.book?.name, store.book?.author)
   void store.fetchCustomFonts().catch(() => undefined)
@@ -4836,7 +4837,7 @@ watch(
 }
 
 .pdf-page.pdf-page-missing::after {
-  content: '本页无法显示';
+  content: attr(data-error-text);
   color: #999;
   font-size: 0.9em;
 }

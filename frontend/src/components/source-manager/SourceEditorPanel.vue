@@ -2,20 +2,20 @@
   <section class="editor-panel">
     <header class="editor-head">
       <div class="editor-title">
-        <h3>{{ source ? source.bookSourceName : '书源工作区' }}</h3>
-        <p>{{ source ? source.bookSourceUrl : '选择一个书源查看详情，或新建书源' }}</p>
+        <h3>{{ source ? source.bookSourceName : t('source.editor.workspace') }}</h3>
+        <p>{{ source ? source.bookSourceUrl : t('source.editor.selectHint') }}</p>
       </div>
       <div class="editor-actions">
-        <button class="mini-btn" type="button" @click="$emit('format')">格式化</button>
-        <button class="mini-btn primary" type="button" @click="$emit('save')">保存</button>
+        <button class="mini-btn" type="button" @click="$emit('format')">{{ t('source.editor.format') }}</button>
+        <button class="mini-btn primary" type="button" @click="$emit('save')">{{ t('source.editor.save') }}</button>
         <button
           v-if="source"
           class="mini-btn"
           type="button"
-          title="更多操作"
+          :title="t('source.editor.more')"
           @click="$emit('more', $event)"
         >
-          更多
+          {{ t('source.editor.more') }}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
             <path d="m6 9 6 6 6-6" />
           </svg>
@@ -23,7 +23,7 @@
       </div>
     </header>
 
-    <nav class="editor-tabs" aria-label="书源编辑标签">
+    <nav class="editor-tabs" :aria-label="t('source.title')">
       <button
         v-for="tab in tabs"
         :key="tab.key"
@@ -40,46 +40,46 @@
       <template v-if="overview && source">
         <div class="overview-grid">
           <div class="overview-card">
-            <span>状态</span>
-            <strong>{{ overview.statusText }}</strong>
+            <span>{{ t('source.editor.status') }}</span>
+            <strong>{{ source.enabled === false ? t('source.editor.disabled') : t('source.editor.enabled') }}</strong>
           </div>
           <div class="overview-card">
-            <span>分组</span>
-            <strong>{{ overview.group }}</strong>
+            <span>{{ t('source.editor.group') }}</span>
+            <strong>{{ source.bookSourceGroup?.trim() || t('bookshelf.groups.ungrouped') }}</strong>
           </div>
           <div class="overview-card">
-            <span>发现</span>
-            <strong>{{ overview.exploreText }}</strong>
+            <span>{{ t('source.editor.explore') }}</span>
+            <strong>{{ source.enabledExplore === false ? t('source.editor.exploreDisabled') : t('source.editor.exploreEnabled') }}</strong>
           </div>
           <div class="overview-card">
-            <span>Cookie</span>
-            <strong>{{ overview.cookieText }}</strong>
+            <span>{{ t('source.editor.cookie') }}</span>
+            <strong>{{ source.enabledCookieJar ? t('source.editor.cookieIsolated') : t('source.editor.cookieDefault') }}</strong>
           </div>
         </div>
 
         <div class="rule-section">
-          <h4>规则覆盖</h4>
+          <h4>{{ t('source.editor.ruleCoverage') }}</h4>
           <div class="rule-chips">
-            <span :class="{ active: overview.hasSearch }">搜索</span>
-            <span :class="{ active: overview.hasExplore }">发现</span>
-            <span :class="{ active: overview.hasBookInfo }">详情</span>
-            <span :class="{ active: overview.hasToc }">目录</span>
-            <span :class="{ active: overview.hasContent }">正文</span>
-            <span :class="{ active: overview.hasLogin }">登录</span>
+            <span :class="{ active: overview.hasSearch }">{{ t('source.ruleTabs.search') }}</span>
+            <span :class="{ active: overview.hasExplore }">{{ t('source.ruleTabs.find') }}</span>
+            <span :class="{ active: overview.hasBookInfo }">{{ t('source.ruleTabs.detail') }}</span>
+            <span :class="{ active: overview.hasToc }">{{ t('source.ruleTabs.directory') }}</span>
+            <span :class="{ active: overview.hasContent }">{{ t('source.ruleTabs.content') }}</span>
+            <span :class="{ active: overview.hasLogin }">{{ t('source.editor.tabLogin') }}</span>
           </div>
         </div>
 
         <div class="source-url-block">
-          <span>书源 URL</span>
+          <span>{{ t('source.editor.sourceUrl') }}</span>
           <p>{{ source.bookSourceUrl }}</p>
         </div>
       </template>
       <div v-else class="editor-empty">
-        <strong>还没有选中书源</strong>
-        <span>可以从左侧列表选择，也可以新建或导入书源。</span>
+        <strong>{{ t('source.editor.emptyTitle') }}</strong>
+        <span>{{ t('source.editor.emptyDesc') }}</span>
         <div class="empty-actions">
-          <button class="mini-btn primary" type="button" @click="$emit('create')">新增书源</button>
-          <button class="mini-btn" type="button" @click="$emit('import-local')">本地导入</button>
+          <button class="mini-btn primary" type="button" @click="$emit('create')">{{ t('source.editor.newSource') }}</button>
+          <button class="mini-btn" type="button" @click="$emit('import-local')">{{ t('source.editor.importLocal') }}</button>
         </div>
       </div>
     </div>
@@ -103,11 +103,11 @@
 
     <div v-else-if="activeTab === 'login'" class="login-pane">
       <div class="login-card">
-        <h4>书源登录</h4>
-        <p v-if="canLogin">打开书源提供的登录页面或表单，也可以手动导入 Cookie。</p>
-        <p v-else>请先填写有效的书源名称和地址。</p>
+        <h4>{{ t('source.login.title') }}</h4>
+        <p v-if="canLogin">{{ t('source.login.descCanLogin') }}</p>
+        <p v-else>{{ t('source.login.descCannotLogin') }}</p>
         <button class="mini-btn primary" type="button" :disabled="!canLogin || loginLoading" @click="$emit('login')">
-          {{ loginLoading ? '准备中...' : '打开登录' }}
+          {{ loginLoading ? t('source.login.preparing') : t('source.login.openLogin') }}
         </button>
       </div>
     </div>
@@ -124,6 +124,7 @@ import type { BookSource } from '../../types'
 import { getBookSourceOverview } from '../../utils/sourceSelection'
 import SourceDebugger from './SourceDebugger.vue'
 import SourceRuleEditor from './SourceRuleEditor.vue'
+import { t } from '../../i18n'
 
 type TabKey = 'overview' | 'visual' | 'json' | 'login' | 'debug'
 
@@ -148,13 +149,13 @@ defineEmits<{
 }>()
 
 const activeTab = ref<TabKey>('overview')
-const tabs: { key: TabKey; label: string }[] = [
-  { key: 'overview', label: '概览' },
-  { key: 'visual', label: '可视化编辑' },
-  { key: 'json', label: 'JSON' },
-  { key: 'debug', label: '调试' },
-  { key: 'login', label: '登录' },
-]
+const tabs = computed<{ key: TabKey; label: string }[]>(() => [
+  { key: 'overview', label: t('source.editor.tabOverview') },
+  { key: 'visual', label: t('source.editor.tabVisual') },
+  { key: 'json', label: t('source.editor.tabJson') },
+  { key: 'debug', label: t('source.editor.tabDebug') },
+  { key: 'login', label: t('source.editor.tabLogin') },
+])
 
 const overview = computed(() => getBookSourceOverview(props.source))
 

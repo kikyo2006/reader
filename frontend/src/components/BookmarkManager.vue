@@ -14,10 +14,10 @@
         >
           <header class="modal-header">
             <div>
-              <h2 id="bookmark-manager-title">书签管理</h2>
-              <p class="subtitle">查看全部标记书签，点击可回到原书章节</p>
+              <h2 id="bookmark-manager-title">{{ t('settings.readingData.bookmarks') }}</h2>
+              <p class="subtitle">{{ t('settings.readingData.title') }}</p>
             </div>
-            <button class="icon-btn" type="button" aria-label="关闭" @click="close">
+            <button class="icon-btn" type="button" :aria-label="t('common.close')" @click="close">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
@@ -27,7 +27,7 @@
           <div class="toolbar">
             <div class="bookmark-summary">
               <strong>{{ searchQuery ? filteredBookmarks.length : bookmarks.length }}</strong>
-              <span>{{ searchQuery ? '条匹配结果' : `条书签 · ${groups.length} 本书` }}</span>
+              <span>{{ searchQuery ? t('reader.bookmarkMatchResults', { count: filteredBookmarks.length }) : t('reader.bookmarkCountSummary', { count: bookmarks.length, books: groups.length }) }}</span>
             </div>
             <label class="bookmark-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -37,13 +37,13 @@
               <input
                 v-model.trim="searchQuery"
                 type="search"
-                placeholder="搜索书名、章节或摘录"
-                aria-label="搜索书签"
+                :placeholder="t('reader.searchBookmarksPlaceholder')"
+                :aria-label="t('reader.searchBookmarksAria')"
               >
               <button
                 v-if="searchQuery"
                 type="button"
-                aria-label="清除搜索"
+                :aria-label="t('reader.clearSearchAria')"
                 @click="searchQuery = ''"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -57,21 +57,21 @@
                   v-model="exportFormat"
                   class="format-select"
                   :disabled="!bookmarks.length || exporting"
-                  aria-label="选择书签导出格式"
+                  :aria-label="t('reader.selectExportFormatAria')"
                   @change="handleFormatChange"
                 >
-                  <option value="" disabled hidden>选择格式</option>
+                  <option value="" disabled hidden>{{ t('reader.selectFormatOption') }}</option>
                   <option value="json">JSON</option>
                   <option value="md">Markdown</option>
-                  <option value="xmnote">纸间书摘</option>
+                  <option value="xmnote">{{ t('reader.formatXmnote') }}</option>
                 </select>
               </label>
               <button
                 class="action-btn icon-action"
                 type="button"
                 :disabled="loading"
-                aria-label="刷新书签"
-                title="刷新书签"
+                :aria-label="t('common.refresh')"
+                :title="t('common.refresh')"
                 @click="loadBookmarks"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -91,7 +91,7 @@
                   <path d="M9 11l3 3L22 4" />
                   <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                 </svg>
-                管理
+                {{ t('bookshelf.manage') }}
               </button>
               <template v-else>
                 <button
@@ -101,22 +101,22 @@
                   :class="{ danger: selectedKeys.size > 0 }"
                   @click="removeSelected"
                 >
-                  {{ deleting ? '删除中...' : `删除选中 (${selectedKeys.size})` }}
+                  {{ deleting ? t('common.deleting') : t('reader.deleteSelectedBookmarks', { count: selectedKeys.size }) }}
                 </button>
-                <button class="action-btn" type="button" @click="exitManageMode">完成</button>
+                <button class="action-btn" type="button" @click="exitManageMode">{{ t('common.done') }}</button>
               </template>
             </div>
           </div>
 
           <div class="bookmark-body">
-            <div v-if="loading && !bookmarks.length" class="empty-state">正在加载书签...</div>
+            <div v-if="loading && !bookmarks.length" class="empty-state">{{ t('reader.loadingBookmarks') }}</div>
             <div v-else-if="errorMessage" class="empty-state error-state">
               <span>{{ errorMessage }}</span>
-              <button class="action-btn" type="button" @click="loadBookmarks">重新加载</button>
+              <button class="action-btn" type="button" @click="loadBookmarks">{{ t('common.reload') }}</button>
             </div>
-            <div v-else-if="!bookmarks.length" class="empty-state">暂无书签</div>
+            <div v-else-if="!bookmarks.length" class="empty-state">{{ t('reader.noBookmarks') }}</div>
             <div v-else-if="!filteredGroups.length" class="empty-state">
-              没有匹配的书签
+              {{ t('reader.noMatchingBookmarks') }}
             </div>
             <template v-else>
               <section v-for="group in filteredGroups" :key="group.key" class="bookmark-group">
@@ -137,10 +137,10 @@
                     </button>
                     <div class="book-title">
                       <strong>{{ group.bookName }}</strong>
-                      <span>{{ group.bookAuthor || '未知作者' }}</span>
+                      <span>{{ group.bookAuthor || t('bookDetail.unknownAuthor') }}</span>
                     </div>
                   </div>
-                  <span class="group-count">{{ group.items.length }} 条</span>
+                  <span class="group-count">{{ t('reader.bookmarkCountSummary', { count: group.items.length, books: 1 }).split('·')[0].trim() }}</span>
                 </header>
 
                 <div
@@ -154,7 +154,7 @@
                     class="bookmark-check"
                     :class="{ checked: selectedKeys.has(bookmarkKey(bookmark)) }"
                     type="button"
-                    :aria-label="selectedKeys.has(bookmarkKey(bookmark)) ? '取消选择书签' : '选择书签'"
+                    :aria-label="selectedKeys.has(bookmarkKey(bookmark)) ? t('common.cancel') : t('common.select')"
                     @click="toggleBookmarkSelection(bookmark)"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -164,25 +164,25 @@
                   <button
                     class="bookmark-main"
                     type="button"
-                    :title="group.inShelf ? '回到阅读位置' : '原书不在书架，无法打开'"
+                    :title="group.inShelf ? t('reader.returnToReadingPosition') : t('reader.bookNotInShelfCannotOpen')"
                     :disabled="manageMode || !group.inShelf || navigatingKey === bookmarkKey(bookmark)"
                     @click="openBookmark(group, bookmark)"
                   >
                     <span class="chapter-line">
-                      <strong>{{ bookmark.chapterName || '未命名章节' }}</strong>
+                      <strong>{{ bookmark.chapterName || t('reader.untitledChapter') }}</strong>
                       <time>{{ formatDate(bookmark.time) }}</time>
                     </span>
                     <span v-if="bookmark.bookText" class="excerpt">{{ bookmark.bookText }}</span>
                     <span v-if="bookmark.content" class="note">{{ bookmark.content }}</span>
-                    <span v-if="!group.inShelf" class="missing-book">原书不在书架</span>
+                    <span v-if="!group.inShelf" class="missing-book">{{ t('reader.bookNotInShelf') }}</span>
                   </button>
                   <button
                     v-if="!manageMode"
                     class="bookmark-delete"
                     type="button"
                     :disabled="deleting"
-                    aria-label="删除书签"
-                    title="删除书签"
+                    :aria-label="t('reader.deleteBookmark')"
+                    :title="t('reader.deleteBookmark')"
                     @click="removeOne(bookmark)"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -224,6 +224,7 @@ import { useReaderStore } from '../stores/reader'
 import type { Book, Bookmark } from '../types'
 import XmnoteManager from './XmnoteManager.vue'
 import { normalizeBookmarkPosition } from './bookmarkNavigation'
+import { t } from '../i18n'
 import {
   bookmarkExportFilename,
   buildBookmarkExportJson,
@@ -295,7 +296,7 @@ const groups = computed<BookmarkGroup[]>(() => {
     const book = shelfByKey.get(key)
     return {
       key,
-      bookName: items[0]?.bookName || '未知书籍',
+      bookName: items[0]?.bookName || t('reader.unnamedBook'),
       bookAuthor: items[0]?.bookAuthor || '',
       coverUrl: getCoverUrl(book?.customCoverUrl || book?.coverUrl, book?.origin),
       inShelf: Boolean(book),
@@ -334,7 +335,7 @@ async function loadBookmarks() {
     ])
     bookmarks.value = nextBookmarks
   } catch (error) {
-    errorMessage.value = (error as Error).message || '加载书签失败'
+    errorMessage.value = (error as Error).message || t('reader.loadBookmarksFailed')
   } finally {
     loading.value = false
   }
@@ -356,7 +357,7 @@ async function openBookmark(group: BookmarkGroup, bookmark: Bookmark) {
     if (request !== navigationRequest) return
     await router.push('/reader')
   } catch (error) {
-    appStore.showToast((error as Error).message || '打开书签失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.openBookmarkFailed'), 'error')
   } finally {
     if (request === navigationRequest) navigatingKey.value = ''
   }
@@ -421,8 +422,8 @@ function exitManageMode() {
 
 async function removeOne(bookmark: Bookmark) {
   const ok = await appStore.confirmDialog(
-    `确定删除「${bookmark.chapterName || '未命名章节'}」的书签吗？`,
-    { title: '删除书签', danger: true },
+    t('reader.confirmDeleteBookmark', { chapter: bookmark.chapterName || t('reader.untitledChapter') }),
+    { title: t('reader.deleteBookmark'), danger: true },
   )
   if (!ok || deleting.value) return
   deleting.value = true
@@ -431,10 +432,10 @@ async function removeOne(bookmark: Bookmark) {
     const next = new Set(selectedKeys.value)
     next.delete(bookmarkKey(bookmark))
     selectedKeys.value = next
-    appStore.showToast('书签已删除', 'success')
+    appStore.showToast(t('reader.bookmarkDeleted'), 'success')
     await reloadAfterMutation()
   } catch (error) {
-    appStore.showToast((error as Error).message || '删除书签失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.bookmarkDeleteFailed'), 'error')
   } finally {
     deleting.value = false
   }
@@ -444,8 +445,8 @@ async function removeSelected() {
   const items = bookmarks.value.filter((bookmark) => selectedKeys.value.has(bookmarkKey(bookmark)))
   if (!items.length || deleting.value) return
   const ok = await appStore.confirmDialog(
-    `确定删除选中的 ${items.length} 条书签吗？`,
-    { title: '批量删除书签', danger: true },
+    t('reader.confirmBatchDeleteBookmarks', { count: items.length }),
+    { title: t('reader.batchDeleteBookmarks'), danger: true },
   )
   if (!ok) return
   deleting.value = true
@@ -453,10 +454,10 @@ async function removeSelected() {
     await deleteBookmarks(items)
     selectedKeys.value = new Set()
     manageMode.value = false
-    appStore.showToast(`已删除 ${items.length} 条书签`, 'success')
+    appStore.showToast(t('reader.bookmarksDeleted', { count: items.length }), 'success')
     await reloadAfterMutation()
   } catch (error) {
-    appStore.showToast((error as Error).message || '删除书签失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.bookmarkDeleteFailed'), 'error')
   } finally {
     deleting.value = false
   }
@@ -500,10 +501,10 @@ async function downloadExport(format: 'json' | 'md') {
       format,
     )
     if (result.saved) {
-      appStore.showToast(`书签已导出为 ${format === 'json' ? 'JSON' : 'Markdown'}`, 'success')
+      appStore.showToast(t('reader.bookmarksExported', { format: format === 'json' ? 'JSON' : 'Markdown' }), 'success')
     }
   } catch (error) {
-    appStore.showToast((error as Error).message || '导出书签失败', 'error')
+    appStore.showToast((error as Error).message || t('reader.exportBookmarksFailed'), 'error')
   } finally {
     exporting.value = false
   }

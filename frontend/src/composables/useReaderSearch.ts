@@ -1,4 +1,5 @@
 import { computed, nextTick, ref } from 'vue'
+import { t } from '../i18n'
 import type { useReaderStore } from '../stores/reader'
 import { cancelPageScrollAnimation } from '../utils/readerPaging'
 
@@ -118,15 +119,15 @@ export function useReaderSearch(store: ReaderStore, locateMatch?: SearchLocateHa
     searchResults.value = extractSearchResults(
       plainText,
       store.currentIndex,
-      store.currentChapter?.title || '当前章节',
+      store.currentChapter?.title || t('reader.currentChapterLabel'),
       searchQuery.value,
     )
     nextTick(() => {
       if (searchResults.value.length) scrollToMatch({ explicit })
     })
     bookSearchStatus.value = searchResults.value.length
-      ? `共 ${searchResults.value.length} 条结果`
-      : '当前章节没有匹配内容'
+      ? t('reader.searchResultsCount', { count: searchResults.value.length })
+      : t('reader.noMatchingContentInChapter')
   }
 
   function runSearch() {

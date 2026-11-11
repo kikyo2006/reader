@@ -14,6 +14,7 @@
 
 import { computed, onMounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { t } from '../i18n'
 
 interface WebStatus {
   enabled: boolean
@@ -37,11 +38,11 @@ const portDraft = ref(1122)
 const busy = computed(() => loading.value || applying.value)
 
 const statusText = computed(() => {
-  if (!status.value) return '正在读取状态'
+  if (!status.value) return t('settings.webAccess.readingStatus')
   if (status.value.error) return status.value.error
-  if (!status.value.enabled) return '未启用'
-  if (!status.value.running) return '已启用，但未在监听'
-  return status.value.lan ? '局域网可访问' : '仅本机可访问'
+  if (!status.value.enabled) return t('settings.webAccess.disabled')
+  if (!status.value.running) return t('settings.webAccess.notListening')
+  return status.value.lan ? t('settings.webAccess.lanAccessible') : t('settings.webAccess.localOnly')
 })
 
 const statusTone = computed<'accent' | 'muted' | 'danger'>(() => {
@@ -138,7 +139,7 @@ async function toggleLan() {
 async function commitPort() {
   if (!portOk(portDraft.value)) {
     portDraft.value = status.value?.port ?? 1122
-    errorMessage.value = '端口需为 1–65535 之间的整数'
+    errorMessage.value = t('settings.webAccess.portInvalid')
     return
   }
   if (status.value && portDraft.value === status.value.port) return
@@ -164,17 +165,17 @@ onMounted(refresh)
 <template>
   <div class="web-access">
     <div class="web-access-head">
-      <span class="web-access-title">Web 访问</span>
+      <span class="web-access-title">{{ t('settings.webAccess.title') }}</span>
       <!-- 自动应用时没有"保存"动作可供确认, 用一个轻量状态字告诉用户后台正在重启监听。 -->
-      <span v-if="applying" class="applying">应用中…</span>
+      <span v-if="applying" class="applying">{{ t('settings.webAccess.applying') }}</span>
     </div>
 
     <!-- 两行开关用同一套内边距(都在 `.web-access` 里, 由它统一给出左右留白),
          不再叠 `padding` + `padding-left`, 否则开关会左右错开。 -->
     <div class="setting-switch-row">
       <div class="setting-switch-copy">
-        <span>启用 Web 访问</span>
-        <small>用手机或平板的浏览器打开本机地址，即可阅读书架与正文</small>
+        <span>{{ t('settings.webAccess.enable') }}</span>
+        <small>{{ t('settings.webAccess.enableDesc') }}</small>
       </div>
       <button
         class="switch-control"
@@ -182,7 +183,7 @@ onMounted(refresh)
         type="button"
         role="switch"
         :aria-checked="enabledDraft"
-        aria-label="启用 Web 访问"
+        :aria-label="t('settings.webAccess.enable')"
         :disabled="busy"
         @click="toggleEnabled"
       >
@@ -193,8 +194,8 @@ onMounted(refresh)
     <template v-if="enabledDraft">
       <div class="setting-switch-row">
         <div class="setting-switch-copy">
-          <span>允许局域网访问</span>
-          <small>{{ lanDraft ? '同一 WiFi 下的设备都能打开' : '只有这台电脑自己能打开' }}</small>
+          <span>{{ t('settings.webAccess.allowLan') }}</span>
+          <small>{{ lanDraft ? t('settings.webAccess.allowLanDesc') : t('settings.webAccess.localOnly') }}</small>
         </div>
         <button
           class="switch-control"
@@ -202,7 +203,7 @@ onMounted(refresh)
           type="button"
           role="switch"
           :aria-checked="lanDraft"
-          aria-label="允许局域网访问"
+          :aria-label="t('settings.webAccess.allowLan')"
           :disabled="busy"
           @click="toggleLan"
         >
@@ -211,7 +212,7 @@ onMounted(refresh)
       </div>
 
       <label class="field">
-        <span class="field-label">端口</span>
+        <span class="field-label">{{ t('settings.webAccess.port') }}</span>
         <input
           v-model.number="portDraft"
           type="number"
@@ -228,10 +229,10 @@ onMounted(refresh)
         <small v-if="status?.url" class="url-row">
           <code>{{ status.url }}</code>
           <button class="copy-btn" type="button" @click="copyUrl">
-            {{ copied ? '已复制' : '复制' }}
+            {{ copied ? t('settings.webAccess.copied') : t('settings.webAccess.copyUrl') }}
           </button>
         </small>
-        <small v-else-if="status?.running">手机与电脑需连接同一局域网</small>
+        <small v-else-if="status?.running">{{ t('settings.webAccess.allowLanDesc') }}</small>
       </div>
 
       <p v-if="errorMessage" class="hint error">{{ errorMessage }}</p>
@@ -239,8 +240,8 @@ onMounted(refresh)
 
     <!-- 关闭状态下也要有地方说明"改动已生效", 否则用户关完不知道到底有没有生效。 -->
     <div v-else class="status-card" :class="statusTone">
-      <span>{{ applying ? '正在应用…' : statusText }}</span>
-      <small>改动会立即生效，无需保存</small>
+      <span>{{ applying ? t('settings.webAccess.applying') : statusText }}</span>
+      <small>{{ t('settings.webAccess.autoSaveHint') }}</small>
     </div>
   </div>
 </template>

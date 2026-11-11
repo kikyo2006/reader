@@ -5,7 +5,7 @@
         <div class="toolbar-top-left">
           <span v-if="store.activeSource?.sourceGroup" class="meta-chip">{{ store.activeSource.sourceGroup }}</span>
           <label class="source-select">
-            <span>当前源</span>
+            <span>{{ t('rss.currentFeed') }}</span>
             <select v-model="store.activeSourceUrl" @change="handleReaderSourceChange" v-if="store.enabledSources.length">
               <option v-for="source in store.enabledSources" :key="source.sourceUrl" :value="source.sourceUrl">
                 {{ source.sourceName }}
@@ -14,19 +14,19 @@
           </label>
         </div>
         <div class="rss-hero-actions">
-          <button class="ghost-btn icon-btn" @click="goManage" aria-label="管理订阅源" title="管理订阅源">
+          <button class="ghost-btn icon-btn" @click="goManage" :aria-label="t('rss.manage')" :title="t('rss.manage')">
             <span class="btn-icon">⚙</span>
-            <span class="btn-text">管理订阅源</span>
+            <span class="btn-text">{{ t('rss.manage') }}</span>
           </button>
           <button
             class="ghost-btn icon-btn"
             :disabled="!store.enabledSources.length"
             @click="store.fetchArticles(true)"
-            aria-label="刷新文章"
-            title="刷新文章"
+            :aria-label="t('common.refresh')"
+            :title="t('common.refresh')"
           >
             <span class="btn-icon">↻</span>
-            <span class="btn-text">刷新文章</span>
+            <span class="btn-text">{{ t('common.refresh') }}</span>
           </button>
         </div>
       </div>
@@ -38,14 +38,14 @@
             :class="{ active: store.articleScope === 'source' }"
             @click="store.setSource(store.activeSourceUrl)"
           >
-            当前源
+            {{ t('rss.currentFeed') }}
           </button>
           <button
             class="scope-chip"
             :class="{ active: store.articleScope === 'all' }"
             @click="store.setAllSources()"
           >
-            全部文章
+            {{ t('rss.allArticles') }}
           </button>
           <button
             v-for="group in store.groupNames"
@@ -68,11 +68,11 @@
     >
       <aside class="article-list-panel">
         <div class="panel-head">
-          <h2>{{ store.singleUrlMode ? '网页入口' : '文章列表' }}</h2>
+          <h2>{{ store.singleUrlMode ? t('rss.webEntry') : t('rss.articleList') }}</h2>
           <span v-if="!store.singleUrlMode">{{ store.articles.length }}</span>
         </div>        <div class="panel-scroll article-list-scroll">
-          <div v-if="!store.sources.length" class="empty-box">还没有 RSS 源，先去管理页添加。</div>
-          <div v-else-if="!store.activeSourceUrl" class="empty-box">请选择一个 RSS 源。</div>
+          <div v-if="!store.sources.length" class="empty-box">{{ t('rss.noFeedsHint') }}</div>
+          <div v-else-if="!store.activeSourceUrl" class="empty-box">{{ t('rss.selectFeedHint') }}</div>
           <template v-else>
             <div class="article-list-stack">
             <button
@@ -88,11 +88,11 @@
               @click="handleOpenArticle(article)"
               @contextmenu.prevent="handleArticleContextMenu($event, article)"
             >
-              <div class="article-title">{{ article.title || '无标题' }}</div>
+              <div class="article-title">{{ article.title || t('rss.untitled') }}</div>
               <div class="article-meta-line">
-                <span v-if="article.singleUrlEntry">点击打开该网页</span>
+                <span v-if="article.singleUrlEntry">{{ t('rss.clickToOpenWeb') }}</span>
                 <template v-else>
-                  <span>{{ formatRelativeTime(article.pubDate) || '暂无时间' }}</span>
+                  <span>{{ formatRelativeTime(article.pubDate) || t('rss.noTime') }}</span>
                   <span v-if="article.origin" class="meta-sep">·</span>
                   <span v-if="article.origin">{{ article.origin }}</span>
                 </template>
@@ -104,8 +104,8 @@
               >{{ toPlainPreview(article.description) }}</div>
             </button>
             </div>
-            <button v-if="store.hasMore && !store.loading" class="load-more-btn" @click="store.fetchArticles()">加载更多</button>
-            <div v-if="store.loading" class="empty-box loading-box">文章加载中...</div>
+            <button v-if="store.hasMore && !store.loading" class="load-more-btn" @click="store.fetchArticles()">{{ t('rss.loadMore') }}</button>
+            <div v-if="store.loading" class="empty-box loading-box">{{ t('rss.loadingArticles') }}</div>
           </template>
         </div>
       </aside>
@@ -115,29 +115,29 @@
         <template v-if="panelRequest">
           <div class="panel-head">
             <div class="content-head-main">
-              <h2>{{ store.activeSource?.sourceName || '网页' }}</h2>
+              <h2>{{ store.activeSource?.sourceName || t('rss.webpage') }}</h2>
               <div class="content-head-meta">
                 <div class="content-head-origin">{{ panelRequest.url }}</div>
-                <div v-if="store.singleUrlResolved" class="content-head-time">已自动选用可用节点</div>
+                <div v-if="store.singleUrlResolved" class="content-head-time">{{ t('rss.autoResolvedNode') }}</div>
                 <!-- 页面内链接经后端代理在面板内打开(代理不透传上游的
                      X-Frame-Options/CSP), 不会跳出应用。 -->
-                <div class="content-head-time">页面内的链接将在当前面板中打开</div>
+                <div class="content-head-time">{{ t('rss.linksOpenInside') }}</div>
               </div>
             </div>
-            <button class="ghost-btn" @click="reloadPanel" :disabled="panelLoading">重新加载</button>
+            <button class="ghost-btn" @click="reloadPanel" :disabled="panelLoading">{{ t('rss.reload') }}</button>
           </div>
           <div class="panel-scroll content-scroll">
-            <div v-if="panelLoading" class="empty-box">正在打开网页…</div>
+            <div v-if="panelLoading" class="empty-box">{{ t('rss.openingWebpage') }}</div>
             <div v-else-if="panelError" class="empty-box panel-error">
               <div>{{ panelError }}</div>
               <button v-if="panelFallbackUrl" class="ghost-btn" @click="openExternally(panelFallbackUrl)">
-                用系统浏览器打开
+                {{ t('rss.openInSystemBrowser') }}
               </button>
             </div>
             <iframe
               v-else-if="panelRequest.panelId"
               class="rss-page-frame"
-              :title="store.activeSource?.sourceName || 'RSS 网页'"
+              :title="store.activeSource?.sourceName || t('rss.webpage')"
               :src="`${readerOrigin}/sourcePanel?__readerPanelId=${encodeURIComponent(panelRequest.panelId)}`"
               sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
             ></iframe>
@@ -146,7 +146,7 @@
         <template v-else-if="store.activeArticle">
           <div class="panel-head">
             <div class="content-head-main">
-              <h2>{{ store.activeArticle.title || '正文' }}</h2>
+              <h2>{{ store.activeArticle.title || t('rss.body') }}</h2>
               <div class="content-head-meta">
                 <div v-if="store.activeArticle.pubDate" class="content-head-time">
                   {{ formatRelativeTime(store.activeArticle.pubDate) }}
@@ -156,14 +156,14 @@
             </div>
           </div>
           <div class="panel-scroll content-scroll">
-            <div v-if="store.contentLoading" class="empty-box">正文加载中...</div>
+            <div v-if="store.contentLoading" class="empty-box">{{ t('rss.loadingBody') }}</div>
             <div v-else-if="store.activeContent" class="content-html" v-html="store.activeContent"></div>
-            <div v-else class="empty-box">这篇文章暂时没有可显示的正文。</div>
+            <div v-else class="empty-box">{{ t('rss.noBody') }}</div>
           </div>
         </template>
         <div v-else class="content-placeholder">
-          <div class="content-placeholder-title">选择一篇文章开始阅读</div>
-          <div class="content-placeholder-text">正文区会在你点开文章后展开显示。</div>
+          <div class="content-placeholder-title">{{ t('rss.contentPlaceholderTitle') }}</div>
+          <div class="content-placeholder-text">{{ t('rss.contentPlaceholderSubtitle') }}</div>
         </div>
       </article>
     </section>
@@ -180,6 +180,7 @@ import { openRssSourcePanel, type RssSourcePanel } from '../api/rss'
 import { openExternalWindow } from '../api/sourceClick'
 import { readerOrigin } from '../api/scheme'
 import type { RssArticle } from '../types'
+import { t } from '../i18n'
 
 const router = useRouter()
 const store = useRssStore()
@@ -260,7 +261,7 @@ watch(
       // 后端没解析出地址(源地址求值为空且无 sortUrl 兜底)。静默什么都不做会让
       // 用户以为"点了没反应", 这里明确说明。
       panelRequest.value = null
-      panelError.value = '该 RSS 源没有可打开的网页地址，请在管理页检查源配置。'
+      panelError.value = t('rss.noFeedUrlError')
       panelFallbackUrl.value = ''
       panelLoading.value = false
       return
@@ -287,8 +288,8 @@ async function loadSourcePanel(sourceUrl: string, url: string) {
       panelRequest.value = null
       panelFallbackUrl.value = ''
       panelError.value = ''
-      await openExternalWindow(result.url, result.title || 'RSS 网页', sourceUrl)
-        .catch((err) => { panelError.value = (err as Error).message || '打开窗口失败' })
+      await openExternalWindow(result.url, result.title || t('rss.webpage'), sourceUrl)
+        .catch((err) => { panelError.value = (err as Error).message || t('rss.openWindowFailed') })
       return
     }
     panelRequest.value = result
@@ -296,14 +297,14 @@ async function loadSourcePanel(sourceUrl: string, url: string) {
       // 自定义 scheme 无法内嵌, 给出可点击的兜底入口。
       panelRequest.value = null
       panelFallbackUrl.value = result.url
-      panelError.value = '该地址需要交给系统处理（自定义协议）。'
+      panelError.value = t('rss.customProtocolError')
     }
   } catch (error) {
     if (seq !== panelRequestSeq) return
     panelRequest.value = null
     panelSourceUrl.value = sourceUrl
     panelFallbackUrl.value = url
-    panelError.value = (error as Error).message || '网页打开失败'
+    panelError.value = (error as Error).message || t('rss.webpageOpenFailed')
   } finally {
     if (seq === panelRequestSeq) panelLoading.value = false
   }
@@ -353,7 +354,7 @@ function formatRelativeTime(value?: string) {
   if (Number.isNaN(timestamp)) return value
 
   const diff = Date.now() - timestamp
-  if (diff < 0) return '刚刚'
+  if (diff < 0) return t('rss.justNow')
 
   const minute = 60 * 1000
   const hour = 60 * minute
@@ -361,12 +362,12 @@ function formatRelativeTime(value?: string) {
   const month = 30 * day
   const year = 365 * day
 
-  if (diff < minute) return '刚刚'
-  if (diff < hour) return `${Math.floor(diff / minute)} 分钟前`
-  if (diff < day) return `${Math.floor(diff / hour)} 小时前`
-  if (diff < month) return `${Math.floor(diff / day)} 天前`
-  if (diff < year) return `${Math.floor(diff / month)} 个月前`
-  return `${Math.floor(diff / year)} 年前`
+  if (diff < minute) return t('rss.justNow')
+  if (diff < hour) return t('rss.minutesAgo', { count: Math.floor(diff / minute) })
+  if (diff < day) return t('rss.hoursAgo', { count: Math.floor(diff / hour) })
+  if (diff < month) return t('rss.daysAgo', { count: Math.floor(diff / day) })
+  if (diff < year) return t('rss.monthsAgo', { count: Math.floor(diff / month) })
+  return t('rss.yearsAgo', { count: Math.floor(diff / year) })
 }
 
 async function handleReaderSourceChange() {
@@ -382,7 +383,7 @@ async function handleOpenArticle(article: RssArticle & { variable?: string; sing
   if (article.singleUrlEntry) {
     const sourceUrl = article.variable || store.activeSourceUrl
     if (!article.link) {
-      appStore.showToast('该 RSS 源没有可打开的网页地址', 'warning')
+      appStore.showToast(t('rss.noFeedUrlError'), 'warning')
       return
     }
     if (isMobileLayout.value) {
@@ -411,14 +412,14 @@ async function handleOpenArticle(article: RssArticle & { variable?: string; sing
 
 function handleArticleContextMenu(event: MouseEvent, article: RssArticle & { variable?: string }) {
   const menuItems = [
-    { label: '打开文章', action: () => handleOpenArticle(article) },
+    { label: t('rss.openArticle'), action: () => handleOpenArticle(article) },
     {
-      label: '复制链接',
+      label: t('rss.copyLink'),
       action: () => {
         const url = article.link
         if (url) {
           void navigator.clipboard?.writeText(url).then(() => {
-            appStore.showToast('链接已复制', 'success')
+            appStore.showToast(t('rss.linkCopied'), 'success')
           })
         }
       },

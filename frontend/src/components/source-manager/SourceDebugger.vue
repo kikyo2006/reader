@@ -25,7 +25,7 @@
           @keydown.enter="run"
         />
         <button class="mini-btn primary" type="button" :disabled="running" @click="run">
-          {{ running ? '调试中...' : '运行' }}
+          {{ running ? t('source.debugger.debugging') : t('source.debugger.run') }}
         </button>
       </div>
     </div>
@@ -48,7 +48,7 @@
       <div v-if="trace.headers?.length" class="trace-headers">
         <button class="headers-toggle" type="button" @click="headersOpen = !headersOpen">
           <span class="caret" :class="{ open: headersOpen }">▸</span>
-          响应头（{{ trace.headers.length }}）
+          {{ t('source.debugger.headers', { count: trace.headers.length }) }}
         </button>
         <div v-if="headersOpen" class="headers-list">
           <div v-for="([k, v], i) in trace.headers" :key="i" class="header-row">
@@ -60,18 +60,18 @@
 
       <div class="trace-grid">
         <div class="trace-col">
-          <h4>原始响应 <small>（截断 {{ bodySizeKB }} KB）</small></h4>
+          <h4>{{ t('source.debugger.rawResponse') }} <small v-if="bodySizeKB">{{ t('source.debugger.truncated', { size: bodySizeKB.toFixed(1) }) }}</small></h4>
           <pre class="trace-body">{{ trace.body }}</pre>
         </div>
         <div class="trace-col">
-          <h4>解析结果</h4>
+          <h4>{{ t('source.debugger.parseResult') }}</h4>
           <pre class="trace-result">{{ prettyResult }}</pre>
         </div>
       </div>
     </template>
 
     <div v-else-if="!running && !error" class="debug-empty">
-      选择步骤并输入参数，查看该步的原始响应与解析结果。
+      {{ t('source.debugger.emptyHint') }}
     </div>
   </div>
 </template>
@@ -81,6 +81,7 @@ import { computed, ref, watch } from 'vue'
 import { useAppStore } from '../../stores/app'
 import { debugSourceStep, type DebugStep } from '../../api/debug'
 import type { BookSource, DebugTrace } from '../../types'
+import { t } from '../../i18n'
 
 const props = defineProps<{
   source: BookSource | null
@@ -89,12 +90,12 @@ const props = defineProps<{
 
 const appStore = useAppStore()
 
-const steps: { key: DebugStep; label: string }[] = [
-  { key: 'search', label: '搜索' },
-  { key: 'bookInfo', label: '详情' },
-  { key: 'toc', label: '目录' },
-  { key: 'content', label: '正文' },
-]
+const steps = computed<{ key: DebugStep; label: string }[]>(() => [
+  { key: 'search', label: t('source.ruleTabs.search') },
+  { key: 'bookInfo', label: t('source.ruleTabs.detail') },
+  { key: 'toc', label: t('source.ruleTabs.directory') },
+  { key: 'content', label: t('source.ruleTabs.content') },
+])
 
 const activeStep = ref<DebugStep>('search')
 const inputValue = ref('')
@@ -106,13 +107,13 @@ const headersOpen = ref(false)
 const inputPlaceholder = computed(() => {
   switch (activeStep.value) {
     case 'search':
-      return '搜索关键词，留空用规则 checkKeyWord'
+      return t('source.debuggerPlaceholders.search')
     case 'bookInfo':
-      return '书籍链接（bookUrl）或目录链接'
+      return t('source.debuggerPlaceholders.bookInfo')
     case 'toc':
-      return '目录链接（tocUrl）'
+      return t('source.debuggerPlaceholders.toc')
     case 'content':
-      return '章节链接（chapterUrl）'
+      return t('source.debuggerPlaceholders.content')
   }
 })
 
@@ -153,11 +154,11 @@ function currentSourceUrl(): string | null {
 async function run() {
   const bookSourceUrl = currentSourceUrl()
   if (!bookSourceUrl) {
-    appStore.showToast('请先填写并保存书源 URL', 'warning')
+    appStore.showToast(t('source.debugger.urlRequired'), 'warning')
     return
   }
   if (activeStep.value !== 'search' && !inputValue.value.trim()) {
-    appStore.showToast(`请输入${inputPlaceholder.value}`, 'warning')
+    appStore.showToast(t('source.debugger.paramRequired', { placeholder: inputPlaceholder.value }), 'warning')
     return
   }
 
@@ -174,7 +175,7 @@ async function run() {
       chapterUrl: activeStep.value === 'content' ? inputValue.value : undefined,
     })
   } catch (e: unknown) {
-    error.value = (e as Error).message || '调试失败'
+    error.value = (e as Error).message || t('source.debugger.debugFailed')
   } finally {
     running.value = false
   }

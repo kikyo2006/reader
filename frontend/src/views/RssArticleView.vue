@@ -4,12 +4,12 @@
       <template v-if="store.activeArticle">
         <div class="article-page-head">
           <div class="article-title-row">
-            <button class="back-icon-btn" @click="goBack" aria-label="返回文章列表" title="返回文章列表">
+            <button class="back-icon-btn" @click="goBack" :aria-label="t('rss.backToList')" :title="t('rss.backToList')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
-            <h1>{{ store.activeArticle.title || '正文' }}</h1>
+            <h1>{{ store.activeArticle.title || t('rss.body') }}</h1>
           </div>
           <div class="article-page-meta">
             <span v-if="store.activeArticle.pubDate">{{ formatRelativeTime(store.activeArticle.pubDate) }}</span>
@@ -19,12 +19,12 @@
         </div>
 
         <div class="article-page-scroll">
-          <div v-if="store.contentLoading" class="empty-box">正文加载中...</div>
+          <div v-if="store.contentLoading" class="empty-box">{{ t('rss.loadingBody') }}</div>
           <div v-else-if="store.activeContent" class="content-html" v-html="store.activeContent"></div>
-          <div v-else class="empty-box">这篇文章暂时没有可显示的正文。</div>
+          <div v-else class="empty-box">{{ t('rss.noBody') }}</div>
         </div>
       </template>
-      <div v-else class="empty-box">文章不存在或已失效。</div>
+      <div v-else class="empty-box">{{ t('rss.articleNotFound') }}</div>
     </article>
   </div>
 </template>
@@ -34,6 +34,7 @@ import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRssStore } from '../stores/rss'
 import { saveRecentReadBook } from '../utils/recentBooks'
+import { t } from '../i18n'
 import type { RssArticle } from '../types'
 
 const route = useRoute()
@@ -58,7 +59,7 @@ onMounted(async () => {
 
   await store.openArticle(article)
   saveRecentReadBook({
-    name: article.title || 'RSS 文章',
+    name: article.title || t('rss.articleFallback'),
     author: article.origin || 'RSS',
     bookUrl: article.link,
     origin: `rss:${source}`,
@@ -81,7 +82,7 @@ function formatRelativeTime(value?: string) {
   if (Number.isNaN(timestamp)) return value
 
   const diff = Date.now() - timestamp
-  if (diff < 0) return '刚刚'
+  if (diff < 0) return t('rss.justNow')
 
   const minute = 60 * 1000
   const hour = 60 * minute
@@ -89,12 +90,12 @@ function formatRelativeTime(value?: string) {
   const month = 30 * day
   const year = 365 * day
 
-  if (diff < minute) return '刚刚'
-  if (diff < hour) return `${Math.floor(diff / minute)} 分钟前`
-  if (diff < day) return `${Math.floor(diff / hour)} 小时前`
-  if (diff < month) return `${Math.floor(diff / day)} 天前`
-  if (diff < year) return `${Math.floor(diff / month)} 个月前`
-  return `${Math.floor(diff / year)} 年前`
+  if (diff < minute) return t('rss.justNow')
+  if (diff < hour) return t('rss.minutesAgo', { count: Math.floor(diff / minute) })
+  if (diff < day) return t('rss.hoursAgo', { count: Math.floor(diff / hour) })
+  if (diff < month) return t('rss.daysAgo', { count: Math.floor(diff / day) })
+  if (diff < year) return t('rss.monthsAgo', { count: Math.floor(diff / month) })
+  return t('rss.yearsAgo', { count: Math.floor(diff / year) })
 }
 </script>
 

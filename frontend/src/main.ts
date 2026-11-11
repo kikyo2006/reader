@@ -6,6 +6,7 @@ import './styles/global.css'
 import { useAppStore } from './stores/app'
 import { isWebUiMode } from './api/transport'
 import { registerViewportSync } from './utils/viewport'
+import { i18nPlugin, t } from './i18n'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -20,16 +21,17 @@ if (isWebUiMode()) {
 
 app.use(pinia)
 app.use(router)
+app.use(i18nPlugin)
 registerViewportSync()
 const appStore = useAppStore(pinia)
 appStore.setOnlineStatus(navigator.onLine)
 window.addEventListener('online', () => {
   appStore.setOnlineStatus(true)
-  appStore.showToast('网络已恢复', 'success')
+  appStore.showToast(t('topbar.online'), 'success')
 })
 window.addEventListener('offline', () => {
   appStore.setOnlineStatus(false)
-  appStore.showToast('已进入离线模式', 'warning')
+  appStore.showToast(t('topbar.offline'), 'warning')
 })
 
 app.mount('#app')

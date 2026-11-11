@@ -6,8 +6,8 @@
           <h3 v-if="appStore.confirmState.title" class="confirm-title">{{ appStore.confirmState.title }}</h3>
           <p class="confirm-message">{{ appStore.confirmState.message }}</p>
           <div class="confirm-actions">
-            <button class="confirm-btn" type="button" @click="cancel">取消</button>
-            <button class="confirm-btn primary" type="button" @click="ok">确定</button>
+            <button class="confirm-btn" type="button" @click="cancel">{{ t('common.cancel') }}</button>
+            <button class="confirm-btn primary" type="button" @click="ok">{{ t('common.confirm') }}</button>
           </div>
         </div>
       </div>
@@ -17,6 +17,7 @@
 
 <script setup lang="ts">
 import { useAppStore } from '../stores/app'
+import { t } from '../i18n'
 
 const appStore = useAppStore()
 
