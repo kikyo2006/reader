@@ -3,7 +3,7 @@ use crate::api::AppState;
 use crate::error::error::{ApiResponse, AppError};
 use crate::model::book_source::{book_source_from_value, BookSource};
 use crate::service::book_source_service::{
-    book_source_has_group, set_invalid_book_source_group, INVALID_BOOK_SOURCE_GROUP,
+    book_source_is_invalid, set_invalid_book_source_group_with_tag,
 };
 use crate::util::text::normalize_source_url;
 use once_cell::sync::Lazy;
@@ -62,6 +62,7 @@ pub struct TestBookSourcesRequest {
     pub mark_invalid: Option<bool>,
     pub concurrent: Option<usize>,
     pub task_id: Option<String>,
+    pub invalid_group: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1069,6 +1070,7 @@ pub async fn test_book_sources(
     let concurrent = req.concurrent.unwrap_or(8).clamp(1, 8);
     let keyword = req.keyword.clone();
     let mark_invalid = req.mark_invalid.unwrap_or(true);
+    let invalid_group_tag = req.invalid_group.clone();
     let task_id = req.task_id.filter(|id| !id.trim().is_empty());
     let cancel_flag = Arc::new(AtomicBool::new(false));
     if let Some(id) = task_id.as_ref() {
@@ -1130,7 +1132,11 @@ pub async fn test_book_sources(
         }
 
         let changed = if mark_invalid {
-            set_invalid_book_source_group(&mut source, !availability.valid)
+            set_invalid_book_source_group_with_tag(
+                &mut source,
+                !availability.valid,
+                invalid_group_tag.as_deref(),
+            )
         } else {
             false
         };
@@ -1385,7 +1391,7 @@ pub async fn delete_invalid_book_sources(
     let sources = state.book_source_service.list(&user_ns).await?;
     let invalid_urls = sources
         .iter()
-        .filter(|source| book_source_has_group(source, INVALID_BOOK_SOURCE_GROUP))
+        .filter(|source| book_source_is_invalid(source))
         .map(|source| source.book_source_url.clone())
         .collect::<Vec<_>>();
     // 一条 SQL 批量删除, 不再逐条 await(删几百条时那是几百次往返)。

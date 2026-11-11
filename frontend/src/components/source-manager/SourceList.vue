@@ -25,7 +25,7 @@
         <button class="source-info" type="button" @click="$emit('edit', source)">
           <span class="source-name">{{ source.bookSourceName }}</span>
           <span class="source-url">{{ source.bookSourceUrl }}</span>
-          <span v-if="source.bookSourceGroup" class="source-group">{{ source.bookSourceGroup }}</span>
+          <span v-if="source.bookSourceGroup" class="source-group">{{ formatSourceGroup(source.bookSourceGroup) }}</span>
         </button>
         <div class="source-actions">
           <button
@@ -68,6 +68,7 @@
 <script setup lang="ts">
 import type { BookSource } from '../../types'
 import { t } from '../../i18n'
+import { normalizeSourceGroupTag } from '../../utils/sourceSelection'
 
 defineProps<{
   sources: BookSource[]
@@ -80,6 +81,10 @@ defineProps<{
 
 function isPinned(source: BookSource) {
   return typeof source.customOrder === 'number' && source.customOrder < 0
+}
+
+function formatSourceGroup(group: string) {
+  return normalizeSourceGroupTag(group, t('source.invalidGroupTag'))
 }
 
 function togglePin(source: BookSource) {

@@ -1125,6 +1125,7 @@ const zhCN = {
     stopTest: '中止测试',
     testSources: '测试书源',
     deleteInvalid: '删除失效',
+    invalidGroupTag: '失效',
     add: '新增',
     importSource: '导入书源',
     importLocal: '本地文件导入',

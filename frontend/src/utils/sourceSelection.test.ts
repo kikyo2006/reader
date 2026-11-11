@@ -7,8 +7,11 @@ import {
   getBookSourceStats,
   getVisibleSelection,
   isEditorTextUnchanged,
+  isInvalidGroupName,
   moveBookSourcesToEdge,
+  normalizeSourceGroupTag,
   removeBookSourceGroups,
+  sourceHasInvalidGroup,
   toBookSourceDeletePayload,
   toRssSourceDeletePayload,
 } from './sourceSelection'
@@ -179,5 +182,50 @@ describe('sourceSelection', () => {
 
     // 写了一半、JSON 解析不了 → 按"有改动"处理, 不能当没改过而丢弃
     expect(isEditorTextUnchanged('{ "bookSourceName": ', baseline)).toBe(false)
+  })
+
+  it('recognizes invalid group names in multiple languages', () => {
+    expect(isInvalidGroupName('失效')).toBe(true)
+    expect(isInvalidGroupName('Invalid')).toBe(true)
+    expect(isInvalidGroupName('Lỗi')).toBe(true)
+    expect(isInvalidGroupName('loi')).toBe(true)
+    expect(isInvalidGroupName('Hỏng')).toBe(true)
+    expect(isInvalidGroupName('Tiên hiệp')).toBe(false)
+  })
+
+  it('detects sources having invalid groups', () => {
+    expect(sourceHasInvalidGroup({ bookSourceGroup: 'Truyện 18+,失效' })).toBe(true)
+    expect(sourceHasInvalidGroup({ bookSourceGroup: 'Truyện 18+,Lỗi' })).toBe(true)
+    expect(sourceHasInvalidGroup({ bookSourceGroup: 'Truyện 18+,Invalid' })).toBe(true)
+    expect(sourceHasInvalidGroup({ bookSourceGroup: 'Truyện 18+,Tiên hiệp' })).toBe(false)
+    expect(sourceHasInvalidGroup({})).toBe(false)
+  })
+
+  it('normalizes invalid group tag in source group string', () => {
+    expect(normalizeSourceGroupTag('Truyện 18+,失效', 'Lỗi')).toBe('Truyện 18+,Lỗi')
+    expect(normalizeSourceGroupTag('Truyện 18+,Invalid', 'Lỗi')).toBe('Truyện 18+,Lỗi')
+    expect(normalizeSourceGroupTag('Truyện 18+,Tiên hiệp', 'Lỗi')).toBe('Truyện 18+,Tiên hiệp')
+    expect(normalizeSourceGroupTag(undefined, 'Lỗi')).toBe('')
+  })
+
+  it('normalizes invalid group tag in getBookSourceGroups', () => {
+    const sources: BookSource[] = [
+      { bookSourceName: 'A', bookSourceUrl: 'a', bookSourceGroup: 'Truyện 18+,失效' },
+      { bookSourceName: 'B', bookSourceUrl: 'b', bookSourceGroup: 'Truyện 18+,Lỗi' },
+      { bookSourceName: 'C', bookSourceUrl: 'c', bookSourceGroup: 'Tiên hiệp' },
+    ]
+    expect(getBookSourceGroups(sources, 'Lỗi')).toEqual(['Lỗi', 'Tiên hiệp', 'Truyện 18+'])
+  })
+
+  it('filters sources by invalid group tag across language variations', () => {
+    const sources: BookSource[] = [
+      { bookSourceName: 'A', bookSourceUrl: 'a', bookSourceGroup: 'Truyện 18+,失效' },
+      { bookSourceName: 'B', bookSourceUrl: 'b', bookSourceGroup: 'Truyện 18+,Lỗi' },
+      { bookSourceName: 'C', bookSourceUrl: 'c', bookSourceGroup: 'Tiên hiệp' },
+    ]
+    expect(filterBookSources(sources, '', 'Lỗi')).toHaveLength(2)
+    expect(filterBookSources(sources, '', '失效')).toHaveLength(2)
+    expect(filterBookSources(sources, '', 'Invalid')).toHaveLength(2)
+    expect(filterBookSources(sources, '', 'Tiên hiệp')).toHaveLength(1)
   })
 })

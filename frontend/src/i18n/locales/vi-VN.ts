@@ -1125,6 +1125,7 @@ const viVN = {
     stopTest: 'Dừng kiểm tra',
     testSources: 'Kiểm tra nguồn',
     deleteInvalid: 'Xóa nguồn lỗi',
+    invalidGroupTag: 'Lỗi',
     add: 'Thêm',
     importSource: 'Nhập nguồn sách',
     importLocal: 'Nhập từ file nội bộ',

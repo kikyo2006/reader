@@ -1125,6 +1125,7 @@ const enUS = {
     stopTest: 'Stop Test',
     testSources: 'Test Sources',
     deleteInvalid: 'Delete Invalid',
+    invalidGroupTag: 'Invalid',
     add: 'New',
     importSource: 'Import Source',
     importLocal: 'Import Local File',

@@ -923,8 +923,11 @@ Function RestorePreviousInstallLocation
 
   ; Product-name-independent key written by releases that adopted the old
   ; "Reader" naming. Prefer it over the shared ARP key.
+  ReadRegStr $4 SHCTX "Software\avut388\Reader" ""
+  StrCmp $4 "" 0 restore_previous_location_found
   ReadRegStr $4 SHCTX "Software\hadc188\Reader" ""
   StrCmp $4 "" restore_previous_location_done 0
+  restore_previous_location_found:
   StrCpy $INSTDIR $4
   Return
 
@@ -933,7 +936,9 @@ Function RestorePreviousInstallLocation
   ; The ARP key is shared with other products named Reader, so only trust it
   ; when its Publisher is ours and the directory actually exists.
   ReadRegStr $4 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Reader" "Publisher"
+  StrCmp $4 "avut388" restore_previous_location_check_install
   StrCmp $4 "hadc188" 0 restore_previous_location_done
+  restore_previous_location_check_install:
   ReadRegStr $4 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Reader" "InstallLocation"
   StrCmp $4 "" restore_previous_location_done
   StrCpy $5 $4 1 1

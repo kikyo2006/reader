@@ -45,7 +45,7 @@
           </div>
           <div class="overview-card">
             <span>{{ t('source.editor.group') }}</span>
-            <strong>{{ source.bookSourceGroup?.trim() || t('bookshelf.groups.ungrouped') }}</strong>
+            <strong>{{ formatGroup(source.bookSourceGroup) }}</strong>
           </div>
           <div class="overview-card">
             <span>{{ t('source.editor.explore') }}</span>
@@ -121,10 +121,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { BookSource } from '../../types'
-import { getBookSourceOverview } from '../../utils/sourceSelection'
+import { getBookSourceOverview, normalizeSourceGroupTag } from '../../utils/sourceSelection'
 import SourceDebugger from './SourceDebugger.vue'
 import SourceRuleEditor from './SourceRuleEditor.vue'
 import { t } from '../../i18n'
+
+function formatGroup(group?: string) {
+  if (!group?.trim()) return t('bookshelf.groups.ungrouped')
+  return normalizeSourceGroupTag(group, t('source.invalidGroupTag'))
+}
 
 type TabKey = 'overview' | 'visual' | 'json' | 'login' | 'debug'
 

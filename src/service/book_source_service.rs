@@ -225,7 +225,35 @@ pub fn book_source_has_group(source: &BookSource, target: &str) -> bool {
         .any(|group| group == target)
 }
 
+pub fn is_invalid_group(group: &str) -> bool {
+    let trimmed = group.trim();
+    trimmed == "失效"
+        || trimmed.eq_ignore_ascii_case("invalid")
+        || trimmed.eq_ignore_ascii_case("lỗi")
+        || trimmed.eq_ignore_ascii_case("loi")
+        || trimmed.eq_ignore_ascii_case("hỏng")
+        || trimmed.eq_ignore_ascii_case("hong")
+}
+
+pub fn book_source_is_invalid(source: &BookSource) -> bool {
+    source
+        .book_source_group
+        .as_deref()
+        .map(split_source_groups)
+        .unwrap_or_default()
+        .iter()
+        .any(|group| is_invalid_group(group))
+}
+
 pub fn set_invalid_book_source_group(source: &mut BookSource, invalid: bool) -> bool {
+    set_invalid_book_source_group_with_tag(source, invalid, None)
+}
+
+pub fn set_invalid_book_source_group_with_tag(
+    source: &mut BookSource,
+    invalid: bool,
+    custom_tag: Option<&str>,
+) -> bool {
     let mut groups = source
         .book_source_group
         .as_deref()
@@ -233,18 +261,20 @@ pub fn set_invalid_book_source_group(source: &mut BookSource, invalid: bool) -> 
         .unwrap_or_default();
     let had_invalid = groups
         .iter()
-        .any(|group| group == INVALID_BOOK_SOURCE_GROUP);
+        .any(|group| is_invalid_group(group));
+
+    let tag = custom_tag.unwrap_or(INVALID_BOOK_SOURCE_GROUP);
 
     if invalid {
         if had_invalid {
             return false;
         }
-        groups.push(INVALID_BOOK_SOURCE_GROUP.to_string());
+        groups.push(tag.to_string());
     } else {
         if !had_invalid {
             return false;
         }
-        groups.retain(|group| group != INVALID_BOOK_SOURCE_GROUP);
+        groups.retain(|group| !is_invalid_group(group));
     }
 
     source.book_source_group = if groups.is_empty() {

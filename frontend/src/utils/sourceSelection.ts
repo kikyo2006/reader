@@ -19,12 +19,27 @@ export function toRssSourceDeletePayload(sources: Pick<RssSource, 'sourceName' |
   }))
 }
 
-export function getBookSourceGroups(sources: Pick<BookSource, 'bookSourceGroup'>[]) {
+export function normalizeSourceGroupTag(groupStr?: string, targetTag?: string): string {
+  if (!groupStr) return ''
+  const tag = targetTag || 'Lỗi'
+  return groupStr
+    .split(/([,;；、])/)
+    .map((part) => (isInvalidGroupName(part) ? tag : part))
+    .join('')
+}
+
+export function getBookSourceGroups(sources: Pick<BookSource, 'bookSourceGroup'>[], invalidGroupTag?: string) {
   const groups = new Set<string>()
   sources.forEach((source) => {
     source.bookSourceGroup?.split(/[,;；、]/).forEach((group) => {
       const trimmed = group.trim()
-      if (trimmed) groups.add(trimmed)
+      if (trimmed) {
+        if (invalidGroupTag && isInvalidGroupName(trimmed)) {
+          groups.add(invalidGroupTag)
+        } else {
+          groups.add(trimmed)
+        }
+      }
     })
   })
   return Array.from(groups).sort()
@@ -112,17 +127,29 @@ export function isEditorTextUnchanged(currentText: string, baselineText: string)
   }
 }
 
+export function isInvalidGroupName(group: string): boolean {
+  const g = group.trim().toLowerCase()
+  return g === '失效' || g === 'invalid' || g === 'lỗi' || g === 'loi' || g === 'hỏng' || g === 'hong'
+}
+
+export function sourceHasInvalidGroup(source: Pick<BookSource, 'bookSourceGroup'>): boolean {
+  if (!source.bookSourceGroup) return false
+  return splitBookSourceGroupNames(source.bookSourceGroup).some((g) => isInvalidGroupName(g))
+}
+
 export function filterBookSources(
   sources: BookSource[],
   filterText: string,
   filterGroup: string,
 ) {
   const keyword = filterText.trim().toLowerCase()
+  const isFilteringInvalid = filterGroup ? isInvalidGroupName(filterGroup) : false
   return sources.filter((source) => {
     const matchesText = !keyword
       || source.bookSourceName.toLowerCase().includes(keyword)
       || source.bookSourceUrl.toLowerCase().includes(keyword)
-    const matchesGroup = !filterGroup || source.bookSourceGroup?.includes(filterGroup)
+    const matchesGroup = !filterGroup
+      || (isFilteringInvalid ? sourceHasInvalidGroup(source) : source.bookSourceGroup?.includes(filterGroup))
     return matchesText && matchesGroup
   })
 }

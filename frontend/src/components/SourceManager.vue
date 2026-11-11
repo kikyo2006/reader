@@ -151,7 +151,9 @@ import {
   getVisibleSelection,
   isEditorTextUnchanged,
   moveBookSourcesToEdge,
+  normalizeSourceGroupTag,
   removeBookSourceGroups,
+  sourceHasInvalidGroup,
   toBookSourceDeletePayload,
 } from '../utils/sourceSelection'
 import { chunkBookSourceUrls, mergeBookSourceTestResponses } from '../utils/sourceTesting'
@@ -239,7 +241,7 @@ const groupPromptMessage = computed(() => {
   return t('source.messages.groupPromptMulti', { count, verb })
 })
 
-const groupList = computed(() => getBookSourceGroups(sources.value))
+const groupList = computed(() => getBookSourceGroups(sources.value, t('source.invalidGroupTag')))
 
 watch(groupList, (groups) => {
   if (filterGroup.value && !groups.includes(filterGroup.value)) {
@@ -258,7 +260,7 @@ const selectedFilteredSources = computed(() =>
 )
 
 const invalidSources = computed(() =>
-  sources.value.filter((source) => hasSourceGroup(source, '失效'))
+  sources.value.filter((source) => sourceHasInvalidGroup(source))
 )
 
 const allFilteredSelected = computed(() =>
@@ -703,6 +705,7 @@ async function testSources(explicitTargets?: BookSource[]) {
           // 与后端 clamp 后的上限一致(8): 设更高只会被截断, 反而误导。
           concurrent: 8,
           taskId: sourceTestTaskId.value,
+          invalidGroup: t('source.invalidGroupTag'),
         })
       )
       completedBeforeBatch += responses.at(-1)?.total || 0
@@ -712,7 +715,7 @@ async function testSources(explicitTargets?: BookSource[]) {
     const result = mergeBookSourceTestResponses(responses)
     await loadSources()
     if (result.invalid > 0 && !result.cancelled) {
-      filterGroup.value = '失效'
+      filterGroup.value = t('source.invalidGroupTag')
     }
     if (sourceTestStopRequested.value || result.cancelled) {
       const undone = Math.max(0, targets.length - result.valid - result.invalid)
@@ -813,14 +816,6 @@ function pruneSelection() {
   )
 }
 
-function hasSourceGroup(source: BookSource, groupName: string) {
-  return (source.bookSourceGroup || '')
-    .split(/[,;；、]/)
-    .map((group) => group.trim())
-    .filter(Boolean)
-    .includes(groupName)
-}
-
 function createSource() {
   editingSource.value = null
   editorText.value = JSON.stringify(createEmptySource(), null, 2)
@@ -829,8 +824,15 @@ function createSource() {
 }
 
 function editSource(source: BookSource) {
-  editingSource.value = source
-  editorText.value = JSON.stringify(source, null, 2)
+  const normalizedSource = { ...source }
+  if (normalizedSource.bookSourceGroup && sourceHasInvalidGroup(normalizedSource)) {
+    normalizedSource.bookSourceGroup = normalizeSourceGroupTag(
+      normalizedSource.bookSourceGroup,
+      t('source.invalidGroupTag')
+    )
+  }
+  editingSource.value = normalizedSource
+  editorText.value = JSON.stringify(normalizedSource, null, 2)
   editorBaseline.value = editorText.value
 }
 
