@@ -967,7 +967,7 @@ export const useReaderStore = defineStore('reader', () => {
     // cross-origin font handling. This also makes malformed files fail before
     // the font is offered as an active reading option.
     const response = await fetch(font.url, { cache: 'no-store' })
-    if (!response.ok) throw new Error(`字体资源请求失败（${response.status}）`)
+    if (!response.ok) throw new Error(t('readerMessages.fontRequestFailed', { status: response.status }))
     const blobUrl = URL.createObjectURL(await response.blob())
     const face = new FontFace(family, `url("${blobUrl}")`)
     try {
@@ -980,7 +980,7 @@ export const useReaderStore = defineStore('reader', () => {
       installedFontFaces.set(family, loaded)
       return true
     } catch (error) {
-      throw new Error(`字体文件加载失败：${error instanceof Error ? error.message : '格式不受支持'}`)
+      throw new Error(t('readerMessages.fontLoadFailed', { msg: error instanceof Error ? error.message : t('readerMessages.unsupportedFormat') }))
     } finally {
       URL.revokeObjectURL(blobUrl)
     }
@@ -1155,7 +1155,7 @@ export const useReaderStore = defineStore('reader', () => {
       localStorage.setItem(READER_BACKGROUND_IMAGE_KEY, url)
       config.backgroundImage = url
     } catch {
-      throw new Error('背景图片保存失败，请选择尺寸更小的图片')
+      throw new Error(t('readerMessages.bgSaveFailed'))
     }
     // 换图后把上一张落盘文件删掉, 否则每换一次都会在 storage 里留一份孤儿图片。
     // 旧版存的是 dataURL, 后端只认自己生成的 URL, 传进去是空操作。
@@ -1177,7 +1177,7 @@ export const useReaderStore = defineStore('reader', () => {
       localStorage.setItem(READER_PAGE_BACKGROUND_IMAGE_KEY, url)
       config.readerBackgroundImage = url
     } catch {
-      throw new Error('阅读页背景图片保存失败，请选择尺寸更小的图片')
+      throw new Error(t('readerMessages.readerBgSaveFailed'))
     }
     if (previous && previous !== url) {
       void deleteBackgroundImage(previous).catch(() => undefined)
@@ -1703,7 +1703,7 @@ export const useReaderStore = defineStore('reader', () => {
       }
       markChapterAsRead(nextIndex)
       await restoreCurrentBookProgressFromLegado(chapterContent).catch((error) => {
-        appStore.showToast((error as Error).message || '读取网盘阅读进度失败', 'warning')
+        appStore.showToast((error as Error).message || t('readerMessages.readWebdavProgressFailed'), 'warning')
       })
       return true
     } catch {
@@ -1973,7 +1973,7 @@ export const useReaderStore = defineStore('reader', () => {
       durChapterPos: encodedRemoteProgress,
     })
     saveReaderSession()
-    appStore.showToast('已读取手机端阅读进度', 'success')
+    appStore.showToast(t('readerMessages.syncedMobileProgress'), 'success')
     return result
   }
 
@@ -2449,14 +2449,14 @@ export const useReaderStore = defineStore('reader', () => {
       clearSpeechStopTimer(false)
       speechConfig.stopAfterMinutes = 0
       saveSpeechConfig()
-      appStore.showToast('朗读已按定时设置停止', 'success')
+      appStore.showToast(t('readerMessages.speechTimerStopped'), 'success')
     }, normalized * 60 * 1000)
   }
 
   function startSystemTTS(rawText: string, options: TTSOptions, sessionId: number) {
     synth = resolveSpeechSynthesis()
     if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
-      const error = new Error('当前系统不支持系统语音，请改用 API 语音')
+      const error = new Error(t('readerMessages.sysTtsUnsupportedUseApi'))
       isSpeechLoading.value = false
       isSpeaking.value = false
       isPaused.value = false
@@ -2745,7 +2745,7 @@ export const useReaderStore = defineStore('reader', () => {
 
   async function startOpenAITTS(rawText: string, options: TTSOptions, sessionId: number) {
     if (!openAISpeechConfigured.value) {
-      const error = new Error('请先配置 API 语音服务')
+      const error = new Error(t('readerMessages.apiTtsNotConfigured'))
       appStore.showToast(error.message, 'warning')
       options.onError?.(error)
       return
@@ -2765,7 +2765,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (controller.signal.aborted) return
       return playTTSAudioBlob(blob, options, sessionId, {
         logTag: 'openai',
-        errorMessage: 'API 语音音频播放失败',
+        errorMessage: t('readerMessages.apiTtsPlaybackFailed'),
         textPreview: rawText.slice(0, 40),
       })
     }
@@ -2808,7 +2808,7 @@ export const useReaderStore = defineStore('reader', () => {
       currentOpenAIAbortController = null
       currentOpenAIAudio = null
       logTTS('openai request catch', { sessionId, message: error.message, text: rawText.slice(0, 40) })
-      appStore.showToast(error.message || 'API 语音请求失败', 'error')
+      appStore.showToast(error.message || t('readerMessages.apiTtsRequestFailed'), 'error')
       options.onError?.(error)
     })
   }
@@ -2816,7 +2816,7 @@ export const useReaderStore = defineStore('reader', () => {
   /** 在线朗读是否可用；不可用时给出一次明确提示并回调 onError。 */
   function requireHttpSpeechConfigured(options: TTSOptions): boolean {
     if (httpSpeechConfigured.value) return true
-    const error = new Error('请先在「朗读引擎」里选择在线朗读引擎')
+    const error = new Error(t('readerMessages.selectHttpTtsFirst'))
     isSpeechLoading.value = false
     appStore.showToast(error.message, 'warning')
     options.onError?.(error)
@@ -2830,7 +2830,7 @@ export const useReaderStore = defineStore('reader', () => {
     isSpeaking.value = false
     isPaused.value = false
     currentOpenAIAudio = null
-    const message = (error as Error)?.message || '在线朗读请求失败'
+    const message = (error as Error)?.message || t('readerMessages.httpTtsRequestFailed')
     logTTS(`${logTag} request catch`, { sessionId, message, text: textPreview.slice(0, 40) })
     appStore.showToast(message, 'error')
     options.onError?.(error as Error)
@@ -2864,7 +2864,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (!isCurrentTTSSession(sessionId)) return
       await playTTSAudioBlob(blob, options, sessionId, {
         logTag: 'http',
-        errorMessage: '在线朗读音频播放失败',
+        errorMessage: t('readerMessages.httpTtsPlaybackFailed'),
         textPreview: rawText.slice(0, 40),
       })
     } catch (error) {
@@ -2881,7 +2881,7 @@ export const useReaderStore = defineStore('reader', () => {
   function startSystemDualTTS(segments: SpeechSegment[], options: TTSOptions, sessionId: number) {
     synth = resolveSpeechSynthesis()
     if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
-      const error = new Error('当前系统不支持系统语音，请改用 API 语音')
+      const error = new Error(t('readerMessages.sysTtsUnsupportedUseApi'))
       isSpeechLoading.value = false
       isSpeaking.value = false
       isPaused.value = false
@@ -2963,7 +2963,7 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function startOpenAIDualTTS(segments: SpeechSegment[], options: TTSOptions, sessionId: number) {
     if (!openAISpeechConfigured.value) {
-      const error = new Error('请先配置 API 语音服务')
+      const error = new Error(t('readerMessages.apiTtsNotConfigured'))
       isSpeechLoading.value = false
       appStore.showToast(error.message, 'warning')
       options.onError?.(error)
@@ -3013,7 +3013,7 @@ export const useReaderStore = defineStore('reader', () => {
           onError: (error) => options.onError?.(error),
         }, sessionId, {
           logTag: 'openai-dual',
-          errorMessage: 'API 语音音频播放失败',
+          errorMessage: t('readerMessages.apiTtsPlaybackFailed'),
           textPreview: segment.text.slice(0, 40),
         })
       }).catch((error) => {
@@ -3023,7 +3023,7 @@ export const useReaderStore = defineStore('reader', () => {
         isPaused.value = false
         currentOpenAIAbortController = null
         currentOpenAIAudio = null
-        const message = (error as Error)?.message || 'API 语音请求失败'
+        const message = (error as Error)?.message || t('readerMessages.apiTtsRequestFailed')
         logTTS('openai dual request catch', { sessionId, message })
         appStore.showToast(message, 'error')
         options.onError?.(error as Error)
@@ -3049,7 +3049,7 @@ export const useReaderStore = defineStore('reader', () => {
     signal?: AbortSignal,
   ): Promise<Blob> {
     const rawText = text.trim()
-    if (!rawText) throw new Error('朗读文本为空')
+    if (!rawText) throw new Error(t('readerMessages.emptySpeechText'))
     if (signal?.aborted) throw new DOMException('The operation was aborted', 'AbortError')
     const useDialogue = type === 'dialogue' && speechConfig.dualVoiceEnabled
 
@@ -3057,7 +3057,7 @@ export const useReaderStore = defineStore('reader', () => {
       const ttsId = (useDialogue ? speechConfig.dialogueHttpTtsId : null) ?? speechConfig.httpTtsId
       if (ttsId == null) {
         // 只抛错不弹 toast：调用方（缓冲流的 onError）统一提示，避免一次失败弹两条。
-        throw new Error('请先在「朗读引擎」里选择在线朗读引擎')
+        throw new Error(t('readerMessages.selectHttpTtsFirst'))
       }
       // 对话引擎未选时退回旁白引擎：等同于单音色，而不是让整段朗读失败。
       const contentType = useDialogue
@@ -3078,7 +3078,7 @@ export const useReaderStore = defineStore('reader', () => {
       const voice = useDialogue
         ? speechConfig.edgeDialogueVoice.trim() || speechConfig.edgeVoice
         : speechConfig.edgeVoice
-      if (!voice) throw new Error('请先选择 Edge 朗读音色')
+      if (!voice) throw new Error(t('readerMessages.selectEdgeVoiceFirst'))
       const blob = await synthesizeEdgeTts({
         text: rawText,
         voice,
@@ -3096,7 +3096,7 @@ export const useReaderStore = defineStore('reader', () => {
       const voice = useDialogue
         ? speechConfig.msDialogueVoice.trim() || speechConfig.msVoice
         : speechConfig.msVoice
-      if (!voice) throw new Error('请先选择微软朗读音色')
+      if (!voice) throw new Error(t('readerMessages.selectMsVoiceFirst'))
       const style = useDialogue
         ? speechConfig.msDialogueStyle.trim() || speechConfig.msStyle
         : speechConfig.msStyle
@@ -3116,7 +3116,7 @@ export const useReaderStore = defineStore('reader', () => {
     }
 
     if (!openAISpeechConfigured.value) {
-      throw new Error('请先配置 API 语音服务')
+      throw new Error(t('readerMessages.apiTtsNotConfigured'))
     }
     const voice = useDialogue
       ? speechConfig.dialogueOpenaiVoice.trim() || speechConfig.openaiVoice
@@ -3132,7 +3132,7 @@ export const useReaderStore = defineStore('reader', () => {
    */
   function startEdgeTts(rawText: string, options: TTSOptions, sessionId: number) {
     if (!edgeSpeechConfigured.value) {
-      const error = new Error(appStore.isOnline ? '请先选择 Edge 朗读音色' : '当前离线，无法使用 Edge 朗读')
+      const error = new Error(appStore.isOnline ? t('readerMessages.selectEdgeVoiceFirst') : t('readerMessages.edgeTtsOffline'))
       isSpeechLoading.value = false
       appStore.showToast(error.message, 'warning')
       options.onError?.(error)
@@ -3179,7 +3179,7 @@ export const useReaderStore = defineStore('reader', () => {
             onError: (error) => options.onError?.(error),
           }, sessionId, {
             logTag: 'edge',
-            errorMessage: 'Edge 朗读音频播放失败',
+            errorMessage: t('readerMessages.edgeTtsPlaybackFailed'),
             textPreview: segment.text.slice(0, 40),
           })
         })
@@ -3189,7 +3189,7 @@ export const useReaderStore = defineStore('reader', () => {
           isSpeaking.value = false
           isPaused.value = false
           currentOpenAIAudio = null
-          const message = (error as Error)?.message || 'Edge 朗读请求失败'
+          const message = (error as Error)?.message || t('readerMessages.edgeTtsRequestFailed')
           logTTS('edge request catch', { sessionId, message })
           appStore.showToast(message, 'error')
           options.onError?.(error as Error)
@@ -3206,7 +3206,7 @@ export const useReaderStore = defineStore('reader', () => {
    */
   function startMsTts(rawText: string, options: TTSOptions, sessionId: number) {
     if (!msSpeechConfigured.value) {
-      const error = new Error(appStore.isOnline ? '请先选择微软朗读音色' : '当前离线，无法使用微软朗读')
+      const error = new Error(appStore.isOnline ? t('readerMessages.selectMsVoiceFirst') : t('readerMessages.msTtsOffline'))
       isSpeechLoading.value = false
       appStore.showToast(error.message, 'warning')
       options.onError?.(error)
@@ -3259,7 +3259,7 @@ export const useReaderStore = defineStore('reader', () => {
             onError: (error) => options.onError?.(error),
           }, sessionId, {
             logTag: 'msdemo',
-            errorMessage: '微软朗读音频播放失败',
+            errorMessage: t('readerMessages.msTtsPlaybackFailed'),
             textPreview: segment.text.slice(0, 40),
           })
         })
@@ -3269,7 +3269,7 @@ export const useReaderStore = defineStore('reader', () => {
           isSpeaking.value = false
           isPaused.value = false
           currentOpenAIAudio = null
-          const message = (error as Error)?.message || '微软朗读请求失败'
+          const message = (error as Error)?.message || t('readerMessages.msTtsRequestFailed')
           logTTS('msdemo request catch', { sessionId, message })
           appStore.showToast(message, 'error')
           options.onError?.(error as Error)
@@ -3383,7 +3383,7 @@ export const useReaderStore = defineStore('reader', () => {
           if (currentOpenAIAudio !== audio) return
           isPaused.value = true
           isSpeaking.value = true
-          appStore.showToast(error.message || '恢复播放失败', 'error')
+          appStore.showToast(error.message || t('readerMessages.resumeSpeechFailed'), 'error')
         })
       } else {
         currentOpenAIAudio.pause()
@@ -3510,7 +3510,7 @@ export const useReaderStore = defineStore('reader', () => {
 
   function failSpeechPreview(error: unknown) {
     cleanupSpeechPreview()
-    const message = (error as Error)?.message || '试听失败'
+    const message = (error as Error)?.message || t('readerMessages.previewFailed')
     appStore.showToast(message, 'error')
   }
 
@@ -3563,7 +3563,7 @@ export const useReaderStore = defineStore('reader', () => {
         cleanupSpeechPreview()
         return
       }
-      failSpeechPreview(new Error('系统语音试听失败'))
+      failSpeechPreview(new Error(t('readerMessages.sysPreviewFailed')))
     }
     speech.speak(utterance)
   }
@@ -3605,7 +3605,7 @@ export const useReaderStore = defineStore('reader', () => {
         }
         audio.onerror = () => {
           if (session !== previewSessionId) return
-          failSpeechPreview(new Error('试听音频播放失败'))
+          failSpeechPreview(new Error(t('readerMessages.previewPlaybackFailed')))
         }
         void audio.play().then(() => {
           if (session !== previewSessionId) return
@@ -3633,7 +3633,7 @@ export const useReaderStore = defineStore('reader', () => {
     stopTTS()
     const rawText = (text || '').trim()
     if (!rawText) {
-      appStore.showToast('请先输入要试听的文本', 'warning')
+      appStore.showToast(t('readerMessages.enterPreviewText'), 'warning')
       return
     }
     const session = ++previewSessionId
@@ -3650,7 +3650,7 @@ export const useReaderStore = defineStore('reader', () => {
     if (speechConfig.provider === 'system') {
       synth = resolveSpeechSynthesis()
       if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
-        failSpeechPreview(new Error('当前系统不支持系统语音，请改用其它朗读通道'))
+        failSpeechPreview(new Error(t('readerMessages.sysTtsUnsupportedUseOther')))
         return
       }
       if (!voiceList.value.length) {
@@ -3804,7 +3804,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (syncProgress) {
         await restoreCurrentBookProgressFromLegado(undefined, b.bookUrl, requestId)
           .catch((error) => {
-            appStore.showToast((error as Error).message || '读取网盘阅读进度失败', 'warning')
+            appStore.showToast((error as Error).message || t('readerMessages.readWebdavProgressFailed'), 'warning')
           })
       }
       if (requestId !== bookLoadRequestId || book.value?.bookUrl !== b.bookUrl) return
@@ -3817,7 +3817,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (requestId === bookLoadRequestId) {
         loading.value = false
         bookLoadError.value = (error instanceof Error ? error.message : String(error ?? '')).trim()
-          || '打开书籍失败'
+          || t('readerMessages.openBookFailed')
       }
       // 失败必须让用户看见原因，并且把「这本书打不开」这件事告诉调用方。
       //
@@ -4020,13 +4020,13 @@ export const useReaderStore = defineStore('reader', () => {
           : undefined,
       })
       if (typeof chapterContent !== 'string') {
-        throw new Error('书源返回的正文格式无效')
+        throw new Error(t('readerMessages.invalidContentFormat'))
       }
       // 卷标题章（`第一卷` 之类）的正文天然为空，它不是解析失败：
       // 阅读页会把它渲染成居中的大标题页（对齐 legado 的 isVolumeTitle）。
       // 未标 isVolume 的空正文仍然按解析失败上报，避免把真正的坏书源掩盖掉。
       if (!chapterContent.trim() && !chapter.isVolume) {
-        throw new Error('书源正文解析为空，请检查正文规则')
+        throw new Error(t('readerMessages.emptyContentRule'))
       }
       // 任何拿到正文的路径都入缓存, 而不是只由 loadChapter 回写。
       // 连续阅读的正文是经 buildContinuousChapter 走这条路径取的, 只在 loadChapter
@@ -4037,7 +4037,7 @@ export const useReaderStore = defineStore('reader', () => {
       return chapterContent
     } catch (error) {
       if (!appStore.isOnline) {
-        throw new Error('当前处于离线状态，未缓存章节无法打开')
+        throw new Error(t('readerMessages.offlineUncachedChapter'))
       }
       throw error
     } finally {
@@ -4156,7 +4156,7 @@ export const useReaderStore = defineStore('reader', () => {
       // 的 Promise 拒绝, 界面上什么提示都没有, 用户只觉得"点了没反应"。
       if (requestId === chapterLoadRequestId) {
         const message = error instanceof Error ? error.message : String(error ?? '')
-        appStore.showToast(message.trim() || '章节加载失败，请稍后重试', 'error')
+        appStore.showToast(message.trim() || t('readerMessages.chapterLoadFailed'), 'error')
       }
     } finally {
       // 只收尾 loading：阶段提示由 fetchChapterContent 的持有者机制管理，
@@ -4305,7 +4305,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (!updatedBook) {
         // 正常路径不会走到这里（后端保存成功才会返回 Book）。真出现时也必须给
         // 用户一句话，否则面板像被点了一下什么都没发生。
-        appStore.showToast('切换书源失败：没有收到新书信息', 'error')
+        appStore.showToast(t('readerMessages.switchSourceNoBook'), 'error')
         return null
       }
 
@@ -4320,7 +4320,7 @@ export const useReaderStore = defineStore('reader', () => {
       switchingSource.value = null
       if (activePanel.value === 'source') closePanel()
       const sourceName = updatedBook.originName || updatedBook.origin || sourceUrl
-      appStore.showToast(`已切换到 ${sourceName}，正在加载目录…`, 'success')
+      appStore.showToast(t('readerMessages.switchSourceLoadingCatalog', { name: sourceName }), 'success')
       // 目录 + 正文一次性在 loadBook 里做完：它本来就要取目录并加载初始章，把
       // 「按标题定位 + 复用旧进度」作为参数传下去，慢源上就不会把最贵的正文抓取
       // 做两遍（旧实现先按章号抓一次，再按标题抓一次）。
@@ -4346,8 +4346,8 @@ export const useReaderStore = defineStore('reader', () => {
       const message = (error instanceof Error ? error.message : String(error ?? '')).trim()
       appStore.showToast(
         switched
-          ? `已切换书源，但目录或正文加载失败：${message || '未知错误'}`
-          : `切换失败: ${message || '未知错误'}`,
+          ? t('readerMessages.switchedButLoadFailed', { msg: message || t('readerMessages.unknownError') })
+          : t('readerMessages.switchFailed', { msg: message || t('readerMessages.unknownError') }),
         'error',
       )
       throw error
@@ -4455,7 +4455,7 @@ export const useReaderStore = defineStore('reader', () => {
       const added = fresh.length - current.length
       chapters.value = fresh
       saveReaderSession()
-      appStore.showToast(`目录已更新，新增 ${added} 章`, 'success')
+      appStore.showToast(t('readerMessages.catalogUpdated', { added }), 'success')
       return added
     } catch {
       return 0
@@ -4491,7 +4491,7 @@ export const useReaderStore = defineStore('reader', () => {
       if (!fresh.length) {
         // 目录刷成空必须报出来。此前这里静默接受空数组：目录列表直接变空白，
         // 阅读页正文也不动，用户只会以为"刷新按钮坏了"。
-        throw new Error('目录为空，请检查书源或稍后重试')
+        throw new Error(t('readerMessages.emptyCatalogError'))
       }
       chapters.value = fresh
       const targetIndex = Math.max(0, Math.min(chapters.value.length - 1, currentIndex.value))
@@ -4500,7 +4500,7 @@ export const useReaderStore = defineStore('reader', () => {
       }
     } catch (error) {
       const message = (error instanceof Error ? error.message : String(error ?? '')).trim()
-      appStore.showToast(message || '刷新目录失败', 'error')
+      appStore.showToast(message || t('readerMessages.refreshCatalogFailed'), 'error')
       throw error
     } finally {
       chaptersLoading.value = false

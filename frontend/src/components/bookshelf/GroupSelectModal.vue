@@ -141,7 +141,7 @@ async function handleCreate() {
     if (groupId > 0) toggleCheck(groupId)
     newGroupName.value = ''
   } catch (e: unknown) {
-    appStore.showToast((e as Error).message || '创建分组失败', 'error')
+    appStore.showToast((e as Error).message || t('appExtra.createGroupFailed'), 'error')
   } finally {
     creating.value = false
   }

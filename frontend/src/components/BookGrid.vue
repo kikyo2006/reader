@@ -76,7 +76,7 @@
     </div>
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>加载中...</p>
+      <p>{{ t('common.loading') }}</p>
     </div>
   </div>
 </template>
@@ -86,6 +86,7 @@ import { computed, nextTick, ref, TransitionGroup } from 'vue'
 import BookCard from './BookCard.vue'
 import type { Book, SearchBook } from '../types'
 import { shelfMatchKey } from '../utils/searchRank'
+import { t } from '../i18n'
 
 type DisplayItem = (Book | SearchBook) | { __placeholder: true }
 const PLACEHOLDER_KEY = '__drag-placeholder__'

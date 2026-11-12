@@ -133,7 +133,7 @@ async function toggleMiniMode() {
   try {
     await appStore.toggleMiniMode()
   } catch (error) {
-    appStore.showToast((error as Error).message || '切换迷你模式失败', 'error')
+    appStore.showToast((error as Error).message || t('titlebar.toggleMiniModeFailed'), 'error')
   }
 }
 

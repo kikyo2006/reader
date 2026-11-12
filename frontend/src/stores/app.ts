@@ -13,7 +13,7 @@ import { applySystemTheme } from '../utils/systemUi'
 import type { LegadoWebdavConfig } from '../api/webdav'
 import { invokeRaw } from '../api/invoke'
 import { normalizeBossKeyShortcut } from '../utils/bossKey'
-import { currentLocale, setLocale, type SupportedLocale } from '../i18n'
+import { currentLocale, setLocale, t, type SupportedLocale } from '../i18n'
 
 export const useAppStore = defineStore('app', () => {
   const STATS_KEY = 'reader-stats'
@@ -253,13 +253,13 @@ export const useAppStore = defineStore('app', () => {
         if (opts.notify === 'dialog') {
           void promptVersionUpdate(info)
         } else {
-          showToast(`发现新版本 ${info.latestVersion}`, 'warning')
+          showToast(t('settings.version.foundNew', { version: info.latestVersion }), 'warning')
         }
       }
       return info
     } catch (error) {
       if (force && !opts.silent) {
-        showToast((error as Error).message || '检查更新失败', 'error')
+        showToast((error as Error).message || t('settings.version.checkFailed'), 'error')
       }
       return null
     } finally {
@@ -269,8 +269,8 @@ export const useAppStore = defineStore('app', () => {
 
   async function promptVersionUpdate(info: VersionUpdateInfo) {
     const go = await confirmDialog(
-      `最新版本 ${info.latestVersion} 已发布，是否立即更新？\n（下载已自动接入系统/应用代理，直连失败时会尝试镜像加速）`,
-      { title: '发现新版本' },
+      t('settings.version.promptBody', { version: info.latestVersion }),
+      { title: t('settings.version.promptTitle') },
     )
     if (!go) return
     // 直接在更新进度弹窗中展示下载进度并开始应用内更新。
@@ -293,7 +293,7 @@ export const useAppStore = defineStore('app', () => {
 
   async function dismissVersionUpdateReminder(version = versionUpdate.value?.latestVersion || '') {
     if (!version) {
-      showToast('当前没有可忽略的版本', 'warning')
+      showToast(t('settings.version.noVersionToIgnore'), 'warning')
       return null
     }
     versionUpdateLoading.value = true
@@ -301,10 +301,10 @@ export const useAppStore = defineStore('app', () => {
       const info = await dismissVersionUpdate(version)
       versionUpdate.value = info
       versionUpdateToastVersion = version
-      showToast('已忽略当前版本更新提醒', 'success')
+      showToast(t('settings.version.ignoredVersionToast'), 'success')
       return info
     } catch (error) {
-      showToast((error as Error).message || '忽略版本失败', 'error')
+      showToast((error as Error).message || t('settings.version.ignoreVersionFailed'), 'error')
       return null
     } finally {
       versionUpdateLoading.value = false
@@ -458,7 +458,7 @@ export const useAppStore = defineStore('app', () => {
   async function applyDesktopUpdate() {
     if (desktopUpdateLoading.value) return null
     if (!versionUpdate.value?.updateAvailable) {
-      showToast('当前没有可安装的新版本', 'warning')
+      showToast(t('settings.version.noVersionToInstall'), 'warning')
       return null
     }
     desktopUpdateLoading.value = true
@@ -467,7 +467,7 @@ export const useAppStore = defineStore('app', () => {
       percent: 0,
       downloaded: 0,
       total: 0,
-      message: '正在确认最新版本',
+      message: t('settings.version.checkingLatest'),
     }
     try {
       const result = await applyDesktopVersionUpdate((progress) => {
@@ -482,10 +482,10 @@ export const useAppStore = defineStore('app', () => {
           percent: null,
           downloaded: desktopUpdateProgress.value?.downloaded || 0,
           total: desktopUpdateProgress.value?.total || 0,
-          message: '更新失败',
+          message: t('settings.version.updateFailed'),
         }
       }
-      showToast((error as Error).message || '更新失败', 'error')
+      showToast((error as Error).message || t('settings.version.updateFailed'), 'error')
       return null
     } finally {
       desktopUpdateLoading.value = false
@@ -505,7 +505,7 @@ export const useAppStore = defineStore('app', () => {
   function setReadingSessionBook(bookUrl?: string, bookName?: string, bookAuthor?: string) {
     const normalizedUrl = bookUrl?.trim() || ''
     const nextBook = normalizedUrl
-      ? { bookUrl: normalizedUrl, bookName: bookName?.trim() || '未命名书籍', bookAuthor: bookAuthor?.trim() || '' }
+      ? { bookUrl: normalizedUrl, bookName: bookName?.trim() || t('appExtra.unnamedBook'), bookAuthor: bookAuthor?.trim() || '' }
       : null
 
     if (readingSessionBook?.bookUrl === nextBook?.bookUrl) {
@@ -555,7 +555,9 @@ export const useAppStore = defineStore('app', () => {
     const minutes = totalMinutes % 60
     return {
       totalSeconds: readingStats.value.totalSeconds,
-      totalTimeText: hours ? `${hours}小时${minutes}分钟` : `${Math.max(1, totalMinutes)}分钟`,
+      totalTimeText: hours
+        ? t('appExtra.readingTimeHm', { hours, minutes })
+        : t('appExtra.readingTimeM', { minutes: Math.max(1, totalMinutes) }),
       openedBooks: readingStats.value.openedBooks.length,
       readChapters: readingStats.value.readChapters.length,
       completedBooks: readingStats.value.completedBooks.length,
@@ -624,11 +626,11 @@ export const useAppStore = defineStore('app', () => {
 
   async function toggleMiniMode() {
     if (!isTauriRuntime()) {
-      throw new Error('迷你模式仅在桌面应用可用')
+      throw new Error(t('titlebar.miniModeOnlyDesktop'))
     }
     const mode = await invokeRaw<{ miniMode: boolean; alwaysOnTop: boolean }>('toggle_mini_mode')
     miniMode.value = Boolean(mode?.miniMode)
-    showToast(miniMode.value ? '已进入迷你模式' : '已退出迷你模式', 'success')
+    showToast(miniMode.value ? t('titlebar.enteredMiniMode') : t('titlebar.exitedMiniMode'), 'success')
     return mode
   }
 

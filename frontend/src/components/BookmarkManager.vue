@@ -128,7 +128,7 @@
                       class="group-check"
                       :class="{ checked: groupAllSelected(group) }"
                       type="button"
-                      :aria-label="groupAllSelected(group) ? `取消选择 ${group.bookName}` : `选择 ${group.bookName}`"
+                      :aria-label="groupAllSelected(group) ? t('appExtra.unselectBookAria', { name: group.bookName }) : t('appExtra.selectBookAria', { name: group.bookName })"
                       @click="toggleGroupSelection(group)"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

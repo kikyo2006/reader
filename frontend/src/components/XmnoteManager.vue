@@ -14,10 +14,10 @@
         >
           <header class="modal-header">
             <div>
-              <h2 id="xmnote-manager-title">纸间书摘</h2>
-              <p class="subtitle">把书架阅读进度与书签摘录发送到纸间书摘</p>
+              <h2 id="xmnote-manager-title">{{ t('xmnote.title') }}</h2>
+              <p class="subtitle">{{ t('xmnote.subtitle') }}</p>
             </div>
-            <button class="icon-btn" type="button" aria-label="关闭" @click="close">
+            <button class="icon-btn" type="button" :aria-label="t('common.close')" @click="close">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
@@ -28,11 +28,11 @@
             <section class="settings-panel">
               <div class="panel-heading">
                 <div>
-                  <h3>接收地址</h3>
-                  <p>在纸间书摘中打开「通过 API 导入」，填写页面显示的局域网地址。</p>
+                  <h3>{{ t('xmnote.endpointTitle') }}</h3>
+                  <p>{{ t('xmnote.endpointDesc') }}</p>
                 </div>
               </div>
-              <label class="field-label" for="xmnote-endpoint">API 地址</label>
+              <label class="field-label" for="xmnote-endpoint">{{ t('xmnote.endpointLabel') }}</label>
               <input
                 id="xmnote-endpoint"
                 v-model.trim="endpointDraft"
@@ -40,49 +40,49 @@
                 type="text"
                 inputmode="url"
                 autocomplete="off"
-                placeholder="例如 http://192.168.1.8:8080/send"
+                :placeholder="t('xmnote.endpointPlaceholder')"
                 :disabled="sending"
                 @keydown.enter="saveEndpoint()"
               >
               <div class="endpoint-actions">
                 <button class="action-btn" type="button" :disabled="savingEndpoint" @click="saveEndpoint()">
-                  {{ savingEndpoint ? '保存中...' : '保存地址' }}
+                  {{ savingEndpoint ? t('xmnote.saving') : t('xmnote.saveEndpoint') }}
                 </button>
-                <span class="save-hint">{{ endpointSaved ? '已保存' : '留空时无法发送' }}</span>
+                <span class="save-hint">{{ endpointSaved ? t('xmnote.saved') : t('xmnote.emptySaveHint') }}</span>
               </div>
             </section>
 
             <section class="settings-panel">
               <div class="panel-heading">
                 <div>
-                  <h3>同步范围</h3>
-                  <p>按书籍逐本发送，单本失败不会中断其余书籍。</p>
+                  <h3>{{ t('xmnote.scopeTitle') }}</h3>
+                  <p>{{ t('xmnote.scopeDesc') }}</p>
                 </div>
               </div>
               <div class="option-grid">
                 <label class="check-option">
                   <input v-model="includeProgress" type="checkbox" :disabled="sending">
-                  <span>阅读进度</span>
+                  <span>{{ t('xmnote.includeProgress') }}</span>
                 </label>
                 <label class="check-option">
                   <input v-model="includeEntries" type="checkbox" :disabled="sending">
-                  <span>书签摘录</span>
+                  <span>{{ t('xmnote.includeEntries') }}</span>
                 </label>
               </div>
               <p v-if="!includeProgress && !includeEntries" class="field-warning">
-                至少选择一项内容。
+                {{ t('xmnote.scopeRequired') }}
               </p>
             </section>
 
             <section class="settings-panel books-panel">
               <div class="panel-heading">
                 <div>
-                  <h3>选择书籍</h3>
-                  <p>{{ selectedBooks.length }} / {{ books.length }} 本已选</p>
+                  <h3>{{ t('xmnote.selectBooksTitle') }}</h3>
+                  <p>{{ t('xmnote.selectedCount', { selected: selectedBooks.length, total: books.length }) }}</p>
                 </div>
                 <div class="selection-actions">
-                  <button class="mini-btn" type="button" @click="selectAll">全选</button>
-                  <button class="mini-btn" type="button" @click="clearSelection">清空</button>
+                  <button class="mini-btn" type="button" @click="selectAll">{{ t('xmnote.selectAll') }}</button>
+                  <button class="mini-btn" type="button" @click="clearSelection">{{ t('xmnote.clear') }}</button>
                 </div>
               </div>
               <div class="book-list">
@@ -90,13 +90,13 @@
                   <input v-model="selectedBookUrls" type="checkbox" :value="book.bookUrl" :disabled="sending">
                   <span class="book-option-main">
                     <strong>{{ book.name }}</strong>
-                    <small>{{ book.author || '未知作者' }} · {{ bookmarkCount(book) }} 条书签</small>
+                    <small>{{ book.author || t('xmnote.unknownAuthor') }} · {{ t('xmnote.bookmarkCount', { count: bookmarkCount(book) }) }}</small>
                   </span>
                 </label>
                 <div v-if="!books.length && !loading" class="empty-state compact-empty">
-                  书架中暂无可同步书籍
+                  {{ t('xmnote.emptyBooks') }}
                 </div>
-                <div v-if="loading" class="empty-state compact-empty">正在读取书架...</div>
+                <div v-if="loading" class="empty-state compact-empty">{{ t('xmnote.loadingBooks') }}</div>
               </div>
             </section>
 
@@ -125,7 +125,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 19V5M5 12l7-7 7 7" />
               </svg>
-              {{ sending ? `发送中 ${sentProgress}/${sendTotal}` : '发送到纸间书摘' }}
+              {{ sending ? t('xmnote.sending', { sent: sentProgress, total: sendTotal }) : t('xmnote.sendAction') }}
             </button>
           </footer>
         </section>
@@ -141,6 +141,7 @@ import { getChapterList } from '../api/bookshelf'
 import { sendXmnoteBooks, type XmnoteSendResult } from '../api/xmnote'
 import { useAppStore } from '../stores/app'
 import { useBookshelfStore } from '../stores/bookshelf'
+import { t } from '../i18n'
 import type { Book, Bookmark } from '../types'
 import {
   buildXmnoteBookPayload,
@@ -189,20 +190,20 @@ const canSend = computed(() => (
   && (includeProgress.value || includeEntries.value)
 ))
 const syncSummary = computed(() => {
-  if (!selectedBooks.value.length) return '尚未选择书籍'
+  if (!selectedBooks.value.length) return t('xmnote.noBookSelected')
   const entryCount = selectedBooks.value.reduce((total, book) => (
     total + (bookmarkCount(book) || 0)
   ), 0)
   const parts: string[] = []
-  if (includeProgress.value) parts.push(`${selectedBooks.value.length} 本书的进度`)
-  if (includeEntries.value) parts.push(`${entryCount} 条书签`)
-  return parts.join('，') || '未选择同步内容'
+  if (includeProgress.value) parts.push(t('xmnote.summaryProgress', { count: selectedBooks.value.length }))
+  if (includeEntries.value) parts.push(t('xmnote.summaryEntries', { count: entryCount }))
+  return parts.join(', ') || t('xmnote.summaryEmpty')
 })
 const resultSummary = computed(() => {
   if (!result.value) return ''
   const { sent, failed } = result.value
-  if (!failed) return `已成功发送 ${sent} 本书`
-  return `发送完成：成功 ${sent} 本，失败 ${failed} 本`
+  if (!failed) return t('xmnote.resultSuccess', { sent })
+  return t('xmnote.resultPartial', { sent, failed })
 })
 
 watch(() => props.modelValue, (visible) => {
@@ -228,12 +229,12 @@ function saveEndpoint(options: { notify?: boolean } = {}) {
     localStorage.setItem(ENDPOINT_KEY, endpointDraft.value)
     endpointSaved.value = true
     if (options.notify !== false) {
-      appStore.showToast('纸间书摘地址已保存', 'success')
+      appStore.showToast(t('xmnote.endpointSavedToast'), 'success')
     }
   } catch (error) {
     endpointSaved.value = false
     if (options.notify !== false) {
-      appStore.showToast((error as Error).message || '地址格式不正确', 'error')
+      appStore.showToast((error as Error).message || t('xmnote.invalidEndpoint'), 'error')
     }
     throw error
   } finally {
@@ -256,7 +257,7 @@ async function loadData() {
       selectedBookUrls.value = shelfBooks.map((book) => book.bookUrl)
     }
   } catch (error) {
-    appStore.showToast((error as Error).message || '加载同步数据失败', 'error')
+    appStore.showToast((error as Error).message || t('xmnote.loadFailed'), 'error')
   } finally {
     loading.value = false
   }
@@ -282,7 +283,7 @@ async function sendToXmnote() {
   try {
     endpoint = normalizeXmnoteEndpoint(endpointDraft.value)
   } catch (error) {
-    appStore.showToast((error as Error).message || '地址格式不正确', 'error')
+    appStore.showToast((error as Error).message || t('xmnote.invalidEndpoint'), 'error')
     return
   }
 
@@ -294,7 +295,7 @@ async function sendToXmnote() {
       || draft.bookmarks.some((bookmark) => bookmark.bookText?.trim() || bookmark.content?.trim())
     ))
   if (!drafts.length) {
-    appStore.showToast('所选书籍没有可发送的书签摘录', 'warning')
+    appStore.showToast(t('xmnote.noEntriesToSend'), 'warning')
     return
   }
   sending.value = true
@@ -305,7 +306,7 @@ async function sendToXmnote() {
     try {
       saveEndpoint({ notify: false })
     } catch (error) {
-      appStore.showToast((error as Error).message || '地址格式不正确', 'error')
+      appStore.showToast((error as Error).message || t('xmnote.invalidEndpoint'), 'error')
       return
     }
     const combined: XmnoteSendResult = { sent: 0, failed: 0, errors: [] }
@@ -331,17 +332,17 @@ async function sendToXmnote() {
         combined.errors.push(...response.errors)
       } catch (error) {
         combined.failed += 1
-        combined.errors.push(`${draft.book.name}：${(error as Error).message || '发送失败'}`)
+        combined.errors.push(`${draft.book.name}: ${(error as Error).message || t('xmnote.sendFailed')}`)
       }
       sentProgress.value += 1
     }
     result.value = combined
     appStore.showToast(
-      combined.failed ? '部分书籍发送失败，请查看结果' : '已发送到纸间书摘',
+      combined.failed ? t('xmnote.partialSentToast') : t('xmnote.allSentToast'),
       combined.failed ? 'warning' : 'success',
     )
   } catch (error) {
-    appStore.showToast((error as Error).message || '发送失败', 'error')
+    appStore.showToast((error as Error).message || t('xmnote.sendFailed'), 'error')
   } finally {
     sending.value = false
   }

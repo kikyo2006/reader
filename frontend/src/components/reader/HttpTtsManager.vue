@@ -10,12 +10,12 @@
       >
         <header class="http-tts-header">
           <div class="http-tts-heading">
-            <h3>在线朗读引擎</h3>
+            <h3>{{ t('httpTts.title') }}</h3>
             <p class="http-tts-subtitle">
-              兼容 Legado 的 httpTTS 规则：地址里的模板由后端展开，导入后就能在朗读里直接选用。
+              {{ t('httpTts.desc') }}
             </p>
           </div>
-          <button class="http-tts-close" type="button" aria-label="关闭" @click="close">×</button>
+          <button class="http-tts-close" type="button" :aria-label="t('common.close')" @click="close">×</button>
         </header>
 
         <div class="http-tts-import">
@@ -24,7 +24,7 @@
               v-model.trim="remoteUrl"
               class="http-tts-input"
               type="url"
-              placeholder="引擎文件直链，例如 https://example.test/tts.json"
+              :placeholder="t('httpTts.urlPlaceholder')"
               @keyup.enter="importFromRemote"
             >
             <button
@@ -32,7 +32,7 @@
               class="http-tts-btn primary"
               :disabled="importing"
               @click="importFromRemote"
-            >{{ importing ? '导入中…' : '从网络导入' }}</button>
+            >{{ importing ? t('httpTts.importing') : t('httpTts.importRemote') }}</button>
           </div>
           <div class="http-tts-import-row">
             <button
@@ -40,9 +40,9 @@
               class="http-tts-btn"
               :disabled="importing"
               @click="fileInputRef?.click()"
-            >从本地 JSON 导入</button>
+            >{{ t('httpTts.importLocal') }}</button>
             <span class="http-tts-import-note">
-              支持 Legado 导出的引擎 JSON 数组；缺少名称或地址的条目会被跳过并计数。
+              {{ t('httpTts.formatHint') }}
             </span>
             <input
               ref="fileInputRef"
@@ -55,8 +55,8 @@
         </div>
 
         <div class="http-tts-list">
-          <div v-if="loading" class="http-tts-empty">正在读取已导入的引擎…</div>
-          <div v-else-if="!engines.length" class="http-tts-empty">还没有导入朗读引擎</div>
+          <div v-if="loading" class="http-tts-empty">{{ t('httpTts.loading') }}</div>
+          <div v-else-if="!engines.length" class="http-tts-empty">{{ t('httpTts.empty') }}</div>
           <div
             v-else
             v-for="engine in engines"
@@ -70,7 +70,7 @@
               </div>
               <div class="http-tts-item-url" :title="engine.url">{{ engine.url }}</div>
             </div>
-            <button type="button" class="http-tts-btn danger" @click="removeEngine(engine)">删除</button>
+            <button type="button" class="http-tts-btn danger" @click="removeEngine(engine)">{{ t('common.delete') }}</button>
           </div>
         </div>
       </section>
@@ -82,6 +82,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAppStore } from '../../stores/app'
 import { useReaderStore } from '../../stores/reader'
+import { t } from '../../i18n'
 import {
   deleteHttpTts,
   getHttpTtsList,
@@ -113,7 +114,7 @@ async function loadEngines() {
   try {
     engines.value = await getHttpTtsList()
   } catch (error) {
-    appStore.showToast((error as Error).message || '读取引擎列表失败', 'error')
+    appStore.showToast((error as Error).message || t('httpTts.loadFailed'), 'error')
   } finally {
     loading.value = false
   }
@@ -132,19 +133,19 @@ function parseEnginePayload(raw: unknown): HttpTtsDraft[] {
     return (raw as { data: HttpTtsDraft[] }).data
   }
   if (raw && typeof raw === 'object') return [raw as HttpTtsDraft]
-  throw new Error('文件里没有可导入的朗读引擎（需要 JSON 数组）')
+  throw new Error(t('httpTts.needArrayError'))
 }
 
 async function saveImported(drafts: HttpTtsDraft[]) {
-  if (!drafts.length) throw new Error('没有解析到可导入的朗读引擎')
+  if (!drafts.length) throw new Error(t('httpTts.noValidEngineError'))
   const result = await saveHttpTtsList(drafts)
   const saved = result?.saved ?? 0
   const skipped = result?.skipped ?? 0
   // skipped 必须显式报出来：不提示的话用户会以为整份文件都导进来了。
   appStore.showToast(
     skipped
-      ? `已导入 ${saved} 个引擎，跳过 ${skipped} 条无效条目（缺少名称/地址或格式错误）`
-      : `已导入 ${saved} 个引擎`,
+      ? t('httpTts.importedWithSkipped', { saved, skipped })
+      : t('httpTts.imported', { saved }),
     skipped ? 'warning' : 'success',
   )
   await loadEngines()
@@ -153,7 +154,7 @@ async function saveImported(drafts: HttpTtsDraft[]) {
 async function importFromRemote() {
   const url = remoteUrl.value.trim()
   if (!url) {
-    appStore.showToast('请输入引擎文件直链', 'warning')
+    appStore.showToast(t('httpTts.enterUrlWarning'), 'warning')
     return
   }
   if (importing.value) return
@@ -171,7 +172,7 @@ async function importFromRemote() {
     await saveImported(drafts)
     remoteUrl.value = ''
   } catch (error) {
-    appStore.showToast((error as Error).message || '从直链导入失败', 'error')
+    appStore.showToast((error as Error).message || t('httpTts.importRemoteFailed'), 'error')
   } finally {
     importing.value = false
   }
@@ -188,7 +189,7 @@ async function importFromFile(event: Event) {
     const drafts = parseEnginePayload(JSON.parse(await file.text()))
     await saveImported(drafts)
   } catch (error) {
-    appStore.showToast((error as Error).message || '读取本地文件失败', 'error')
+    appStore.showToast((error as Error).message || t('httpTts.readLocalFailed'), 'error')
   } finally {
     input.value = ''
     importing.value = false
@@ -196,18 +197,18 @@ async function importFromFile(event: Event) {
 }
 
 async function removeEngine(engine: HttpTts) {
-  const ok = await appStore.confirmDialog(`确定删除朗读引擎 "${engine.name}" 吗？`, {
-    title: '删除朗读引擎',
+  const ok = await appStore.confirmDialog(t('httpTts.deleteConfirm', { name: engine.name }), {
+    title: t('httpTts.deleteTitle'),
     danger: true,
   })
   if (!ok) return
   try {
     // 只传 id：后端「id 命中或 name 命中」都会删，同时传会连带删掉同名兄弟条目。
     await deleteHttpTts({ id: engine.id })
-    appStore.showToast('已删除朗读引擎', 'success')
+    appStore.showToast(t('httpTts.deletedToast'), 'success')
     await loadEngines()
   } catch (error) {
-    appStore.showToast((error as Error).message || '删除失败', 'error')
+    appStore.showToast((error as Error).message || t('httpTts.deleteFailed'), 'error')
   }
 }
 

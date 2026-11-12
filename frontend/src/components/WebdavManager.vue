@@ -18,17 +18,17 @@
             </button>
           </header>
 
-          <nav class="backup-tabs" aria-label="备份类型">
+          <nav class="backup-tabs" :aria-label="t('backup.tabsAria')">
             <button
               type="button"
               :class="{ active: activeBackupTab === 'local' }"
               @click="activeBackupTab = 'local'"
-            >本地备份</button>
+            >{{ t('backup.localTab') }}</button>
             <button
               type="button"
               :class="{ active: activeBackupTab === 'webdav' }"
               @click="activeBackupTab = 'webdav'"
-            >WebDAV 网盘备份</button>
+            >{{ t('backup.webdavTab') }}</button>
           </nav>
 
           <div v-if="!webdavAvailable" class="notice warning">
@@ -41,34 +41,34 @@
             <section class="remote-backup-panel">
               <div class="panel-heading">
                 <div>
-                  <h3>WebDAV 网盘备份</h3>
-                  <p>备份文件保存到配置目录根下，手机端可直接恢复。不会自动上传或恢复。</p>
+                  <h3>{{ t('backup.webdavTitle') }}</h3>
+                  <p>{{ t('backup.webdavDesc') }}</p>
                 </div>
                 <button class="action-btn" :disabled="remoteWorking" @click="testRemote">
-                  {{ remoteWorking && remoteAction === 'test' ? '测试中...' : '测试连接' }}
+                  {{ remoteWorking && remoteAction === 'test' ? t('backup.testing') : t('backup.testConnection') }}
                 </button>
               </div>
               <div class="remote-config-grid">
-                <input v-model.trim="remoteDraft.url" type="url" autocomplete="url" placeholder="WebDAV 服务地址">
-                <input v-model.trim="remoteDraft.account" type="text" autocomplete="username" placeholder="账号">
-                <input v-model="remoteDraft.password" type="password" autocomplete="current-password" placeholder="应用密码">
-                <input v-model.trim="remoteDraft.directory" type="text" placeholder="子目录（默认 legado）">
+                <input v-model.trim="remoteDraft.url" type="url" autocomplete="url" :placeholder="t('backup.urlPlaceholder')">
+                <input v-model.trim="remoteDraft.account" type="text" autocomplete="username" :placeholder="t('backup.accountPlaceholder')">
+                <input v-model="remoteDraft.password" type="password" autocomplete="current-password" :placeholder="t('backup.passwordPlaceholder')">
+                <input v-model.trim="remoteDraft.directory" type="text" :placeholder="t('backup.directoryPlaceholder')">
               </div>
               <div class="remote-actions">
                 <button class="action-btn primary" :disabled="remoteWorking" @click="saveRemoteConfig">
-                  保存配置
+                  {{ t('backup.saveConfig') }}
                 </button>
                 <button class="action-btn" :disabled="remoteWorking || !remoteConfigured" @click="uploadRemoteBackup">
-                  {{ remoteWorking && remoteAction === 'upload' ? '上传中...' : '备份到网盘' }}
+                  {{ remoteWorking && remoteAction === 'upload' ? t('backup.uploading') : t('backup.backupToWebdav') }}
                 </button>
                 <button class="action-btn" :disabled="remoteWorking || !remoteConfigured" @click="loadRemoteBackups">
-                  刷新网盘备份
+                  {{ t('backup.refreshWebdav') }}
                 </button>
               </div>
               <div class="sync-progress-toggle">
                 <div class="setting-switch-copy">
-                  <span>同步阅读进度</span>
-                  <small>{{ appStore.legadoSyncEnabled ? '进入和退出阅读页时与手机端同步' : '已关闭手机端阅读进度同步' }}</small>
+                  <span>{{ t('backup.syncProgress') }}</span>
+                  <small>{{ appStore.legadoSyncEnabled ? t('backup.syncProgressOnDesc') : t('backup.syncProgressOffDesc') }}</small>
                 </div>
                 <button
                   class="switch-control"
@@ -76,13 +76,13 @@
                   type="button"
                   role="switch"
                   :aria-checked="appStore.legadoSyncEnabled"
-                  aria-label="同步阅读进度"
+                  :aria-label="t('backup.syncProgressAria')"
                   @click="appStore.setLegadoSyncEnabled(!appStore.legadoSyncEnabled)"
                 ><span></span></button>
               </div>
               <div v-if="remoteError" class="notice error remote-error">{{ remoteError }}</div>
-              <div v-if="remoteLoading" class="empty-state compact-empty">正在读取网盘备份...</div>
-              <div v-else-if="remoteConfigured && remoteBackups.length === 0" class="empty-state compact-empty">网盘中暂无备份文件</div>
+              <div v-if="remoteLoading" class="empty-state compact-empty">{{ t('backup.loadingWebdav') }}</div>
+              <div v-else-if="remoteConfigured && remoteBackups.length === 0" class="empty-state compact-empty">{{ t('backup.emptyWebdav') }}</div>
               <div v-else-if="remoteBackups.length" class="remote-backup-list">
                 <div v-for="entry in remoteBackups" :key="entry.name" class="remote-backup-row">
                   <div class="remote-backup-info">
@@ -90,9 +90,9 @@
                     <small>{{ formatSize(entry.size) }} · {{ formatDate(entry.lastModified) }}</small>
                   </div>
                   <div class="file-actions">
-                    <button class="mini-btn" :disabled="remoteWorking" @click="restoreRemoteBackup(entry)">恢复</button>
-                    <button class="mini-btn" :disabled="remoteWorking" @click="downloadRemoteBackup(entry)">下载</button>
-                    <button class="mini-btn danger" :disabled="remoteWorking" @click="deleteRemoteBackup(entry)">删除</button>
+                    <button class="mini-btn" :disabled="remoteWorking" @click="restoreRemoteBackup(entry)">{{ t('backup.restore') }}</button>
+                    <button class="mini-btn" :disabled="remoteWorking" @click="downloadRemoteBackup(entry)">{{ t('backup.download') }}</button>
+                    <button class="mini-btn danger" :disabled="remoteWorking" @click="deleteRemoteBackup(entry)">{{ t('backup.delete') }}</button>
                   </div>
                 </div>
               </div>
@@ -101,23 +101,23 @@
 
             <div v-show="activeBackupTab === 'local'" class="backup-tab-content local-tab-content">
             <div class="backup-location">
-              <span class="backup-location-label">备份目录</span>
-              <code class="backup-location-path">{{ backupPath || '加载中...' }}</code>
+              <span class="backup-location-label">{{ t('backup.backupDir') }}</span>
+              <code class="backup-location-path">{{ backupPath || t('common.loading') }}</code>
               <button class="action-btn" :disabled="!backupPath" @click="openFolder">
-                在文件夹中打开
+                {{ t('backup.openInFolder') }}
               </button>
             </div>
 
             <div class="toolbar">
               <div class="toolbar-left">
                 <button class="action-btn primary" :disabled="working" @click="createBackup">
-                  备份当前数据
+                  {{ t('backup.backupCurrentData') }}
                 </button>
                 <button class="action-btn" :disabled="working || loading" @click="loadFiles(currentPath)">
-                  刷新列表
+                  {{ t('backup.refreshList') }}
                 </button>
                 <button class="action-btn" :disabled="working" @click="triggerUpload">
-                  上传文件
+                  {{ t('backup.uploadFile') }}
                 </button>
                 <input
                   ref="fileInputRef"
@@ -133,23 +133,23 @@
                 :disabled="working || selectedPaths.length === 0"
                 @click="removeSelected"
               >
-                删除选中项
+                {{ t('backup.deleteSelected') }}
               </button>
             </div>
 
             <div class="path-bar">
-              <span class="path-label">当前目录</span>
+              <span class="path-label">{{ t('backup.currentDir') }}</span>
               <code>{{ currentPath }}</code>
             </div>
 
             <div v-if="errorMessage" class="notice error">
-              <strong>加载失败</strong>
+              <strong>{{ t('backup.loadFailed') }}</strong>
               <span>{{ errorMessage }}</span>
             </div>
 
             <div class="file-list">
-              <div v-if="loading" class="empty-state">正在加载文件列表...</div>
-              <div v-else-if="entries.length === 0" class="empty-state">当前目录为空</div>
+              <div v-if="loading" class="empty-state">{{ t('backup.loadingFiles') }}</div>
+              <div v-else-if="entries.length === 0" class="empty-state">{{ t('backup.emptyDir') }}</div>
               <div v-else v-for="entry in entries" :key="entry.path" class="file-row">
                 <label class="file-check" v-if="!entry.toParent">
                   <input
@@ -169,7 +169,7 @@
                   <span class="file-name">{{ entry.name }}</span>
                 </button>
 
-                <span class="file-meta">{{ entry.isDirectory ? '目录' : formatSize(entry.size) }}</span>
+                <span class="file-meta">{{ entry.isDirectory ? t('backup.directoryType') : formatSize(entry.size) }}</span>
                 <span class="file-meta">{{ formatDate(entry.lastModified) }}</span>
 
                 <div class="file-actions">
@@ -179,7 +179,7 @@
                     :disabled="working"
                     @click="restoreBackup(entry)"
                   >
-                    恢复
+                    {{ t('backup.restore') }}
                   </button>
                   <button
                     v-if="!entry.isDirectory"
@@ -187,7 +187,7 @@
                     :disabled="working"
                     @click="downloadEntry(entry)"
                   >
-                    下载
+                    {{ t('backup.download') }}
                   </button>
                   <button
                     v-if="!entry.toParent"
@@ -195,7 +195,7 @@
                     :disabled="working"
                     @click="removeEntry(entry)"
                   >
-                    删除
+                    {{ t('backup.delete') }}
                   </button>
                 </div>
               </div>
@@ -307,7 +307,7 @@ async function openFolder() {
   try {
     await openWebdavFolder()
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '打开文件夹失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.openFolderFailed')), 'error')
   }
 }
 
@@ -318,7 +318,7 @@ function isBackupFile(name: string) {
 
 function saveRemoteConfig() {
   appStore.setLegadoWebdavConfig({ ...remoteDraft.value, directory: remoteDraft.value.directory?.trim() || 'legado' })
-  appStore.showToast('WebDAV 配置已保存', 'success')
+  appStore.showToast(t('backup.configSaved'), 'success')
   remoteError.value = ''
 }
 
@@ -329,10 +329,10 @@ async function testRemote() {
   try {
     await testLegadoWebdav(remoteDraft.value)
     saveRemoteConfig()
-    appStore.showToast('WebDAV 连接成功', 'success')
+    appStore.showToast(t('backup.connectSuccess'), 'success')
     await loadRemoteBackups()
   } catch (error) {
-    remoteError.value = errorMessageOf(error, '连接失败')
+    remoteError.value = errorMessageOf(error, t('backup.connectFailed'))
   } finally {
     remoteWorking.value = false
     remoteAction.value = ''
@@ -347,7 +347,7 @@ async function loadRemoteBackups() {
     remoteBackups.value = await listLegadoWebdavBackups(remoteDraft.value)
   } catch (error) {
     remoteBackups.value = []
-    remoteError.value = errorMessageOf(error, '读取网盘备份失败')
+    remoteError.value = errorMessageOf(error, t('backup.loadWebdavFailed'))
   } finally {
     remoteLoading.value = false
   }
@@ -363,13 +363,13 @@ async function uploadRemoteBackup() {
     const skipped = payload.skippedLocalBooks?.length || 0
     appStore.showToast(
       skipped
-        ? `备份已上传到 WebDAV（${skipped} 本本地书不含正文，换机后需重新导入）`
-        : '备份已上传到 WebDAV',
+        ? t('backup.uploadedToWebdavSkipped', { skipped })
+        : t('backup.uploadedToWebdav'),
       skipped ? 'warning' : 'success',
     )
     await loadRemoteBackups()
   } catch (error) {
-    remoteError.value = errorMessageOf(error, '上传备份失败')
+    remoteError.value = errorMessageOf(error, t('backup.uploadBackupFailed'))
   } finally {
     remoteWorking.value = false
     remoteAction.value = ''
@@ -382,10 +382,10 @@ async function downloadRemoteBackup(entry: LegadoWebdavBackupEntry) {
   try {
     const result = await saveLegadoWebdavBackupAs(remoteDraft.value, entry.name)
     if (result.saved) {
-      appStore.showToast(`备份已保存到 ${result.path || '所选位置'}`, 'success')
+      appStore.showToast(t('backup.savedToPath', { path: result.path || t('backup.chosenLocation') }), 'success')
     }
   } catch (error) {
-    remoteError.value = errorMessageOf(error, '下载备份失败')
+    remoteError.value = errorMessageOf(error, t('backup.downloadBackupFailed'))
   } finally {
     remoteWorking.value = false
     remoteAction.value = ''
@@ -393,7 +393,7 @@ async function downloadRemoteBackup(entry: LegadoWebdavBackupEntry) {
 }
 
 async function restoreRemoteBackup(entry: LegadoWebdavBackupEntry) {
-  const ok = await appStore.confirmDialog(`确定从 ${entry.name} 恢复数据吗？这会覆盖当前数据。`, { title: '恢复数据', danger: true })
+  const ok = await appStore.confirmDialog(t('backup.confirmRestoreRemote', { name: entry.name }), { title: t('backup.confirmRestoreTitle'), danger: true })
   if (!ok) return
   remoteWorking.value = true
   remoteAction.value = 'restore'
@@ -404,13 +404,13 @@ async function restoreRemoteBackup(entry: LegadoWebdavBackupEntry) {
     const contents = await getLegadoWebdavBackupArchive(remoteDraft.value, entry.name)
     const result = parseCompatibleBackupArchive(contents)
     const warning = clearAllWarning(result.skipped)
-    if (warning && !(await appStore.confirmDialog(warning, { title: '数据将被清空', danger: true }))) {
+    if (warning && !(await appStore.confirmDialog(warning, { title: t('backup.dataClearedTitle'), danger: true }))) {
       return
     }
     await restoreWebdavBackup(result.payload, { onPhase: (p) => { phase = p } })
     const skipMessage = formatSkipReport(result.skipped, result.skippedLocalBooks)
     appStore.showToast(
-      `恢复完成${skipMessage}，正在刷新页面`,
+      t('backup.restoreCompleted', { skip: skipMessage }),
       result.skipped.length ? 'warning' : 'success',
     )
     window.setTimeout(() => window.location.reload(), 800)
@@ -423,16 +423,16 @@ async function restoreRemoteBackup(entry: LegadoWebdavBackupEntry) {
 }
 
 async function deleteRemoteBackup(entry: LegadoWebdavBackupEntry) {
-  const ok = await appStore.confirmDialog(`确定删除 ${entry.name} 吗？`, { title: '删除备份', danger: true })
+  const ok = await appStore.confirmDialog(t('backup.confirmDeleteBackup', { name: entry.name }), { title: t('backup.confirmDeleteTitle'), danger: true })
   if (!ok) return
   remoteWorking.value = true
   remoteAction.value = 'delete'
   try {
     await deleteLegadoWebdavBackup(remoteDraft.value, entry.name)
-    appStore.showToast('远端备份已删除', 'success')
+    appStore.showToast(t('backup.remoteDeleted'), 'success')
     await loadRemoteBackups()
   } catch (error) {
-    remoteError.value = errorMessageOf(error, '删除备份失败')
+    remoteError.value = errorMessageOf(error, t('backup.deleteBackupFailed'))
   } finally {
     remoteWorking.value = false
     remoteAction.value = ''
@@ -446,20 +446,20 @@ async function deleteRemoteBackup(entry: LegadoWebdavBackupEntry) {
 function clearAllWarning(skipped: SkippedEntryReport[]) {
   const files = skipped.filter((entry) => entry.allSkipped).map((entry) => entry.file)
   if (!files.length) return null
-  return `备份中这些文件的条目全部无效：${files.join('、')}。继续恢复会清空当前的对应数据（不可撤销），确定继续吗？`
+  return t('backup.clearAllWarning', { files: files.join(', ') })
 }
 
 /** 汇总恢复时被跳过的条目, 生成 attach 到成功提示后的说明。 */
 function formatSkipReport(skipped: SkippedEntryReport[], skippedLocalBooks: number) {
   const parts: string[] = []
   for (const report of skipped) {
-    const samples = report.samples.length ? `（如：${report.samples.join('、')}）` : ''
-    parts.push(`${report.count} 条无效 ${report.file}${samples}`)
+    const samples = report.samples.length ? t('backup.skipSampleWrap', { samples: report.samples.join(', ') }) : ''
+    parts.push(t('backup.skipInvalidReport', { count: report.count, file: report.file, samples }))
   }
   if (skippedLocalBooks > 0) {
-    parts.push(`${skippedLocalBooks} 本仅含安卓路径的本地书籍`)
+    parts.push(t('backup.skipLocalBooksReport', { count: skippedLocalBooks }))
   }
-  return parts.length ? `，已跳过 ${parts.join('、')}` : ''
+  return parts.length ? t('backup.skipPrefix', { parts: parts.join(', ') }) : ''
 }
 
 /**
@@ -480,12 +480,12 @@ function errorMessageOf(error: unknown, fallback: string) {
  * - null (解析/下载阶段): 还没碰过任何数据, 原样报错即可。
  */
 function restoreErrorMessage(error: unknown, phase: RestorePhase | null) {
-  const message = errorMessageOf(error, '恢复失败')
+  const message = errorMessageOf(error, t('backup.restoreFailed'))
   if (phase === 'write') {
-    return `${message}（写入过程中断，当前数据可能不完整，请重新恢复）`
+    return t('backup.restoreWriteFailed', { message })
   }
   if (phase === 'clear') {
-    return `${message}（旧数据已清除但新数据尚未写入，请重新恢复）`
+    return t('backup.restoreClearFailed', { message })
   }
   return message
 }
@@ -545,7 +545,7 @@ async function loadFiles(path = '/') {
     }))
     entries.value = rows
   } catch (error) {
-    errorMessage.value = errorMessageOf(error, '无法读取本地备份文件列表')
+    errorMessage.value = errorMessageOf(error, t('backup.listLocalFailed'))
     entries.value = []
   } finally {
     loading.value = false
@@ -572,10 +572,10 @@ async function handleUpload(event: Event) {
       files.map((file) => ({ file, name: file.name })),
       currentPath.value,
     )
-    appStore.showToast('文件已上传到本地', 'success')
+    appStore.showToast(t('backup.fileUploaded'), 'success')
     await loadFiles(currentPath.value)
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '上传失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.uploadFailed')), 'error')
   } finally {
     working.value = false
     input.value = ''
@@ -600,13 +600,13 @@ async function createBackup() {
     const skipped = payload.skippedLocalBooks?.length || 0
     appStore.showToast(
       skipped
-        ? `备份已保存到 /backups（${skipped} 本本地书不含正文，换机后需重新导入）`
-        : '备份已保存到 /backups',
+        ? t('backup.localSavedSkipped', { skipped })
+        : t('backup.localSaved'),
       skipped ? 'warning' : 'success',
     )
     await loadFiles('/backups')
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '备份失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.backupFailed')), 'error')
   } finally {
     working.value = false
   }
@@ -617,25 +617,25 @@ async function downloadEntry(entry: EntryRow) {
   try {
     const result = await saveWebdavFileAs(entry.path)
     if (result.saved) {
-      appStore.showToast(`备份已保存到 ${result.path || '所选位置'}`, 'success')
+      appStore.showToast(t('backup.savedToPath', { path: result.path || t('backup.chosenLocation') }), 'success')
     }
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '下载失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.downloadFailed')), 'error')
   } finally {
     working.value = false
   }
 }
 
 async function removeEntry(entry: EntryRow) {
-  const ok = await appStore.confirmDialog(`确定删除 ${entry.name} 吗？`, { title: '删除文件', danger: true })
+  const ok = await appStore.confirmDialog(t('backup.confirmDeleteBackup', { name: entry.name }), { title: t('backup.confirmDeleteFileTitle'), danger: true })
   if (!ok) return
   working.value = true
   try {
     await deleteWebdavFile(entry.path)
-    appStore.showToast('文件已删除', 'success')
+    appStore.showToast(t('backup.fileDeleted'), 'success')
     await loadFiles(currentPath.value)
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '删除失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.deleteFailed')), 'error')
   } finally {
     working.value = false
   }
@@ -643,22 +643,22 @@ async function removeEntry(entry: EntryRow) {
 
 async function removeSelected() {
   if (!selectedPaths.value.length) return
-  const ok = await appStore.confirmDialog(`确定删除选中的 ${selectedPaths.value.length} 个项目吗？`, { title: '批量删除', danger: true })
+  const ok = await appStore.confirmDialog(t('backup.confirmBatchDelete', { count: selectedPaths.value.length }), { title: t('backup.batchDeleteTitle'), danger: true })
   if (!ok) return
   working.value = true
   try {
     await deleteWebdavFileList(selectedPaths.value)
-    appStore.showToast('选中文件已删除', 'success')
+    appStore.showToast(t('backup.selectedDeleted'), 'success')
     await loadFiles(currentPath.value)
   } catch (error) {
-    appStore.showToast(errorMessageOf(error, '批量删除失败'), 'error')
+    appStore.showToast(errorMessageOf(error, t('backup.batchDeleteFailed')), 'error')
   } finally {
     working.value = false
   }
 }
 
 async function restoreBackup(entry: EntryRow) {
-  const ok = await appStore.confirmDialog(`确定从 ${entry.name} 恢复数据吗？这会覆盖当前书架、书源、RSS、书签和净化规则。`, { title: '恢复数据', danger: true })
+  const ok = await appStore.confirmDialog(t('backup.confirmRestoreLocal', { name: entry.name }), { title: t('backup.confirmRestoreTitle'), danger: true })
   if (!ok) {
     return
   }
@@ -676,14 +676,14 @@ async function restoreBackup(entry: EntryRow) {
           skipped: [],
         }
     const warning = clearAllWarning(result.skipped)
-    if (warning && !(await appStore.confirmDialog(warning, { title: '数据将被清空', danger: true }))) {
+    if (warning && !(await appStore.confirmDialog(warning, { title: t('backup.dataClearedTitle'), danger: true }))) {
       working.value = false
       return
     }
     await restoreWebdavBackup(result.payload, { onPhase: (p) => { phase = p } })
     const skipMessage = formatSkipReport(result.skipped, result.skippedLocalBooks)
     appStore.showToast(
-      `恢复完成${skipMessage}，正在刷新页面`,
+      t('backup.restoreCompleted', { skip: skipMessage }),
       result.skipped.length ? 'warning' : 'success',
     )
     window.setTimeout(() => {

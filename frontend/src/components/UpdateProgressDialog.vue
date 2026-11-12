@@ -3,12 +3,12 @@
     <Transition name="fade">
       <div v-if="appStore.updateDialogVisible" class="update-overlay">
         <div class="update-dialog">
-          <h3 class="update-title">应用更新</h3>
+          <h3 class="update-title">{{ t('settings.version.dialogTitle') }}</h3>
 
           <template v-if="isFailed">
-            <p class="update-message error">{{ progress?.message || '更新失败' }}</p>
+            <p class="update-message error">{{ progress?.message || t('settings.version.updateFailed') }}</p>
             <p v-if="appStore.versionUpdate?.latestVersion" class="update-subtitle">
-              可尝试重新下载，或前往发行页手动下载。
+              {{ t('settings.version.updateFailedHint') }}
             </p>
           </template>
 
@@ -31,8 +31,8 @@
 
           <div class="update-actions">
             <template v-if="isFailed">
-              <button class="update-btn" type="button" @click="openReleasePage">查看发行页</button>
-              <button class="update-btn primary" type="button" :disabled="appStore.desktopUpdateLoading" @click="retry">重试更新</button>
+              <button class="update-btn" type="button" @click="openReleasePage">{{ t('settings.version.viewReleasePage') }}</button>
+              <button class="update-btn primary" type="button" :disabled="appStore.desktopUpdateLoading" @click="retry">{{ t('settings.version.retry') }}</button>
             </template>
             <button
               v-else
@@ -41,10 +41,10 @@
               :disabled="cancelling"
               @click="cancel"
             >
-              {{ cancelling ? '正在取消' : '取消下载' }}
+              {{ cancelling ? t('settings.version.cancelling') : t('settings.version.cancelDownload') }}
             </button>
             <button v-if="!appStore.desktopUpdateLoading || isFailed" class="update-btn" type="button" @click="close">
-              关闭
+              {{ t('common.close') }}
             </button>
           </div>
         </div>
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useAppStore } from '../stores/app'
+import { t } from '../i18n'
 
 const appStore = useAppStore()
 
@@ -71,13 +72,13 @@ const percent = computed(() => {
 const headline = computed(() => {
   switch (progress.value?.stage) {
     case 'downloading':
-      return '正在下载更新文件'
+      return t('settings.version.downloadingUpdate')
     case 'verifying':
-      return '正在校验更新文件'
+      return t('settings.version.verifyingUpdate')
     case 'ready':
-      return '更新文件已准备完成，应用即将退出并安装'
+      return t('settings.version.readyToInstall')
     default:
-      return '正在确认最新版本'
+      return t('settings.version.checkingLatest')
   }
 })
 
@@ -100,7 +101,7 @@ watch(() => progress.value?.downloaded, (downloaded) => {
   const deltaBytes = downloaded - lastSpeedSample.bytes
   const deltaSeconds = (now - lastSpeedSample.at) / 1000
   if (deltaSeconds > 0 && deltaBytes >= 0) {
-    speedText.value = `${formatBytes(deltaBytes / deltaSeconds)}/秒`
+    speedText.value = t('settings.version.speedPerSec', { speed: formatBytes(deltaBytes / deltaSeconds) })
   }
   lastSpeedSample = { at: now, bytes: downloaded }
 })

@@ -158,7 +158,7 @@
           :class="{ checked: isBookmarkSelected(bm) }"
           @click.stop="toggleBookmarkSelection(bm)"
         >
-          鉁?
+          ✓
         </button>
         <div class="bm-header">
           <span class="bm-chapter">{{ bm.chapterName }}</span>
@@ -302,8 +302,8 @@ function isChapterCached(chapterUrl?: string) {
 function chapterWordCountText(chapterUrl?: string): string {
   const count = chapterUrl ? chapterWordCounts.value.get(chapterUrl) : undefined
   if (!count) return ''
-  if (count > 10000) return `${(count / 10000).toFixed(1)}万字`
-  return `${count}字`
+  if (count > 10000) return t('appExtra.wordCountTenK', { count: (count / 10000).toFixed(1) })
+  return t('appExtra.wordCount', { count })
 }
 
 /** 标题是否被省略号截断。

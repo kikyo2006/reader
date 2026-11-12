@@ -10,10 +10,10 @@
   >
     <header class="panel-head">
       <div class="panel-head-main">
-        <h3>离线缓存</h3>
+        <h3>{{ t('cachePanel.title') }}</h3>
         <p v-if="store.book" class="panel-sub">{{ store.book.name }}</p>
       </div>
-      <button class="icon-btn" type="button" aria-label="返回" title="返回" @click="store.backPanel()">
+      <button class="icon-btn" type="button" :aria-label="t('common.back')" :title="t('common.back')" @click="store.backPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
       </button>
     </header>
@@ -21,23 +21,23 @@
     <div class="panel-body">
       <!-- 本地书不需要缓存：只说明情况，不摆一堆无效操作。 -->
       <div v-if="isLocalBookInServer" class="note">
-        本地书已存放在应用书架中，不需要额外缓存。阅读时会直接读取上传后的本地文件。
+        {{ t('cachePanel.localBookHint') }}
       </div>
 
       <template v-else>
         <!-- ── 本机缓存 ── -->
         <section class="group">
           <div class="group-head">
-            <h4>本机缓存</h4>
-            <button class="link-btn" type="button" @click="refreshStats">刷新</button>
+            <h4>{{ t('cachePanel.localCacheTitle') }}</h4>
+            <button class="link-btn" type="button" @click="refreshStats">{{ t('common.refresh') }}</button>
           </div>
           <div class="card">
             <div class="stat-row">
               <div class="stat">
                 <span class="stat-value">{{ localCachedCount }}</span>
-                <span class="stat-unit">章</span>
+                <span class="stat-unit">{{ t('cachePanel.chapterUnit') }}</span>
               </div>
-              <span class="stat-caption">已缓存到本机</span>
+              <span class="stat-caption">{{ t('cachePanel.cachedToLocal') }}</span>
             </div>
 
             <div v-if="working" class="progress-block">
@@ -48,48 +48,48 @@
                 <span class="progress-num">{{ progress }}%</span>
               </div>
               <p class="progress-status">{{ currentStatus }}</p>
-              <p class="progress-chapter">{{ currentChapterName || '正在准备…' }}</p>
-              <button class="btn btn-quiet" type="button" @click="stopWorking">停止缓存</button>
+              <p class="progress-chapter">{{ currentChapterName || t('cachePanel.preparingShort') }}</p>
+              <button class="btn btn-quiet" type="button" @click="stopWorking">{{ t('cachePanel.stopCache') }}</button>
             </div>
           </div>
         </section>
 
         <!-- ── 缓存操作 ── -->
         <section class="group">
-          <div class="group-head"><h4>缓存到本地</h4></div>
+          <div class="group-head"><h4>{{ t('cachePanel.cacheToLocalTitle') }}</h4></div>
           <div class="card card-rows">
             <button class="row-btn" type="button" @click="startServerCaching(50)">
               <span class="row-text">
-                <span class="row-label">后续 50 章</span>
-                <span class="row-sub">适合正在追更的书</span>
+                <span class="row-label">{{ t('cachePanel.next50') }}</span>
+                <span class="row-sub">{{ t('cachePanel.next50Sub') }}</span>
               </span>
             </button>
             <button class="row-btn" type="button" @click="startServerCaching(100)">
               <span class="row-text">
-                <span class="row-label">后续 100 章</span>
-                <span class="row-sub">中度离线阅读</span>
+                <span class="row-label">{{ t('cachePanel.next100') }}</span>
+                <span class="row-sub">{{ t('cachePanel.next100Sub') }}</span>
               </span>
             </button>
             <button class="row-btn" type="button" @click="startServerCaching(0)">
               <span class="row-text">
-                <span class="row-label">全本缓存</span>
-                <span class="row-sub">从当前章缓存到最后一章</span>
+                <span class="row-label">{{ t('cachePanel.cacheAll') }}</span>
+                <span class="row-sub">{{ t('cachePanel.cacheAllSub') }}</span>
               </span>
             </button>
             <button
               class="row-btn row-danger"
               type="button"
               :disabled="!localCachedCount"
-              :title="localCachedCount ? '删除当前书的全部本地缓存' : '这本书还没有本地缓存'"
+              :title="localCachedCount ? t('cachePanel.clearTitleHasCache') : t('cachePanel.clearTitleEmpty')"
               @click="clearServerCache"
             >
               <span class="row-text">
-                <span class="row-label">清除本地缓存</span>
-                <span class="row-sub">只删本机文件，不影响书架里的书</span>
+                <span class="row-label">{{ t('cachePanel.clearCache') }}</span>
+                <span class="row-sub">{{ t('cachePanel.clearCacheSub') }}</span>
               </span>
             </button>
           </div>
-          <p class="hint">已缓存的章节直接从本机读取，不再联网，断网也能照常翻页。</p>
+          <p class="hint">{{ t('cachePanel.offlineHint') }}</p>
         </section>
       </template>
     </div>
@@ -104,6 +104,7 @@ import { cacheBookSSE } from '../../api/cache'
 import type { SseLike } from '../../api/sse'
 import { getBookshelfWithCacheInfo, deleteBookCache } from '../../api/bookshelf'
 import { isLocalBook } from '../../utils/localBook'
+import { t } from '../../i18n'
 
 const store = useReaderStore()
 const appStore = useAppStore()
@@ -111,7 +112,7 @@ const theme = computed(() => store.chromeTheme)
 
 const working = ref(false)
 const progress = ref(0)
-const currentStatus = ref('准备中...')
+const currentStatus = ref(t('cachePanel.preparing'))
 const currentChapterName = ref('')
 const localCachedCount = ref(0)
 const isLocalBookInServer = computed(() => isLocalBook(store.book))
@@ -141,7 +142,7 @@ function startServerCaching(count: number) {
   stopWorking()
   working.value = true
   progress.value = 0
-  currentStatus.value = '连接本地缓存任务...'
+  currentStatus.value = t('cachePanel.connecting')
   currentChapterName.value = ''
 
   const total = count === 0
@@ -162,16 +163,16 @@ function startServerCaching(count: number) {
       if (total > 0) {
         progress.value = Math.min(100, Math.round((Math.max(0, completed) / total) * 100))
       }
-      currentStatus.value = `本地缓存中 (${data.cachedCount || 0} 已缓存 / ${data.successCount || 0} 新增)`
+      currentStatus.value = t('cachePanel.progress', { cached: data.cachedCount || 0, added: data.successCount || 0 })
     } catch {
-      currentStatus.value = '本地缓存处理中...'
+      currentStatus.value = t('cachePanel.processing')
     }
   }
 
   sse.addEventListener('end', async (event) => {
     try {
       const data = event.data as { cachedCount?: number; successCount?: number }
-      currentStatus.value = `本地缓存完成，累计 ${data.cachedCount || 0} 章`
+      currentStatus.value = t('cachePanel.done', { cached: data.cachedCount || 0 })
       progress.value = 100
     } finally {
       closeSSE()
@@ -183,7 +184,7 @@ function startServerCaching(count: number) {
   })
 
   sse.onerror = async () => {
-    currentStatus.value = '本地缓存已中断'
+    currentStatus.value = t('cachePanel.interrupted')
     closeSSE()
     await refreshStats()
     window.setTimeout(() => {
@@ -195,7 +196,7 @@ function startServerCaching(count: number) {
 async function clearServerCache() {
   if (!store.book || isLocalBookInServer.value) return
   await deleteBookCache(store.book.bookUrl)
-  appStore.showToast('本地缓存已清除', 'success')
+  appStore.showToast(t('cachePanel.clearedToast'), 'success')
   await refreshStats()
 }
 

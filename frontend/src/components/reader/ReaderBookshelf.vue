@@ -1,7 +1,7 @@
 <template>
   <div class="reader-bookshelf" :style="{ background: theme.popup, color: theme.fontColor }">
     <div class="shelf-header">
-      <h3>书架 ({{ store.books.length }})</h3>
+      <h3>{{ t('bookshelf.title') }} ({{ store.books.length }})</h3>
       <button class="close-btn" @click="readerStore.closePanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
       </button>
@@ -16,13 +16,13 @@
         @click="openBook(book)"
       >
         <img v-if="shelfCover(book)" :src="shelfCover(book)" class="book-cover" />
-        <div v-else class="book-cover placeholder">无封面</div>
+        <div v-else class="book-cover placeholder">{{ t('appExtra.noCover') }}</div>
         
         <div class="book-info">
           <div class="book-title">{{ book.name }}</div>
           <div class="book-author">{{ book.author }}</div>
           <div class="book-progress">
-            {{ book.durChapterTitle || '未读' }}
+            {{ book.durChapterTitle || t('appExtra.unread') }}
           </div>
         </div>
       </div>
@@ -36,6 +36,7 @@ import { useBookshelfStore } from '../../stores/bookshelf'
 import { useReaderStore } from '../../stores/reader'
 import { getCoverUrl } from '../../api/bookshelf'
 import type { Book } from '../../types'
+import { t } from '../../i18n'
 const store = useBookshelfStore()
 const readerStore = useReaderStore()
 const theme = computed(() => readerStore.chromeTheme)

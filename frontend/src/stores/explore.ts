@@ -13,6 +13,7 @@ import { useSourceStore } from './source'
 import type { SearchBook, BookSource } from '../types'
 import type { ShowBrowserRequest } from '../api/sourceClick'
 import { getInitialExploreCategoryUrl, isJsExploreUrl, parseExploreCategories } from '../utils/exploreCategories'
+import { t } from '../i18n'
 
 /**
  * 发现页（对齐 legado ExploreFragment / ExploreAdapter）。
@@ -283,7 +284,7 @@ export const useExploreStore = defineStore('explore', () => {
     try {
       next = await loadKinds(source)
     } catch (err: unknown) {
-      failure = (err as Error)?.message || '发现分类加载失败'
+      failure = (err as Error)?.message || t('appExtra.exploreCategoriesFailed')
     }
     // 期间用户又切了源：本轮结果（含错误）一并作废。
     if (token !== categoriesToken) return
@@ -353,7 +354,7 @@ export const useExploreStore = defineStore('explore', () => {
         infoMap: payload,
       })
     } catch (err: unknown) {
-      categoriesError.value = (err as Error)?.message || '书源动作执行失败'
+      categoriesError.value = (err as Error)?.message || t('appExtra.exploreActionFailed')
       return null
     }
 
@@ -571,7 +572,7 @@ export const useExploreStore = defineStore('explore', () => {
       }
     } catch (err: any) {
       if (token !== booksToken) return
-      error.value = err.message || '加载失败'
+      error.value = err.message || t('appExtra.exploreLoadFailed')
       hasMore.value = false
     } finally {
       // 同理：过期请求不能把 loading 关掉，那会让新源的加载状态错乱。

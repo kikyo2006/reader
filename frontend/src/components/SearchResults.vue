@@ -2,12 +2,12 @@
   <div ref="resultsContainerRef" class="search-results">
     <div class="search-header">
       <h2>
-        搜索 "{{ searchKey }}"
+        {{ t('searchResults.title', { key: searchKey }) }}
         <span v-if="isSearching" class="searching-indicator">
           <span class="dot-pulse"></span>
-          搜索中...
+          {{ t('searchResults.searching') }}
         </span>
-        <span v-else class="result-count">({{ rankedResults.length }} 个结果)</span>
+        <span v-else class="result-count">{{ t('searchResults.resultCount', { count: rankedResults.length }) }}</span>
         <!-- 结果来自会话缓存时标一下；点它可重搜。
              原来是单独一行提示条（"已显示上次的搜索结果 / 重新搜索"），既多占
              一行又容易被重复渲染，改成一枚可点的角标。 -->
@@ -15,27 +15,27 @@
           v-if="resultsFromCache"
           type="button"
           class="cache-badge"
-          title="结果来自上次搜索，点击重新搜索"
+          :title="t('searchResults.cacheTooltip')"
           @click="refreshSearch"
-        >缓存 ⟳</button>
+        >{{ t('searchResults.cacheBadge') }}</button>
       </h2>
       <button class="back-btn" @click="backToShelf">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
-        返回书架
+        {{ t('searchResults.backToShelf') }}
       </button>
     </div>
 
     <div class="search-filters">
-      <div class="filter-tabs" role="tablist" aria-label="搜索范围">
+      <div class="filter-tabs" role="tablist" :aria-label="t('searchResults.scopeLabel')">
         <button
           type="button"
           class="filter-tab"
           :class="{ active: searchScope === 'all' }"
           @click="searchScope = 'all'"
         >
-          全部书源
+          {{ t('searchResults.allSources') }}
         </button>
         <button
           type="button"
@@ -43,7 +43,7 @@
           :class="{ active: searchScope === 'group' }"
           @click="searchScope = 'group'"
         >
-          按分组
+          {{ t('searchResults.byGroup') }}
         </button>
         <button
           type="button"
@@ -51,7 +51,7 @@
           :class="{ active: searchScope === 'source' }"
           @click="searchScope = 'source'"
         >
-          单个书源
+          {{ t('searchResults.singleSource') }}
         </button>
       </div>
 
@@ -79,7 +79,7 @@
       :shelf-book-keys="shelfBookKeys"
       :loading="isSearching && displayResults.length === 0"
       :animate="false"
-      empty-text="未找到相关书籍"
+      :empty-text="t('searchResults.emptyText')"
       @click="handleBookClick"
       @info="handleBookInfo"
       @addToShelf="handleAddToShelf"
@@ -95,7 +95,7 @@
           :disabled="currentPage <= 1"
           @click="goToPage(currentPage - 1)"
         >
-          上一页
+          {{ t('searchResults.prevPage') }}
         </button>
         <template v-for="(item, index) in pageItems" :key="`${item}-${index}`">
           <span v-if="item === 'ellipsis'" class="page-ellipsis">…</span>
@@ -116,7 +116,7 @@
           :disabled="currentPage >= totalPages"
           @click="goToPage(currentPage + 1)"
         >
-          下一页
+          {{ t('searchResults.nextPage') }}
         </button>
       </div>
     </div>
@@ -133,6 +133,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useBookshelfStore } from '../stores/bookshelf'
 import { useAppStore } from '../stores/app'
 import { useSourceStore } from '../stores/source'
+import { t } from '../i18n'
 import { searchBookMultiSSE } from '../api/search'
 import type { SseLike } from '../api/sse'
 import { saveBook } from '../api/bookshelf'
@@ -298,7 +299,7 @@ const pageRangeText = computed(() => {
   if (total === 0) return ''
   const start = (currentPage.value - 1) * SEARCH_RESULT_PAGE_SIZE + 1
   const end = Math.min(total, currentPage.value * SEARCH_RESULT_PAGE_SIZE)
-  return `第 ${start}-${end} 条，共 ${total} 条`
+  return t('searchResults.pageRange', { start, end, total })
 })
 
 /**
@@ -728,7 +729,7 @@ async function handleAddToShelf(book: Book | SearchBook) {
   // 点下去就会走 save_book 的整条覆盖分支 —— 这里只提交 6 个字段, 会把用户
   // 自定义的封面、简介、original_* 等一并清空。
   if (isBookOnShelf(book, shelfStore.books)) {
-    appStore.showToast(`"${book.name}" 已在书架中`, 'warning')
+    appStore.showToast(t('searchResults.alreadyOnShelfToast', { name: book.name }), 'warning')
     return
   }
   try {
@@ -741,7 +742,7 @@ async function handleAddToShelf(book: Book | SearchBook) {
       sourceCandidates: (book as SearchBook).sourceCandidates,
     })
     await shelfStore.fetchBooks()
-    appStore.showToast('成功加入书架', 'success')
+    appStore.showToast(t('searchResults.addedToShelfToast'), 'success')
   } catch (e: unknown) {
     appStore.showToast((e as Error).message, 'error')
   }
@@ -751,11 +752,11 @@ function handleBookContextMenu({ book, event }: { book: Book | SearchBook; event
   const inShelf = shelfBookUrls.value.has(book.bookUrl)
     || shelfBookKeys.value.has(shelfMatchKey(book))
   const menuItems = [
-    { label: '查看详情', action: () => handleBookInfo(book) },
+    { label: t('searchResults.viewDetails'), action: () => handleBookInfo(book) },
     { divider: true },
     inShelf
-      ? { label: '已在书架', disabled: true }
-      : { label: '加入书架', action: () => handleAddToShelf(book) },
+      ? { label: t('searchResults.alreadyOnShelf'), disabled: true }
+      : { label: t('searchResults.addToShelf'), action: () => handleAddToShelf(book) },
   ]
   showContextMenu(event, menuItems, book)
 }
