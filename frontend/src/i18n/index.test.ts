@@ -1,9 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { t, setLocale, currentLocale, AVAILABLE_LOCALES } from './index'
 
+const initialDefaultLocale = currentLocale.value
+
 describe('i18n core', () => {
   beforeEach(() => {
     setLocale('zh-CN')
+  })
+
+  it('defaults to en-US on fresh install', () => {
+    expect(initialDefaultLocale).toBe('en-US')
   })
 
   it('translates basic keys in zh-CN', () => {

@@ -124,6 +124,6 @@ describe('transport upload contract', () => {
     const { httpTransport } = await import('./transport/http')
     await expect(
       httpTransport.upload('upload_background_image', new Blob([new Uint8Array()]), 'a.png'),
-    ).rejects.toThrow(/仅桌面应用可用|不支持/)
+    ).rejects.toThrow(/仅桌面应用可用|不支持|only supported in the desktop app/i)
   })
 })

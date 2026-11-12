@@ -29,7 +29,7 @@ function detectInitialLocale(): SupportedLocale {
   } catch {
     // ignore
   }
-  return 'zh-CN'
+  return 'en-US'
 }
 
 export const currentLocale = ref<SupportedLocale>(detectInitialLocale())
