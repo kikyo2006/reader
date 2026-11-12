@@ -8,6 +8,7 @@
 // 同源的 cookie(书源登录代理用得上)照常带上。
 
 import type { Transport } from './index'
+import { t } from '../../i18n'
 
 /**
  * 统一的请求入口。
@@ -63,7 +64,7 @@ export const httpTransport: Transport = {
     // 直接给出明确提示, 而不是发一个注定 404 的请求。
     const path = UPLOAD_ROUTES[command]
     if (!path) {
-      throw new Error('Web 端不支持该上传操作（仅桌面应用可用）')
+      throw new Error(t('extraErrors.webUploadUnsupported'))
     }
     const form = new FormData()
     // 后端(`read_upload`)只认字段名 `file`, 文件名取自 multipart 的
@@ -84,18 +85,20 @@ const UPLOAD_ROUTES: Record<string, string> = {
 async function readJson<T>(response: Response, path: string): Promise<T> {
   // 401 只可能来自上游书源(登录代理页), 本服务自身不会发 —— 鉴权已移除。
   if (response.status === 401) {
-    throw new Error('书源要求登录: 请先在书架里打开该书源并完成登录')
+    throw new Error(t('extraErrors.sourceLoginRequired'))
   }
   const text = await response.text()
   if (!text) {
-    if (!response.ok) throw new Error(`请求失败(${response.status}): ${path}`)
+    if (!response.ok) throw new Error(t('extraErrors.requestFailedWithStatus', { status: response.status, path }))
     return undefined as T
   }
   try {
     return JSON.parse(text) as T
   } catch {
     throw new Error(
-      response.ok ? `响应不是 JSON: ${path}` : `请求失败(${response.status}): ${path}`,
+      response.ok
+        ? t('extraErrors.responseNotJson', { path })
+        : t('extraErrors.requestFailedWithStatus', { status: response.status, path }),
     )
   }
 }

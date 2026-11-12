@@ -10,6 +10,8 @@
 //    200 响应），这些逻辑放在前端会与书源请求重复一遍。
 
 import { invokeEnvelope, invokeRaw } from './invoke'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import type { HttpTts } from '../types'
 
 /** 保存结果。`skipped` 是后端按「缺 name/url」筛掉的条数，必须显式告知用户。 */
@@ -60,7 +62,7 @@ export function deleteHttpTts(target: HttpTtsDeleteTarget) {
     : target.name?.trim()
       ? { name: target.name.trim() }
       : null
-  if (!req) return Promise.reject(new Error('缺少要删除的朗读引擎标识'))
+  if (!req) return Promise.reject(new Error(t('readerMessages.httpTtsMissingDeleteId')))
   return invokeEnvelope<{ deleted: number }>('delete_http_tts', { req })
 }
 
@@ -82,38 +84,13 @@ export interface SynthesizeHttpTtsParams {
   contentType?: string
 }
 
-/**
- * AppError 经 Tauri Serialize 后带上的英文分类前缀。
- *
- * `src/error/error.rs` 里 `AppError::BadRequest` 的 Display 是
- * `"bad request: {0}"`，于是前端 reject 字符串实际长这样：
- * `bad request: 引擎请求失败：...`。不剥掉的话用户看到的 toast 永远以
- * `bad request: ` 开头（英文、无意义）。
- */
-const APP_ERROR_PREFIXES = ['bad request: ', 'not found: ', 'internal error: ']
-
-/** 剥掉一层 AppError 英文前缀；剥完为空时保留原文，绝不吞掉错误内容。 */
-function stripAppErrorPrefix(message: string): string {
-  const trimmed = message.trim()
-  for (const prefix of APP_ERROR_PREFIXES) {
-    if (trimmed.toLowerCase().startsWith(prefix)) {
-      const rest = trimmed.slice(prefix.length).trim()
-      return rest || trimmed
-    }
-  }
-  return trimmed
-}
-
-/**
- * Tauri reject（AppError 序列化后的字符串）→ Error，并剥掉英文分类前缀。
- *
- * 导出给其它朗读通道（如 `edgeTts.ts`）复用：所有 command 的错误形态一致，
- * 各自再写一份剥离逻辑迟早会出现「某个通道 toast 带 bad request:」的问题。
- */
 export function toError(error: unknown, fallback: string): Error {
-  if (error instanceof Error) return error
+  if (error instanceof Error) {
+    const localized = localizeErrorMessage(error.message)
+    return localized === error.message ? error : new Error(localized)
+  }
   // Tauri 的 reject 值来自 AppError 的自定义 Serialize，是一个消息字符串。
-  const message = typeof error === 'string' ? stripAppErrorPrefix(error) : ''
+  const message = typeof error === 'string' ? localizeErrorMessage(error) : ''
   return new Error(message || fallback)
 }
 
@@ -179,7 +156,7 @@ export function blobFromAudioPayload(
   fallbackContentType?: string,
 ): Blob {
   const bytes = toAudioBytes(payload)
-  if (!bytes.byteLength) throw new Error('在线朗读引擎返回了空音频')
+  if (!bytes.byteLength) throw new Error(t('readerMessages.httpTtsEmptyAudio'))
   const mime = sniffAudioMime(bytes) || normalizeAudioContentType(fallbackContentType) || 'audio/mpeg'
   return new Blob([bytes], { type: mime })
 }
@@ -201,7 +178,7 @@ export async function synthesizeHttpTts(params: SynthesizeHttpTtsParams): Promis
       },
     })
   } catch (error) {
-    throw toError(error, '在线朗读请求失败')
+    throw toError(error, t('readerMessages.httpTtsRequestFailed'))
   }
   return blobFromAudioPayload(payload, params.contentType)
 }

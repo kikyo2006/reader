@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { Bookmark } from '../types'
 
 /** 与手机端「所有书签 -> 导出 JSON」一致：直接导出书签实体数组。 */
@@ -20,9 +21,9 @@ export function buildBookmarkExportMarkdown(bookmarks: Bookmark[]): string {
       currentBookKey = bookKey
       output += `## ${bookmark.bookName} ${bookmark.bookAuthor}\n\n`
     }
-    output += `#### ${bookmark.chapterName || '未命名章节'}\n\n`
-    output += `###### 原文\n ${bookmark.bookText || ''}\n\n`
-    output += `###### 摘要\n ${bookmark.content || ''}\n\n`
+    output += `#### ${bookmark.chapterName || t('extraErrors.unnamedChapter')}\n\n`
+    output += `###### ${t('extraErrors.bookmarkOriginLabel')}\n ${bookmark.bookText || ''}\n\n`
+    output += `###### ${t('extraErrors.bookmarkSummaryLabel')}\n ${bookmark.content || ''}\n\n`
   }
 
   return output

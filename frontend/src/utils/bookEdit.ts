@@ -1,5 +1,6 @@
 import { BOOK_COVER_EXTENSIONS, MAX_BOOK_COVER_BYTES } from '../api/bookCover'
 import { readerOrigin } from '../api/scheme'
+import { t } from '../i18n'
 import { shelfMatchKey } from './searchRank'
 
 /** 书籍信息编辑的纯逻辑。
@@ -106,11 +107,11 @@ export function createBookEditDraft(book: BookEditSource): BookEditDraft {
 
 /** 校验表单。返回错误信息, 通过时返回 ''。 */
 export function validateBookEditDraft(draft: BookEditDraft): string {
-  if (!draft.name.trim()) return '书名不能为空'
+  if (!draft.name.trim()) return t('extraErrors.bookNameRequired')
   // 与书架既有约定一致: 书名/作者超长会让卡片与详情页排版崩掉。
-  if (draft.name.trim().length > 120) return '书名不能超过 120 个字符'
-  if (draft.author.trim().length > 120) return '作者不能超过 120 个字符'
-  if (draft.intro.length > 5000) return '简介不能超过 5000 个字符'
+  if (draft.name.trim().length > 120) return t('extraErrors.bookNameTooLong')
+  if (draft.author.trim().length > 120) return t('extraErrors.authorTooLong')
+  if (draft.intro.length > 5000) return t('extraErrors.introTooLong')
   return ''
 }
 
@@ -193,10 +194,10 @@ export function isBookEditDirty(book: BookEditSource, draft: BookEditDraft): boo
 export function validateCoverFile(file: { name: string; size: number }): string {
   const extension = file.name.split('.').pop()?.toLowerCase() || ''
   if (!(BOOK_COVER_EXTENSIONS as readonly string[]).includes(extension)) {
-    return '仅支持 PNG、JPG、GIF、WebP 和 AVIF 图片'
+    return t('extraErrors.coverFormatUnsupported')
   }
-  if (file.size <= 0) return '图片内容为空'
-  if (file.size > MAX_BOOK_COVER_BYTES) return '封面图片不能超过 8 MB'
+  if (file.size <= 0) return t('extraErrors.imageEmpty')
+  if (file.size > MAX_BOOK_COVER_BYTES) return t('extraErrors.coverTooLarge')
   return ''
 }
 

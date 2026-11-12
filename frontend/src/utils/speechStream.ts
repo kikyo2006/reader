@@ -7,6 +7,9 @@
 // 这里刻意不依赖 Vue / DOM 事件循环以外的东西：createAudio 可注入，synthesize /
 // supply 由调用方提供，因而可以用假 audio + 可控延迟的单测覆盖时序。
 
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
+
 export type SpeechChunkType = 'narration' | 'dialogue'
 
 export interface SpeechChunk {
@@ -52,8 +55,8 @@ const CHUNK_RETRY_ATTEMPTS = 1
 const CHUNK_RETRY_DELAY_MS = 300
 /** 连续这么多块（重试后仍失败）才认为通道真的不可用，终止整段朗读。 */
 const MAX_CONSECUTIVE_CHUNK_FAILURES = 5
-const EMPTY_AUDIO_MESSAGE = '朗读引擎返回了空音频'
-const PLAYBACK_ERROR_MESSAGE = '朗读音频播放失败'
+const getEmptyAudioMessage = () => t('readerMessages.emptyAudioReturned')
+const getPlaybackErrorMessage = () => t('readerMessages.playbackAudioFailed')
 
 interface IndexedChunk {
   chunk: SpeechChunk
@@ -71,9 +74,12 @@ interface ReadyEntry extends IndexedChunk {
 }
 
 function toError(error: unknown): Error {
-  if (error instanceof Error) return error
-  const message = typeof error === 'string' ? error.trim() : ''
-  return new Error(message || '朗读失败')
+  if (error instanceof Error) {
+    const localized = localizeErrorMessage(error.message)
+    return localized === error.message ? error : new Error(localized)
+  }
+  const message = typeof error === 'string' ? localizeErrorMessage(error) : ''
+  return new Error(message || t('readerMessages.speechFailed'))
 }
 
 export class SpeechStream {
@@ -277,7 +283,7 @@ export class SpeechStream {
         if (!blob || blob.size <= 0) {
           // 空音频和「合成报错」等价处理：可能只是服务端对该片段无内容可读，
           // 同样先重试一次，再跳过，而不是直接终止整段朗读。
-          this.handleChunkFailure(item, controller, new Error(EMPTY_AUDIO_MESSAGE))
+          this.handleChunkFailure(item, controller, new Error(getEmptyAudioMessage()))
           return
         }
         this.handleSynthesized(item, blob)
@@ -343,7 +349,7 @@ export class SpeechStream {
 
     // 跳过本块：记录 index 让播放推进越过它；同一错误每会话只提示一次。
     this.skipped.add(item.index)
-    const message = error.message || '朗读失败'
+    const message = error.message || t('readerMessages.speechFailed')
     if (!this.reportedChunkErrors.has(message)) {
       this.reportedChunkErrors.add(message)
       this.handlers.onChunkError?.(error, item.chunk)
@@ -430,7 +436,7 @@ export class SpeechStream {
   private attachAudio(audio: HTMLAudioElement) {
     audio.onended = () => this.handleAudioEnded(audio)
     audio.onerror = () => {
-      if (audio === this.playingAudio) this.fail(new Error(PLAYBACK_ERROR_MESSAGE))
+      if (audio === this.playingAudio) this.fail(new Error(getPlaybackErrorMessage()))
     }
     audio.ontimeupdate = () => this.handleAudioProgress(audio)
     audio.onloadedmetadata = () => this.handleAudioProgress(audio)

@@ -1,6 +1,7 @@
 // Tauri IPC 传输实现。逻辑从原 `invoke.ts` 搬来, 保持逐字节等价。
 
 import { invoke } from '@tauri-apps/api/core'
+import { t } from '../../i18n'
 import type { Transport } from './index'
 
 /** 与 Rust 侧 `crate::api::commands::FILE_NAME_HEADER` 必须一致。 */
@@ -10,7 +11,7 @@ export const tauriTransport: Transport = {
   // IPC 没有方法之分, `method` 只为满足接口 —— GET 与 POST 走同一条 invoke。
   async call<T>(path: string, payload: unknown, _method: 'GET' | 'POST'): Promise<T> {
     const command = COMMAND_BY_PATH[path]
-    if (!command) throw new Error(`未知接口: ${path}`)
+    if (!command) throw new Error(t('extraErrors.unknownApiPath', { path }))
     return invoke<T>(command, payload === undefined ? {} : { req: payload })
   },
 

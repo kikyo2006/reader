@@ -9,6 +9,8 @@
  * 都能单测覆盖，不需要真的去点网页按钮。
  */
 
+import { t } from '../i18n'
+
 /** 桌面版能真正消化的导入类型。 */
 export type LegadoImportKind = 'bookSource' | 'rssSource' | 'replaceRule' | 'httpTTS'
 
@@ -33,11 +35,11 @@ const KIND_ALIASES: Record<string, LegadoImportKind> = {
  */
 export function parseLegadoDeepLink(raw: string): ParsedLegadoDeepLink {
   const text = (raw || '').trim()
-  if (!text) throw new Error('导入链接为空')
+  if (!text) throw new Error(t('extraErrors.importLinkEmpty'))
 
   const lower = text.toLowerCase()
   if (!lower.startsWith('legado://')) {
-    throw new Error('不是 legado:// 链接')
+    throw new Error(t('extraErrors.notLegadoLink'))
   }
 
   // 不借助 `new URL`：自定义协议在部分环境里会被解析成 host='import' 之类，
@@ -49,10 +51,10 @@ export function parseLegadoDeepLink(raw: string): ParsedLegadoDeepLink {
   const action = (segments[0] || '').toLowerCase()
   const kindName = segments[1] || ''
   if (action !== 'import') {
-    throw new Error(`不支持的链接类型：${action || '(空)'}`)
+    throw new Error(t('extraErrors.unsupportedLinkAction', { action: action || t('extraErrors.emptyToken') }))
   }
   if (!kindName) {
-    throw new Error('链接里没有指定导入类型')
+    throw new Error(t('extraErrors.missingImportKind'))
   }
 
   const params = new URLSearchParams(queryPart)
@@ -60,7 +62,7 @@ export function parseLegadoDeepLink(raw: string): ParsedLegadoDeepLink {
   // 有些站点把 src 做了两次编码，解到不能再解为止（最多两次，避免死循环）。
   const src = decodeRepeatedly(rawSrc)
   if (!src) {
-    throw new Error('链接里没有 src 参数')
+    throw new Error(t('extraErrors.missingSrcParam'))
   }
 
   const normalizedKind = KIND_ALIASES[kindName.toLowerCase()]
@@ -68,7 +70,7 @@ export function parseLegadoDeepLink(raw: string): ParsedLegadoDeepLink {
     return { supported: false, kindName, src }
   }
   if (!/^https?:\/\//i.test(src)) {
-    throw new Error(`导入地址必须是 http(s)：${src}`)
+    throw new Error(t('extraErrors.importSrcMustBeHttp', { src }))
   }
   return { supported: true, kind: normalizedKind, src }
 }

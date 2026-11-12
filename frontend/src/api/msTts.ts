@@ -9,6 +9,7 @@
 
 import { invokeEnvelope, invokeRaw } from './invoke'
 import { blobFromAudioPayload, toError } from './httpTts'
+import { t } from '../i18n'
 
 /** 微软朗读只支持的音质档位（顺序即 UI 里的从低到高）。 */
 export type MsTtsFormat = '48k' | '96k' | '192k'
@@ -72,7 +73,7 @@ export async function synthesizeMsTts(params: SynthesizeMsTtsParams): Promise<Bl
       },
     })
   } catch (error) {
-    throw toError(error, '微软朗读请求失败')
+    throw toError(error, t('readerMessages.msTtsRequestFailed'))
   }
   return blobFromAudioPayload(payload)
 }

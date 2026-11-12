@@ -775,7 +775,7 @@
             class="voice-select"
             type="url"
             :value="store.speechConfig.openaiBaseUrl"
-            :placeholder="selectedSpeechApiFormat.baseUrlPlaceholder"
+            :placeholder="selectedSpeechApiFormat.value === 'azure' ? t('readerMessages.azureBaseUrlPlaceholder') : selectedSpeechApiFormat.baseUrlPlaceholder"
             @input="store.setOpenAISpeechBaseUrl(($event.target as HTMLInputElement).value)"
           >
         </div>

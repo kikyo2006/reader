@@ -9,6 +9,7 @@
  */
 
 import { invokeEnvelope } from '../api/invoke'
+import { t } from '../i18n'
 import { getBookSources, readRemoteSourceFile, saveBookSources } from '../api/source'
 import { getRssSources, readRemoteRssSourceFile, saveRssSources } from '../api/rss'
 import { saveReplaceRules, getReplaceRules } from '../api/replaceRule'
@@ -58,44 +59,44 @@ async function confirmImport(
 ): Promise<boolean> {
   const appStore = useAppStore()
   const detail = overwriting > 0
-    ? `\n其中 ${overwriting} 条与现有条目同地址，继续会覆盖它们的配置。`
+    ? t('extraErrors.confirmImportOverwrite', { count: overwriting })
     : ''
   return appStore.confirmDialog(
-    `即将导入 ${incoming} 条${kindName}。${detail}\n来源：外部链接（legado://）`,
-    { title: '确认导入' },
+    t('extraErrors.confirmImportMessage', { incoming, kind: kindName, detail }),
+    { title: t('extraErrors.confirmImportTitle') },
   )
 }
 
 async function importBookSources(src: string): Promise<LegadoImportResult> {
   const texts = await readRemoteSourceFile(src)
   const sources = flattenJsonTexts(texts) as BookSource[]
-  if (!sources.length) throw new Error('链接里的书源文件为空或格式不正确')
+  if (!sources.length) throw new Error(t('extraErrors.emptyBookSourceLink'))
 
   const existing = new Set((await getBookSources()).map((source) => source.bookSourceUrl))
   const overwriting = sources.filter((source) => existing.has(source.bookSourceUrl)).length
-  if (!(await confirmImport('书源', sources.length, overwriting))) {
-    throw new Error('已取消导入')
+  if (!(await confirmImport(t('extraErrors.importKindBookSource'), sources.length, overwriting))) {
+    throw new Error(t('extraErrors.importCancelled'))
   }
 
   const saved = await saveBookSources(sources)
   // 后端是"尽力写入"：它返回实际落盘条数，而不是我们送进去的条数。
   const count = saved?.count ?? sources.length
-  return { message: `已导入 ${count} 个书源`, type: count < sources.length ? 'warning' : 'success' }
+  return { message: t('extraErrors.importedBookSources', { count }), type: count < sources.length ? 'warning' : 'success' }
 }
 
 async function importRssSources(src: string): Promise<LegadoImportResult> {
   const texts = await readRemoteRssSourceFile(src)
   const sources = flattenJsonTexts(texts) as RssSource[]
-  if (!sources.length) throw new Error('链接里的订阅源文件为空或格式不正确')
+  if (!sources.length) throw new Error(t('extraErrors.emptyRssSourceLink'))
 
   const existing = new Set((await getRssSources()).map((source) => source.sourceUrl))
   const overwriting = sources.filter((source) => existing.has(source.sourceUrl)).length
-  if (!(await confirmImport('订阅源', sources.length, overwriting))) {
-    throw new Error('已取消导入')
+  if (!(await confirmImport(t('extraErrors.importKindRssSource'), sources.length, overwriting))) {
+    throw new Error(t('extraErrors.importCancelled'))
   }
 
   await saveRssSources(sources)
-  return { message: `已导入 ${sources.length} 个订阅源`, type: 'success' }
+  return { message: t('extraErrors.importedRssSources', { count: sources.length }), type: 'success' }
 }
 
 async function importReplaceRules(src: string): Promise<LegadoImportResult> {
@@ -110,8 +111,8 @@ async function importReplaceRules(src: string): Promise<LegadoImportResult> {
   // 规则按 name upsert，同名会被覆盖；这里也算一下会覆盖多少条。
   const existing = new Set((await getReplaceRules()).map((rule) => rule.name))
   const overwriting = result.rules.filter((rule) => existing.has(rule.name)).length
-  if (!(await confirmImport('净化规则', result.rules.length, overwriting))) {
-    throw new Error('已取消导入')
+  if (!(await confirmImport(t('extraErrors.importKindReplaceRule'), result.rules.length, overwriting))) {
+    throw new Error(t('extraErrors.importCancelled'))
   }
   await saveReplaceRules(result.rules)
   return { message: built.text, type: built.type === 'success' ? 'success' : 'warning' }
@@ -122,21 +123,21 @@ async function importHttpTts(src: string): Promise<LegadoImportResult> {
   // `flattenJsonTexts` 已经摊平成数组，不再有 `{ data }` 信封要拆。
   const engines = flattenJsonTexts(texts) as Parameters<typeof saveHttpTtsList>[0]
   if (!Array.isArray(engines) || !engines.length) {
-    throw new Error('链接里的朗读引擎文件为空或格式不正确')
+    throw new Error(t('extraErrors.emptyHttpTtsLink'))
   }
   const existing = new Set((await getHttpTtsList()).map((engine) => engine.name))
   const overwriting = engines.filter(
     (engine) => Boolean(engine.name) && existing.has(engine.name as string),
   ).length
-  if (!(await confirmImport('朗读引擎', engines.length, overwriting))) {
-    throw new Error('已取消导入')
+  if (!(await confirmImport(t('extraErrors.importKindHttpTts'), engines.length, overwriting))) {
+    throw new Error(t('extraErrors.importCancelled'))
   }
   const saved = await saveHttpTtsList(engines)
   const skipped = saved?.skipped ?? 0
   return {
     message: skipped
-      ? `已导入 ${saved?.saved ?? 0} 个朗读引擎，跳过 ${skipped} 条无效条目`
-      : `已导入 ${saved?.saved ?? 0} 个朗读引擎`,
+      ? t('extraErrors.importedHttpTtsWithSkipped', { saved: saved?.saved ?? 0, skipped })
+      : t('extraErrors.importedHttpTts', { saved: saved?.saved ?? 0 }),
     type: skipped ? 'warning' : 'success',
   }
 }
@@ -152,7 +153,7 @@ const IMPORTERS: Record<LegadoImportKind, (src: string) => Promise<LegadoImportR
 export async function runLegadoImport(parsed: ParsedLegadoDeepLink): Promise<LegadoImportResult> {
   if (!parsed.supported) {
     throw new Error(
-      `暂不支持导入「${parsed.kindName}」：桌面版目前能导入书源、订阅源、净化规则和朗读引擎`,
+      t('extraErrors.unsupportedLegadoKind', { kind: parsed.kindName }),
     )
   }
   return IMPORTERS[parsed.kind](parsed.src)

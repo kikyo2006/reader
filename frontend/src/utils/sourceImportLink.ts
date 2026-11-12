@@ -25,6 +25,8 @@ export interface ImportLink {
   sourceUrl: string | null
 }
 
+import { t } from '../i18n'
+
 /** 解析导入链接; 不是导入协议时返回 null。
  *
  *  不抛异常: 这条路径由网页点击触发, 拼错的链接应该被安静忽略(或由调用方
@@ -67,5 +69,5 @@ function normalizeSourceUrl(value: string): string | null {
 export function describeImportLinkFailure(link: ImportLink): string {
   return link.sourceUrl
     ? ''
-    : '这个导入链接里没有有效的书源地址，请回到源仓库页面点「一键导入」重新获取'
+    : t('extraErrors.invalidImportSourceLink')
 }

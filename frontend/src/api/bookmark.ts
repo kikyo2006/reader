@@ -1,5 +1,6 @@
 import { get, post, invokeEnvelope } from './invoke'
 import { isTauriRuntime } from './transport'
+import { t } from '../i18n'
 import type { Bookmark } from '../types'
 
 /**
@@ -68,7 +69,7 @@ export async function saveBookmarkExportAs(
       const handle = await picker({
         suggestedName: fileName,
         types: [{
-          description: format === 'json' ? 'JSON 文件' : 'Markdown 文件',
+          description: format === 'json' ? t('extraErrors.exportJsonDesc') : t('extraErrors.exportMdDesc'),
           accept: {
             [type]: [`.${format}`],
           },

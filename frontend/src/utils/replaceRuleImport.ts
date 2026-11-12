@@ -12,6 +12,7 @@
  *   照搬, 匹配语义由 utils/replaceRuleScope 按手机端的「包含」规则实现。
  *   老 JSON 缺字段时按手机端实体默认值补齐(正文开、标题关)。
  */
+import { t } from '../i18n'
 import type { ReplaceRule } from '../types'
 
 /** 跳过/失败时的样例名上限: toast 只有 3 秒, 名字太长会把关键数字挤没。 */
@@ -71,7 +72,7 @@ function isJsRuleText(value: string) {
 }
 
 function describeEntry(index: number, name: string) {
-  return name || `第 ${index + 1} 条`
+  return name || t('extraErrors.replaceRuleEntryFallback', { index: index + 1 })
 }
 
 /**
@@ -85,7 +86,7 @@ function describeEntry(index: number, name: string) {
  */
 export function normalizeLegadoReplaceRules(raw: unknown): ReplaceRuleImportResult {
   if (!Array.isArray(raw)) {
-    throw new Error('净化规则 JSON 格式不正确：顶层应为数组（[...]）')
+    throw new Error(t('extraErrors.replaceRuleJsonNotArray'))
   }
 
   const rules: ReplaceRule[] = []
@@ -177,25 +178,25 @@ export function buildReplaceRuleImportMessage(result: ReplaceRuleImportResult): 
   const { rules, skipped, titleOnly, scriptRules } = result
 
   const skipParts: string[] = []
-  if (skipped.jsRules) skipParts.push(`${skipped.jsRules} 条用脚本生成匹配式的规则`)
-  if (skipped.invalid) skipParts.push(`${skipped.invalid} 条无效`)
-  const skipDetail = skipParts.length ? `跳过 ${skipped.total} 条：${skipParts.join('、')}` : ''
+  if (skipped.jsRules) skipParts.push(t('extraErrors.replaceRuleSkippedJs', { count: skipped.jsRules }))
+  if (skipped.invalid) skipParts.push(t('extraErrors.replaceRuleSkippedInvalid', { count: skipped.invalid }))
+  const skipDetail = skipParts.length ? t('extraErrors.replaceRuleSkippedDetail', { total: skipped.total, detail: skipParts.join('、') }) : ''
 
   if (!rules.length) {
     const reason = skipped.total
-      ? `未导入任何规则（${skipDetail}）`
-      : '没有可导入的净化规则（JSON 数组为空）'
-    const samples = skipped.samples.length ? `；例如：${skipped.samples.join('、')}` : ''
+      ? t('extraErrors.replaceRuleNoneImportedReason', { detail: skipDetail })
+      : t('extraErrors.replaceRuleNoneImportedEmpty')
+    const samples = skipped.samples.length ? t('extraErrors.replaceRuleSamples', { samples: skipped.samples.join('、') }) : ''
     return { text: reason + samples, type: 'error' }
   }
 
   const notes: string[] = []
   if (skipDetail) notes.push(skipDetail)
-  if (scriptRules) notes.push(`${scriptRules} 条脚本规则在后端沙盒执行`)
-  if (titleOnly) notes.push(`${titleOnly} 条只作用于章节标题`)
+  if (scriptRules) notes.push(t('extraErrors.replaceRuleNoteScript', { count: scriptRules }))
+  if (titleOnly) notes.push(t('extraErrors.replaceRuleNoteTitleOnly', { count: titleOnly }))
 
   return {
-    text: notes.length ? `导入 ${rules.length} 条（${notes.join('；')}）` : `导入 ${rules.length} 条`,
+    text: notes.length ? t('extraErrors.replaceRuleImportedWithNotes', { count: rules.length, notes: notes.join('；') }) : t('extraErrors.replaceRuleImported', { count: rules.length }),
     // 有跳过就意味着「成功但结果不是你给的全部」, 用 warning 而不是 success 提醒看一眼。
     type: skipped.total ? 'warning' : 'success',
   }

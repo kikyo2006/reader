@@ -1,5 +1,7 @@
 import { invokeEnvelope } from './invoke'
 import { isTauriRuntime } from './transport'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import type { XmnoteBookPayload } from '../utils/xmnote'
 
 export interface XmnoteSendResult {
@@ -41,7 +43,7 @@ async function sendFromBrowser(
       } catch {
         throw new Error(
           response.ok
-            ? `接收端返回的不是 JSON：${body.slice(0, 120)}`
+            ? t('extraErrors.xmnoteNotJson', { body: body.slice(0, 120) })
             : `HTTP ${response.status}：${body.slice(0, 120)}`,
         )
       }
@@ -49,12 +51,13 @@ async function sendFromBrowser(
         throw new Error(`HTTP ${response.status}：${payload.message || body.slice(0, 120)}`)
       }
       if (payload.code !== 200) {
-        throw new Error(payload.message || '纸间书摘拒绝接收')
+        throw new Error(payload.message || t('extraErrors.xmnoteRejected'))
       }
       result.sent += 1
     } catch (error) {
       result.failed += 1
-      result.errors.push(`${book.title}：${(error as Error).message || '发送失败'}`)
+      const msg = (error as Error).message ? localizeErrorMessage((error as Error).message) : t('extraErrors.xmnoteSendFailed')
+      result.errors.push(`${book.title}：${msg}`)
     }
   }
   return result

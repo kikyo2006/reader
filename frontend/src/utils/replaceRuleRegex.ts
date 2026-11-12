@@ -21,6 +21,8 @@
  * 但永远匹配不到正文，用户只会看到「规则导入了却没效果」。宁可判成「无法执行」。
  */
 
+import { t } from '../i18n'
+
 /** Java 的水平空白，展开成字符类**内容**（不带外层方括号，由调用方按上下文补）。 */
 const HORIZONTAL_SPACE = ' \\t\\u00a0\\u1680\\u2000-\\u200a\\u202f\\u205f\\u3000'
 
@@ -30,13 +32,13 @@ const HORIZONTAL_SPACE = ' \\t\\u00a0\\u1680\\u2000-\\u200a\\u202f\\u205f\\u3000
  * 这些在 JS 里**不会**抛异常（`\p{L}` 会被当成字面量 `p{L}`、`\G` 当成 `G`、
  * `\Q..\E` 当成字面量 `Q..E`），编译"成功"但永远匹配不到正文，所以只能自己扫。
  */
-const UNSUPPORTED_SYNTAX: Array<{ probe: RegExp; message: string }> = [
-  { probe: /\\[pP]\{/, message: '不支持 \\p{...} / \\P{...}（Unicode 属性，JS 无等价写法）' },
-  { probe: /\(\?>/, message: '不支持原子组 (?>...)' },
-  { probe: /\\G/, message: '不支持 \\G（上次匹配结束位置锚点）' },
-  { probe: /\\Q|\\E/, message: '不支持 \\Q...\\E（字面量引用段）' },
-  { probe: /\\H/, message: '不支持 \\H（水平空白补集，JS 无等价写法）' },
-  { probe: /\\[zZ]/, message: '不支持 \\z / \\Z（JS 无等价写法，可用 $ 替代）' },
+const UNSUPPORTED_SYNTAX: Array<{ probe: RegExp; key: string }> = [
+  { probe: /\\[pP]\{/, key: 'extraErrors.regexUnsupportedUnicodeProp' },
+  { probe: /\(\?>/, key: 'extraErrors.regexUnsupportedAtomic' },
+  { probe: /\\G/, key: 'extraErrors.regexUnsupportedAnchorG' },
+  { probe: /\\Q|\\E/, key: 'extraErrors.regexUnsupportedQuote' },
+  { probe: /\\H/, key: 'extraErrors.regexUnsupportedHorizComp' },
+  { probe: /\\[zZ]/, key: 'extraErrors.regexUnsupportedEndAnchor' },
 ]
 
 /**
@@ -45,8 +47,8 @@ const UNSUPPORTED_SYNTAX: Array<{ probe: RegExp; message: string }> = [
  * 必须在**替换之前**扫原始 pattern：`\h` 变成字符类之后原文就不在了。
  */
 export function findUnsupportedSyntax(pattern: string): string | null {
-  for (const { probe, message } of UNSUPPORTED_SYNTAX) {
-    if (probe.test(pattern)) return message
+  for (const { probe, key } of UNSUPPORTED_SYNTAX) {
+    if (probe.test(pattern)) return t(key)
   }
   return null
 }
@@ -297,7 +299,7 @@ export function toJsReplacement(replacement: string, groups: ReplacementGroups):
     if (char === '\\') {
       const escaped = replacement[index + 1]
       if (escaped === undefined) {
-        throw new Error('替换为以单个 \\ 结尾，Java 端会报错；字面量反斜杠要写成 \\\\')
+        throw new Error(t('extraErrors.regexTrailingBackslash'))
       }
       output += literalText(escaped)
       index += 1
@@ -311,10 +313,10 @@ export function toJsReplacement(replacement: string, groups: ReplacementGroups):
     const next = replacement[index + 1]
     if (next === '{') {
       const end = replacement.indexOf('}', index + 2)
-      if (end < 0) throw new Error('替换为里的 ${ 没有配对的 }')
+      if (end < 0) throw new Error(t('extraErrors.regexUnclosedNamedGroup'))
       const name = replacement.slice(index + 2, end)
       if (!groups.names.has(name)) {
-        throw new Error(`替换为引用了不存在的命名分组 \${${name}}`)
+        throw new Error(t('extraErrors.regexMissingNamedGroup', { name }))
       }
       output += `$<${name}>`
       index = end
@@ -322,8 +324,7 @@ export function toJsReplacement(replacement: string, groups: ReplacementGroups):
     }
     if (!isAsciiDigit(next)) {
       throw new Error(
-        `替换为里的 $ 后面不是分组编号（第 ${index + 1} 个字符）；`
-        + '引用捕获组写 $1，字面量 $ 要写成 \\$',
+        t('extraErrors.regexInvalidDollarRef', { pos: index + 1 }),
       )
     }
 
@@ -343,7 +344,7 @@ export function toJsReplacement(replacement: string, groups: ReplacementGroups):
     const group = Number(digits)
     if (group > groups.count) {
       throw new Error(
-        `替换为引用了不存在的分组 $${digits}（本规则只有 ${groups.count} 个捕获组）`,
+        t('extraErrors.regexMissingGroupIndex', { digits, count: groups.count }),
       )
     }
 

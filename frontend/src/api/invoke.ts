@@ -7,6 +7,8 @@
 // 两份实现共用这一段, 避免行为分叉。
 
 import { invoke } from '@tauri-apps/api/core'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import type { ApiResponse } from '../types'
 import { httpTransport } from './transport/http'
 import { isEnvelope, isTauriRuntime } from './transport'
@@ -44,12 +46,15 @@ function pathForCommand(command: string): string | undefined {
  * 调用方写 `(error as Error).message` 只会得到 `undefined`，真实原因被兜底文案
  * 吞掉 —— 用户只能看到「备份失败」，无从判断是超限、路径还是网络问题。
  */
-export function toError(value: unknown, fallback = '请求失败'): Error {
-  if (value instanceof Error) return value
-  if (typeof value === 'string' && value.trim()) return new Error(value)
+export function toError(value: unknown, fallback = t('extraErrors.requestFailed')): Error {
+  if (value instanceof Error) {
+    const localized = localizeErrorMessage(value.message)
+    return localized === value.message ? value : new Error(localized)
+  }
+  if (typeof value === 'string' && value.trim()) return new Error(localizeErrorMessage(value))
   if (value && typeof value === 'object' && typeof (value as { message?: unknown }).message === 'string') {
     const message = (value as { message: string }).message
-    if (message.trim()) return new Error(message)
+    if (message.trim()) return new Error(localizeErrorMessage(message))
   }
   return new Error(fallback)
 }
@@ -77,7 +82,7 @@ function unwrap<T>(res: ApiResponse<T> | T): T {
       if (box.errorMsg === 'NEED_LOGIN' || box.data === 'NEED_LOGIN') {
         dispatchNeedLogin()
       }
-      throw new Error(box.errorMsg || '请求失败')
+      throw new Error(localizeErrorMessage(box.errorMsg || t('extraErrors.requestFailed')))
     }
     return box.data as T
   }
@@ -111,10 +116,12 @@ export function post<T>(path: string, body?: unknown, _config?: unknown): Promis
  */
 export async function invokeRaw<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (isTauriRuntime()) {
-    return invoke<T>(command, args)
+    return invoke<T>(command, args).catch((err) => {
+      throw toError(err)
+    })
   }
   const path = pathForCommand(command)
-  if (!path) throw new Error(`Web 端不支持直接调用 ${command}`)
+  if (!path) throw new Error(t('extraErrors.webCommandUnsupported', { command }))
   return call<T>(path, args?.req ?? args)
 }
 
@@ -130,7 +137,7 @@ export async function invokeEnvelope<T>(
   const res = await invokeRaw<ApiResponse<T>>(command, args).catch((err) => {
     throw toError(err)
   })
-  if (!res.isSuccess) throw new Error(res.errorMsg || '请求失败')
+  if (!res.isSuccess) throw new Error(localizeErrorMessage(res.errorMsg || t('extraErrors.requestFailed')))
   return res.data as T
 }
 
@@ -150,7 +157,7 @@ export async function invokeUpload<T>(
   commandHeaders: Record<string, string>,
   file: Blob,
 ): Promise<T> {
-  const fileName = decodeURIComponent(commandHeaders['x-reader-file-name'] ?? '未命名')
+  const fileName = decodeURIComponent(commandHeaders['x-reader-file-name'] ?? t('extraErrors.unnamedEntry'))
 
   try {
     // 桌面端直接把 command 交给 IPC —— 上传类命令不一定有 HTTP 路由,

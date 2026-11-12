@@ -1,4 +1,6 @@
 import { getCurrentScope, nextTick, onScopeDispose, watch, type ComputedRef, type Ref } from 'vue'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import type { useReaderStore } from '../stores/reader'
 import { useAppStore } from '../stores/app'
 import { cancelPageScrollAnimation } from '../utils/readerPaging'
@@ -857,19 +859,19 @@ export function useReaderAutoPlayback(
       },
       onChunkError: (error) => {
         if (session.stopped) return
-        const message = error.message || '朗读失败'
+        const message = localizeErrorMessage(error.message) || t('readerMessages.speechFailed')
         logSpeech('speech chunk skipped', { message })
         // 单块失败已在流内重试一次并跳过，不中断朗读。提示措辞刻意不提「通道不可用」：
         // 纯标点片段服务端本来就不返回音频，让用户换通道只会误导。同一错误在本次朗读中
         // 只提示一次（跨流实例也去重），SpeechStream 内部另有单流去重作为第一道。
         if (reportedSpeechChunkErrors.has(message)) return
         reportedSpeechChunkErrors.add(message)
-        appStore.showToast(`已跳过朗读失败的片段：${message}`, 'warning')
+        appStore.showToast(t('readerMessages.skippedSpeechChunk', { msg: message }), 'warning')
       },
       onError: (error) => {
         if (session.stopped) return
         releaseSpeechStream(session)
-        const message = error.message || '朗读失败'
+        const message = localizeErrorMessage(error.message) || t('readerMessages.speechFailed')
         logSpeech('speech stream error', { message })
         appStore.showToast(message, 'error')
         store.isSpeechLoading = false

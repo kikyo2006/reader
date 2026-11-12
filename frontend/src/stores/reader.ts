@@ -12,7 +12,7 @@ import {
   setBookSource as apiSetBookSource,
   type ContentLoadStage,
 } from '../api/bookshelf'
-import { invokeRaw } from '../api/invoke'
+import { invokeRaw, toError } from '../api/invoke'
 import {
   getBookmarks,
   saveBookmark,
@@ -2319,19 +2319,24 @@ export const useReaderStore = defineStore('reader', () => {
       return requestOpenAISpeechAudio(request)
     }
 
-    const payload = await invokeRaw<ArrayBuffer | Uint8Array | number[]>('request_speech_audio', {
-      req: {
-        apiFormat: request.apiFormat,
-        baseUrl: request.baseUrl,
-        proxyUrl: request.proxyUrl,
-        apiKey: request.apiKey,
-        input: request.input,
-        model: request.model,
-        voice: request.voice,
-        format: request.format,
-        speed: request.speed,
-      },
-    })
+    let payload: ArrayBuffer | Uint8Array | number[]
+    try {
+      payload = await invokeRaw<ArrayBuffer | Uint8Array | number[]>('request_speech_audio', {
+        req: {
+          apiFormat: request.apiFormat,
+          baseUrl: request.baseUrl,
+          proxyUrl: request.proxyUrl,
+          apiKey: request.apiKey,
+          input: request.input,
+          model: request.model,
+          voice: request.voice,
+          format: request.format,
+          speed: request.speed,
+        },
+      })
+    } catch (error) {
+      throw toError(error, t('readerMessages.apiTtsRequestFailed'))
+    }
     if (signal?.aborted) {
       throw new DOMException('The operation was aborted', 'AbortError')
     }

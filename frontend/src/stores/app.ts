@@ -14,6 +14,7 @@ import type { LegadoWebdavConfig } from '../api/webdav'
 import { invokeRaw } from '../api/invoke'
 import { normalizeBossKeyShortcut } from '../utils/bossKey'
 import { currentLocale, setLocale, t, type SupportedLocale } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 
 export const useAppStore = defineStore('app', () => {
   const STATS_KEY = 'reader-stats'
@@ -582,7 +583,7 @@ export const useAppStore = defineStore('app', () => {
 
   function showToast(message: string, type: 'success' | 'error' | 'warning' = 'success') {
     const id = ++toastId
-    toasts.value.push({ id, message, type })
+    toasts.value.push({ id, message: localizeErrorMessage(message), type })
     toastTimers.set(id, setTimeout(() => dismissToast(id), 3000))
   }
 

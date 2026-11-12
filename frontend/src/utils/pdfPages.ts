@@ -88,7 +88,7 @@ async function loadDocument(book: Book): Promise<LoadedPdf> {
 
   const task = (async () => {
     const response = await fetch(localPdfFileUrl(book))
-    if (!response.ok) throw new Error('本地 PDF 文件读取失败')
+    if (!response.ok) throw new Error(t('extraErrors.localPdfReadFailed'))
     const bytes = new Uint8Array(await response.arrayBuffer())
     const pdfjs = await loadPdfjs()
     const loadingTask = pdfjs.getDocument({ data: bytes })
@@ -180,7 +180,7 @@ async function drawPage(
   const ratio = Math.min(window.devicePixelRatio || 1, 2)
   const viewport = page.getViewport({ scale: (cssWidth / baseViewport.width) * ratio })
   const context = canvas.getContext('2d')
-  if (!context) throw new Error('canvas 不可用')
+  if (!context) throw new Error(t('extraErrors.canvasUnavailable'))
   canvas.width = Math.floor(viewport.width)
   canvas.height = Math.floor(viewport.height)
   canvas.style.width = `${Math.floor(viewport.width / ratio)}px`

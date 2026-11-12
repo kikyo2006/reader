@@ -1,4 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import type { ApiResponse } from '../types'
 
 /** 书源 JS 调用 `java.showBrowser` 时捕获的面板请求（legado 的 BottomWebViewDialog）。 */
@@ -58,7 +60,7 @@ export async function evalSourceClick(params: {
   chapterUrl?: string
 }): Promise<SourceClickResult> {
   const res = await invoke<ApiResponse<SourceClickResult>>('eval_source_click', { req: params })
-  if (!res.isSuccess) throw new Error(res.errorMsg || '执行点击脚本失败')
+  if (!res.isSuccess) throw new Error(localizeErrorMessage(res.errorMsg || t('extraErrors.sourceClickFailed')))
   return res.data as SourceClickResult
 }
 /**

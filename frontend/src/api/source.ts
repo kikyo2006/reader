@@ -1,4 +1,5 @@
 import { get, post, invokeEnvelope, invokeUpload } from './invoke'
+import { t } from '../i18n'
 import { FILE_NAME_HEADER, encodeFileName } from './uploadHeader'
 import type { BookSource, BookSourceTestResponse } from '../types'
 import { MAX_SOURCE_TEST_BATCH_SIZE } from '../utils/sourceTesting'
@@ -95,7 +96,7 @@ export function testBookSources(params: {
   invalidGroup?: string
 }) {
   if ((params.bookSourceUrls?.length || 0) > MAX_SOURCE_TEST_BATCH_SIZE) {
-    throw new Error(`单次最多测试 ${MAX_SOURCE_TEST_BATCH_SIZE} 个书源`)
+    throw new Error(t('extraErrors.sourceTestBatchLimit', { max: MAX_SOURCE_TEST_BATCH_SIZE }))
   }
   return post<BookSourceTestResponse>('/testBookSources', params).then((r) => r.data)
 }

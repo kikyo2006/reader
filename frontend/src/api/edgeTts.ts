@@ -9,6 +9,7 @@
 
 import { invokeEnvelope, invokeRaw } from './invoke'
 import { blobFromAudioPayload, toError } from './httpTts'
+import { t } from '../i18n'
 
 export interface EdgeTtsVoice {
   /** Edge 的稳定音色 id，如 `zh-CN-YunxiNeural`。 */
@@ -65,7 +66,7 @@ export async function synthesizeEdgeTts(params: SynthesizeEdgeTtsParams): Promis
       },
     })
   } catch (error) {
-    throw toError(error, 'Edge 朗读请求失败')
+    throw toError(error, t('readerMessages.edgeTtsRequestFailed'))
   }
   return blobFromAudioPayload(payload)
 }

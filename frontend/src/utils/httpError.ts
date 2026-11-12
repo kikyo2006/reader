@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 export interface HttpErrorSummaryOptions {
   fallback: string
   status?: number
@@ -18,7 +20,10 @@ export function summarizeHttpErrorBody(raw: string, {
     const code = extractHtmlErrorCode(trimmed) || (status ? String(status) : '')
     return [
       `${fallback}${statusText}`,
-      `服务返回 HTML 错误页${code ? `，错误码 ${code}` : ''}${title ? `：${title}` : ''}`,
+      t('extraErrors.htmlErrorPage', {
+        code: code ? t('extraErrors.htmlErrorCode', { code }) : '',
+        title: title ? `：${title}` : '',
+      }),
     ].join('，')
   }
 
@@ -36,7 +41,10 @@ export function summarizeDisplayError(raw: string, maxLength = 180) {
   if (looksLikeHtml(trimmed)) {
     const title = extractHtmlTitle(trimmed)
     const code = extractHtmlErrorCode(trimmed)
-    return `服务返回 HTML 错误页${code ? `，错误码 ${code}` : ''}${title ? `：${title}` : ''}`
+    return t('extraErrors.htmlErrorPage', {
+      code: code ? t('extraErrors.htmlErrorCode', { code }) : '',
+      title: title ? `：${title}` : '',
+    })
   }
 
   const text = collapseWhitespace(trimmed)

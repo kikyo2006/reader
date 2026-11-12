@@ -1,5 +1,6 @@
 import { computed, nextTick, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
+import { t } from '../i18n'
 import type { useReaderStore } from '../stores/reader'
 import { getReaderTextWidth } from '../utils/readerTextWidth'
 import { READER_PAGE_VERTICAL_PADDING_MAX } from '../stores/reader'
@@ -621,7 +622,7 @@ export function useHorizontalPaging(
       pagedLayoutSignature = ''
       await nextTick()
     }
-    const title = (store.currentChapter?.title || '加载中...').trim()
+    const title = (store.currentChapter?.title || t('common.loading')).trim()
     const titleHtml = `<h1 class="horizontal-flow-title">${escapeHtml(title)}</h1>`
     // 媒体高度上限 = 一页可用高度。分页与渲染共用同一份 HTML, 保证测量与实际排版
     // 一致(见 constrainBlockMedia)。

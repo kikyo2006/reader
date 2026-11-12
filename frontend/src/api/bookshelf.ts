@@ -1,4 +1,6 @@
 import { invoke, Channel } from '@tauri-apps/api/core'
+import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import { get, post, invokeEnvelope, invokeUpload } from './invoke'
 import { isTauriRuntime } from './transport'
 import { readerOrigin } from './scheme'
@@ -110,7 +112,7 @@ export function getBookContent(params: {
     }
   }
   return invoke<ApiResponse<string>>('get_book_content', { req, onStage: channel }).then((res) => {
-    if (!res.isSuccess) throw new Error(res.errorMsg || '加载章节失败')
+    if (!res.isSuccess) throw new Error(localizeErrorMessage(res.errorMsg || t('extraErrors.loadChapterFailed')))
     return res.data as string
   })
 }

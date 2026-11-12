@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 const SUPPORTED_IMAGE_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -93,7 +95,7 @@ export function backgroundOutputSize(
 ): { width: number; height: number } {
   const longest = Math.max(width, height)
   if (!Number.isFinite(longest) || longest <= 0) {
-    throw new Error('无法读取该图片')
+    throw new Error(t('extraErrors.imageReadFailed'))
   }
   if (longest <= maxDimension) {
     return { width: Math.round(width), height: Math.round(height) }
@@ -122,21 +124,21 @@ export interface PreparedBackgroundImage {
  */
 export async function prepareReaderBackgroundImage(file: File): Promise<PreparedBackgroundImage> {
   if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
-    throw new Error('请选择 JPG、PNG、WebP 或 BMP 图片')
+    throw new Error(t('extraErrors.bgFormatUnsupported'))
   }
   if (file.size > MAX_BACKGROUND_SOURCE_BYTES) {
-    throw new Error('背景图片不能超过 48 MB')
+    throw new Error(t('extraErrors.bgTooLarge'))
   }
 
   let bitmap: ImageBitmap
   try {
     bitmap = await createImageBitmap(file)
   } catch {
-    throw new Error('无法读取该图片，请更换图片后重试')
+    throw new Error(t('extraErrors.imageReadFailedRetry'))
   }
   try {
     if (!bitmap.width || !bitmap.height) {
-      throw new Error('无法读取该图片')
+      throw new Error(t('extraErrors.imageReadFailed'))
     }
     const target = backgroundOutputSize(bitmap.width, bitmap.height)
     const mustReencode = file.type === 'image/bmp'
@@ -180,12 +182,12 @@ function renderBackgroundImage(bitmap: ImageBitmap, width: number, height: numbe
   canvas.width = width
   canvas.height = height
   const context = canvas.getContext('2d')
-  if (!context) throw new Error('当前环境无法处理图片')
+  if (!context) throw new Error(t('extraErrors.imageProcessUnsupported'))
   context.drawImage(bitmap, 0, 0, width, height)
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob)
-      else reject(new Error('图片编码失败，请更换图片后重试'))
+      else reject(new Error(t('extraErrors.imageEncodeFailed')))
     }, 'image/png')
   })
 }

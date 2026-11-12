@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 export interface BossKeyCaptureResult {
   shortcut?: string
   error?: string
@@ -73,10 +75,10 @@ export function captureBossKey(event: KeyboardEvent): BossKeyCaptureResult {
   if (['Control', 'Alt', 'Shift'].includes(event.key)) return {}
 
   const key = resolveMainKey(event)
-  if (!key) return { error: '不支持这个按键，请换一个按键组合' }
+  if (!key) return { error: t('extraErrors.bossKeyUnsupported') }
   if (!event.ctrlKey && !event.altKey && !event.shiftKey) {
     if (canUseStandaloneKey(key)) return { shortcut: key }
-    return { error: '这个按键需要搭配 Ctrl、Alt 或 Shift' }
+    return { error: t('extraErrors.bossKeyNeedsModifier') }
   }
 
   const parts: string[] = []

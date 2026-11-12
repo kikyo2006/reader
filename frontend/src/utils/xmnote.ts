@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { Book, Bookmark } from '../types'
 
 export interface XmnoteEntry {
@@ -38,19 +39,19 @@ const PROGRESS_SCALE = 10000
 /** 接受地址栏里的 IP、基础地址或完整 `/send` 地址。 */
 export function normalizeXmnoteEndpoint(raw: string): string {
   let value = raw.trim()
-  if (!value) throw new Error('请填写纸间书摘导入地址')
+  if (!value) throw new Error(t('extraErrors.xmnoteUrlRequired'))
   if (!/^[a-z][a-z\d+.-]*:\/\//i.test(value)) value = `http://${value}`
 
   let url: URL
   try {
     url = new URL(value)
   } catch {
-    throw new Error('纸间书摘导入地址格式不正确')
+    throw new Error(t('extraErrors.xmnoteUrlInvalid'))
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error('纸间书摘导入地址只支持 HTTP 或 HTTPS')
+    throw new Error(t('extraErrors.xmnoteUrlProtocol'))
   }
-  if (!url.hostname) throw new Error('纸间书摘导入地址缺少主机名')
+  if (!url.hostname) throw new Error(t('extraErrors.xmnoteUrlNoHost'))
 
   if (!url.pathname || url.pathname === '/') {
     url.pathname = '/send'
@@ -87,7 +88,7 @@ export function buildXmnoteBookPayload(
   )
 
   const payload: XmnoteBookPayload = {
-    title: book.name.trim() || '未命名书籍',
+    title: book.name.trim() || t('extraErrors.unnamedBookItem'),
     type: 1,
     locationUnit: 0,
   }

@@ -1,4 +1,5 @@
 import { summarizeHttpErrorBody } from './httpError'
+import { t } from '../i18n'
 
 export const DEFAULT_OPENAI_BASE_URL = 'http://localhost:8825'
 
@@ -100,7 +101,7 @@ export function buildSpeechApiUrl(
         : `${normalized}/v1/tts`
   } else if (apiFormat === 'elevenlabs') {
     const encodedVoice = encodeURIComponent(voice.trim())
-    if (!encodedVoice) throw new Error('请填写语音音色')
+    if (!encodedVoice) throw new Error(t('readerMessages.enterVoiceName'))
     endpoint = lower.includes('/v1/text-to-speech/')
       ? normalized
       : lower.endsWith('/v1/text-to-speech')
@@ -171,7 +172,7 @@ function azureOutputFormat(format: SpeechAudioFormat) {
 }
 
 async function readSpeechError(response: Response) {
-  const fallback = `语音请求失败 (${response.status})`
+  const fallback = t('readerMessages.speechHttpRequestFailed', { status: response.status })
   const contentType = response.headers.get('content-type') || ''
 
   try {
@@ -206,7 +207,7 @@ export async function requestOpenAISpeechAudio({
   const resolvedFormat = format || 'mp3'
   const formatOption = getSpeechApiFormatOption(apiFormat)
   if (!formatOption.supportedFormats.includes(resolvedFormat)) {
-    throw new Error(`所选接口格式不支持 ${resolvedFormat} 音频格式`)
+    throw new Error(t('readerMessages.unsupportedAudioFormatForApi', { format: resolvedFormat }))
   }
 
   let body: string
@@ -232,10 +233,10 @@ export async function requestOpenAISpeechAudio({
     })
   } else if (apiFormat === 'azure') {
     const outputFormat = azureOutputFormat(resolvedFormat)
-    if (!outputFormat) throw new Error(`所选接口格式不支持 ${resolvedFormat} 音频格式`)
+    if (!outputFormat) throw new Error(t('readerMessages.unsupportedAudioFormatForApi', { format: resolvedFormat }))
     const language = model.trim() || 'zh-CN'
     const voiceName = voice.trim()
-    if (!voiceName) throw new Error('请填写语音音色')
+    if (!voiceName) throw new Error(t('readerMessages.enterVoiceName'))
     const rate = Math.round(((speed ?? 1) - 1) * 100)
     headers['Content-Type'] = 'application/ssml+xml'
     headers['X-Microsoft-OutputFormat'] = outputFormat

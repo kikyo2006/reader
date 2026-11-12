@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { BookSource, RssSource } from '../types'
 
 export function getVisibleSelection<T>(
@@ -167,10 +168,10 @@ export function getBookSourceOverview(source: BookSource | null) {
     return null
   }
   return {
-    group: source.bookSourceGroup?.trim() || '未分组',
-    statusText: source.enabled === false ? '停用' : '启用',
-    exploreText: source.enabledExplore === false ? '发现停用' : '发现可用',
-    cookieText: source.enabledCookieJar ? 'Cookie 独立' : '默认 Cookie',
+    group: source.bookSourceGroup?.trim() || t('extraErrors.sourceOverviewUngrouped'),
+    statusText: source.enabled === false ? t('extraErrors.sourceOverviewDisabled') : t('extraErrors.sourceOverviewEnabled'),
+    exploreText: source.enabledExplore === false ? t('extraErrors.sourceOverviewExploreDisabled') : t('extraErrors.sourceOverviewExploreEnabled'),
+    cookieText: source.enabledCookieJar ? t('extraErrors.sourceOverviewCookieIsolated') : t('extraErrors.sourceOverviewCookieDefault'),
     hasSearch: Boolean(source.searchUrl || source.ruleSearch),
     hasExplore: Boolean(source.exploreUrl || source.ruleExplore),
     hasBookInfo: Boolean(source.ruleBookInfo),

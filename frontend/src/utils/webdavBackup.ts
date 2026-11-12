@@ -1,4 +1,5 @@
 import { invokeEnvelope } from '../api/invoke'
+import { t } from '../i18n'
 import { getBookmarks, deleteBookmarks, saveBookmarks } from '../api/bookmark'
 import {
   deleteBookGroups,
@@ -227,10 +228,10 @@ export function createCompatibleBackupArchiveFiles(
 export function parseWebdavBackup(raw: string) {
   const payload = JSON.parse(raw) as Partial<WebdavBackupPayload>
   if (!payload || typeof payload !== 'object') {
-    throw new Error('备份文件格式无效')
+    throw new Error(t('extraErrors.backupFormatInvalid'))
   }
   if (!payload.version || !payload.bookshelf) {
-    throw new Error('备份文件缺少必要字段')
+    throw new Error(t('extraErrors.backupMissingFields'))
   }
   return {
     version: payload.version,
@@ -475,13 +476,13 @@ function parseArchiveList(files: Record<string, string>, name: string): JsonReco
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error(`备份中的 ${name} 格式无效`)
+    throw new Error(t('extraErrors.backupEntryFormatInvalid', { name }))
   }
   if (!Array.isArray(parsed)) {
-    throw new Error(`备份中的 ${name} 不是数据列表`)
+    throw new Error(t('extraErrors.backupEntryNotList', { name }))
   }
   if (!parsed.every(isJsonRecord)) {
-    throw new Error(`备份中的 ${name} 包含无效数据`)
+    throw new Error(t('extraErrors.backupEntryInvalidData', { name }))
   }
   return parsed
 }
@@ -495,7 +496,7 @@ const MAX_SKIP_SAMPLES = 3
 
 function stringField(value: JsonRecord, key: string) {
   const raw = value[key]
-  return typeof raw === 'string' && raw.trim() ? raw.trim() : '(未命名)'
+  return typeof raw === 'string' && raw.trim() ? raw.trim() : t('extraErrors.unnamedEntry')
 }
 
 /**
