@@ -241,6 +241,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgements
 
-Special thanks to [Legado](https://github.com/Rimchars/legado), [reader](https://github.com/hectorqin/reader), and [reader-rust](https://github.com/givenge/reader-rust) for providing the foundational concepts and reference implementations.
+Special thanks to [hadc188/reader](https://github.com/hadc188/reader), [Legado](https://github.com/Rimchars/legado), [reader](https://github.com/hectorqin/reader), and [reader-rust](https://github.com/givenge/reader-rust) for providing the foundational concepts and reference implementations.
 
 Special thanks: [LinuxDO](https://linux.do/).
