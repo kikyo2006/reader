@@ -20,7 +20,7 @@ use tauri::menu::MenuItemBuilder;
 use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
 use tauri::webview::{NewWindowResponse, PageLoadEvent};
 use tauri::{
-    App, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent,
+    App, Emitter, Listener, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
 
 /// Hosts allowed to navigate / open a new window inside the app webview:
@@ -495,6 +495,28 @@ fn persist_window_state(app: &tauri::AppHandle, window: &tauri::WebviewWindow, f
     }
 }
 
+fn tray_labels(locale: &str) -> (&'static str, &'static str, &'static str) {
+    match locale {
+        "zh-CN" => ("显示主界面", "退出", "阅读"),
+        "vi-VN" => ("Hiện cửa sổ chính", "Thoát", "Reader"),
+        _ => ("Show Main Window", "Quit", "Reader"),
+    }
+}
+
+fn build_tray_menu<R: tauri::Runtime, M: tauri::Manager<R>>(
+    manager: &M,
+    locale: &str,
+) -> tauri::Result<(tauri::menu::Menu<R>, &'static str)> {
+    let (show_label, quit_label, tooltip) = tray_labels(locale);
+    let show = MenuItemBuilder::with_id("show", show_label).build(manager)?;
+    let quit = MenuItemBuilder::with_id("quit", quit_label).build(manager)?;
+    let menu = tauri::menu::MenuBuilder::new(manager)
+        .item(&show)
+        .item(&quit)
+        .build()?;
+    Ok((menu, tooltip))
+}
+
 /// System tray so the app can keep running in the background after the window
 /// is hidden. Left-click / double-click shows the window; the menu offers show
 /// and quit.
@@ -503,16 +525,11 @@ fn setup_tray(app: &mut App) -> anyhow::Result<()> {
         .default_window_icon()
         .cloned()
         .ok_or_else(|| anyhow::anyhow!("应用图标不可用"))?;
-    let show = MenuItemBuilder::with_id("show", "显示主界面").build(app)?;
-    let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
-    let menu = tauri::menu::MenuBuilder::new(app)
-        .item(&show)
-        .item(&quit)
-        .build()?;
+    let (menu, tooltip) = build_tray_menu(app, "en-US")?;
 
     let tray = TrayIconBuilder::with_id("reader-tray")
         .icon(icon)
-        .tooltip("阅读")
+        .tooltip(tooltip)
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
@@ -548,6 +565,18 @@ fn setup_tray(app: &mut App) -> anyhow::Result<()> {
     // TrayIcon removes it, but Windows often leaves a stale shell icon whose
     // context menu is dead — which manifests as a frozen, unclickable tray.
     Box::leak(Box::new(tray));
+
+    let handle = app.handle().clone();
+    app.listen("app-locale-changed", move |event| {
+        if let Ok(locale) = serde_json::from_str::<String>(event.payload()) {
+            if let Ok((menu, tooltip)) = build_tray_menu(&handle, &locale) {
+                if let Some(tray) = handle.tray_by_id("reader-tray") {
+                    let _ = tray.set_menu(Some(menu));
+                    let _ = tray.set_tooltip(Some(tooltip));
+                }
+            }
+        }
+    });
 
     Ok(())
 }

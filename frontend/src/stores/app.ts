@@ -472,7 +472,10 @@ export const useAppStore = defineStore('app', () => {
     }
     try {
       const result = await applyDesktopVersionUpdate((progress) => {
-        desktopUpdateProgress.value = progress
+        desktopUpdateProgress.value = {
+          ...progress,
+          message: localizeErrorMessage(progress.message),
+        }
       })
       showToast(result.message, 'success')
       return result

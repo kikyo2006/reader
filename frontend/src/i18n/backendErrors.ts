@@ -139,6 +139,22 @@ const EXACT_TRANSLATIONS: Record<string, LangPair> = {
   '开发模式不能执行自动更新，请使用发布版测试': { en: 'Auto-update cannot run in dev mode; test with a release build', vi: 'Không thể tự động cập nhật trong chế độ dev; vui lòng dùng bản phát hành' },
   '当前已经是最新版本': { en: 'Already on the latest version', vi: 'Hiện đang là phiên bản mới nhất' },
   '更新已取消': { en: 'Update cancelled', vi: 'Đã hủy cập nhật' },
+  '正在下载更新文件': { en: 'Downloading update package', vi: 'Đang tải tệp cập nhật' },
+  '更新文件下载失败': { en: 'Failed to download update package', vi: 'Tải tệp cập nhật thất bại' },
+  '正在校验更新文件': { en: 'Verifying update package', vi: 'Đang xác thực tệp cập nhật' },
+  '更新文件校验失败': { en: 'Update package verification failed', vi: 'Xác thực tệp cập nhật thất bại' },
+  '保存更新文件失败': { en: 'Failed to save update package', vi: 'Lưu tệp cập nhật thất bại' },
+  '更新文件已准备完成': { en: 'Update package is ready', vi: 'Tệp cập nhật đã sẵn sàng' },
+  '启动更新失败': { en: 'Failed to launch updater', vi: 'Khởi chạy cập nhật thất bại' },
+  '打开更新文件失败': { en: 'Failed to open update package', vi: 'Mở tệp cập nhật thất bại' },
+  '更新已下载，应用将退出并开始更新': {
+    en: 'Update downloaded; the app will quit to install',
+    vi: 'Đã tải xong bản cập nhật, ứng dụng sẽ thoát để cài đặt',
+  },
+  '更新文件已下载并打开，请按系统提示完成安装': {
+    en: 'Update downloaded and opened; please follow system prompts to install',
+    vi: 'Đã tải và mở tệp cập nhật, vui lòng làm theo hướng dẫn hệ thống để cài đặt',
+  },
   '检查更新失败': { en: 'Failed to check for updates', vi: 'Kiểm tra cập nhật thất bại' },
   '下载更新失败': { en: 'Failed to download update', vi: 'Tải bản cập nhật thất bại' },
   '更新文件过大，已停止下载': { en: 'Update file is too large; download stopped', vi: 'Tệp cập nhật quá lớn, đã dừng tải xuống' },
@@ -178,6 +194,11 @@ const REGEX_TRANSLATIONS: Array<{
   en: string
   vi: string
 }> = [
+  {
+    pattern: /^保存更新文件失败[：:]\s*(.+)$/s,
+    en: 'Failed to save update package: $1',
+    vi: 'Lưu tệp cập nhật thất bại: $1',
+  },
   {
     pattern: /^已跳过朗读失败的片段[：:]\s*(.+)$/s,
     en: 'Skipped failed TTS segment: $1',

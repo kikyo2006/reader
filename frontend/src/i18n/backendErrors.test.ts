@@ -35,4 +35,12 @@ describe('backendErrors localization', () => {
       'Đã bỏ qua đoạn đọc bị lỗi: Yêu cầu giọng nói thất bại (429 Too Many Requests): server busy: queue full',
     )
   })
+
+  it('translates desktop update progress messages', () => {
+    setLocale('en-US')
+    expect(localizeErrorMessage('正在下载更新文件')).toBe('Downloading update package')
+
+    setLocale('vi-VN')
+    expect(localizeErrorMessage('正在下载更新文件')).toBe('Đang tải tệp cập nhật')
+  })
 })

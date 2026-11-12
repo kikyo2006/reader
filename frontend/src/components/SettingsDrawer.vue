@@ -521,6 +521,7 @@ import { useAppStore } from '../stores/app'
 import { useBookshelfStore } from '../stores/bookshelf'
 import { useReaderStore } from '../stores/reader'
 import { isTauriRuntime } from '../api/transport'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 import {
   READER_WINDOW_OPACITY_MIN,
   READER_BACKGROUND_OPACITY_STEP,
@@ -658,10 +659,11 @@ const showDesktopUpdateProgress = computed(() => (
 const desktopUpdateProgressMessage = computed(() => {
   const progress = appStore.desktopUpdateProgress
   if (!progress) return t('settings.version.preparing')
+  const message = localizeErrorMessage(progress.message)
   if (progress.stage === 'downloading' && progress.percent != null) {
-    return `${progress.message} ${progress.percent}%`
+    return `${message} ${progress.percent}%`
   }
-  return progress.message
+  return message
 })
 const desktopUpdateButtonLabel = computed(() => {
   const progress = appStore.desktopUpdateProgress

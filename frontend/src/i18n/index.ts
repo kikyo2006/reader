@@ -34,6 +34,15 @@ function detectInitialLocale(): SupportedLocale {
 
 export const currentLocale = ref<SupportedLocale>(detectInitialLocale())
 
+export function syncTrayLocale(locale: SupportedLocale = currentLocale.value) {
+  if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) return
+  void import('@tauri-apps/api/event')
+    .then(({ emit }) => emit('app-locale-changed', locale))
+    .catch(() => {
+      // Ignore outside Tauri runtime
+    })
+}
+
 export function setLocale(locale: SupportedLocale) {
   if (locale in messages) {
     currentLocale.value = locale
@@ -43,6 +52,7 @@ export function setLocale(locale: SupportedLocale) {
     } catch {
       // ignore
     }
+    syncTrayLocale(locale)
   }
 }
 
@@ -96,5 +106,6 @@ export const i18nPlugin = {
     app.config.globalProperties.$t = t
     app.config.globalProperties.$locale = currentLocale
     app.provide('i18n', { t, locale: currentLocale, setLocale, availableLocales: AVAILABLE_LOCALES })
+    syncTrayLocale(currentLocale.value)
   },
 }
