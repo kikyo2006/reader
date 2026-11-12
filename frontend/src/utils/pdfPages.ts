@@ -56,7 +56,6 @@ export function isPdfBook(book?: Pick<Book, 'origin' | 'bookUrl'> | null) {
 
 interface LoadedPdf {
   document: import('pdfjs-dist').PDFDocumentProxy
-  bytes: Uint8Array
   loadingTask: import('pdfjs-dist').PDFDocumentLoadingTask
 }
 
@@ -93,7 +92,7 @@ async function loadDocument(book: Book): Promise<LoadedPdf> {
     const pdfjs = await loadPdfjs()
     const loadingTask = pdfjs.getDocument({ data: bytes })
     const document = await loadingTask.promise
-    return { document, bytes, loadingTask }
+    return { document, loadingTask }
   })()
 
   loadedPdfs.set(key, task)

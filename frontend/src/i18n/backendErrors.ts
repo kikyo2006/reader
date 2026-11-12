@@ -167,6 +167,10 @@ const EXACT_TRANSLATIONS: Record<string, LangPair> = {
   '参数错误': { en: 'Invalid parameters', vi: 'Tham số không hợp lệ' },
   '路径不存在': { en: 'Path does not exist', vi: 'Đường dẫn không tồn tại' },
   '请求失败': { en: 'Request failed', vi: 'Yêu cầu thất bại' },
+  '上一个书源网页窗口尚未关闭，请稍后重试': {
+    en: 'The previous source webpage window is still closing; please try again shortly',
+    vi: 'Cửa sổ trang web nguồn trước đó vẫn đang đóng, vui lòng thử lại sau giây lát',
+  },
 }
 
 const REGEX_TRANSLATIONS: Array<{
