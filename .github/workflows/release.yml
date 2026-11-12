@@ -91,7 +91,7 @@ jobs:
             arch: universal
             target: universal-apple-darwin
             rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
-            bundles: dmg
+            bundles: app,dmg
 
     steps:
       - name: Checkout
@@ -150,6 +150,39 @@ jobs:
         env:
           CARGO_BUILD_JOBS: 4
         run: npx tauri build --ci --target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}" -- --locked
+
+      - name: Ad-hoc sign macOS app bundle and rebuild DMG
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUNDLE_DIR="target/${{ matrix.target }}/release/bundle"
+          APP_PATH="$BUNDLE_DIR/macos/Reader.app"
+          if [[ ! -d "$APP_PATH" ]]; then
+            APP_PATH=$(find target -maxdepth 6 -type d -name "Reader.app" | head -n 1 || true)
+          fi
+          if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
+            echo "Reader.app not found!" >&2
+            exit 1
+          fi
+
+          echo "Signing $APP_PATH with ad-hoc signature..."
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign -dvvv "$APP_PATH" 2>&1
+
+          DMG_PATH=$(find "$BUNDLE_DIR/dmg" -maxdepth 1 -type f -name "*.dmg" | head -n 1 || true)
+          if [[ -z "$DMG_PATH" ]]; then
+            DMG_PATH=$(find target -maxdepth 6 -type f -name "*.dmg" | head -n 1 || true)
+          fi
+          if [[ -n "$DMG_PATH" ]]; then
+            echo "Rebuilding DMG $DMG_PATH with signed Reader.app..."
+            STAGE_DIR=$(mktemp -d)
+            ditto "$APP_PATH" "$STAGE_DIR/Reader.app"
+            ln -s /Applications "$STAGE_DIR/Applications"
+            rm -f "$DMG_PATH"
+            hdiutil create -volname "Reader" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
+            rm -rf "$STAGE_DIR"
+          fi
 
       - name: Collect release artifacts
         env:
