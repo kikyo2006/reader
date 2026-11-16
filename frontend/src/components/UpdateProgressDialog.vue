@@ -6,7 +6,7 @@
           <h3 class="update-title">{{ t('settings.version.dialogTitle') }}</h3>
 
           <template v-if="isFailed">
-            <p class="update-message error">{{ progress?.message || t('settings.version.updateFailed') }}</p>
+            <p class="update-message error">{{ progress?.message ? localizeErrorMessage(progress.message) : t('settings.version.updateFailed') }}</p>
             <p v-if="appStore.versionUpdate?.latestVersion" class="update-subtitle">
               {{ t('settings.version.updateFailedHint') }}
             </p>
@@ -57,6 +57,7 @@
 import { computed, ref, watch } from 'vue'
 import { useAppStore } from '../stores/app'
 import { t } from '../i18n'
+import { localizeErrorMessage } from '../i18n/backendErrors'
 
 const appStore = useAppStore()
 

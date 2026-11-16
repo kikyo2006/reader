@@ -136,6 +136,7 @@ const EXACT_TRANSLATIONS: Record<string, LangPair> = {
   '阅读进度无效': { en: 'Invalid reading progress', vi: 'Tiến độ đọc không hợp lệ' },
 
   // Update
+  '正在确认最新版本': { en: 'Checking latest version', vi: 'Đang xác nhận phiên bản mới nhất' },
   '开发模式不能执行自动更新，请使用发布版测试': { en: 'Auto-update cannot run in dev mode; test with a release build', vi: 'Không thể tự động cập nhật trong chế độ dev; vui lòng dùng bản phát hành' },
   '当前已经是最新版本': { en: 'Already on the latest version', vi: 'Hiện đang là phiên bản mới nhất' },
   '更新已取消': { en: 'Update cancelled', vi: 'Đã hủy cập nhật' },
@@ -303,6 +304,11 @@ const REGEX_TRANSLATIONS: Array<{
     pattern: /^设置窗口阴影失败[：:]\s*(.+)$/s,
     en: 'Failed to set window shadow: $1',
     vi: 'Đặt bóng đổ cửa sổ thất bại: $1',
+  },
+  {
+    pattern: /^发行版中没有适用于当前系统的更新文件（([^，]+)，([^）]+)）$/,
+    en: 'No update package in this release matches your system ($1, $2)',
+    vi: 'Không có tệp cập nhật nào trong bản phát hành này phù hợp với hệ thống ($1, $2)',
   },
 ]
 

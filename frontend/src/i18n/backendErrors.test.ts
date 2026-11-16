@@ -38,9 +38,11 @@ describe('backendErrors localization', () => {
 
   it('translates desktop update progress messages', () => {
     setLocale('en-US')
+    expect(localizeErrorMessage('正在确认最新版本')).toBe('Checking latest version')
     expect(localizeErrorMessage('正在下载更新文件')).toBe('Downloading update package')
 
     setLocale('vi-VN')
+    expect(localizeErrorMessage('正在确认最新版本')).toBe('Đang xác nhận phiên bản mới nhất')
     expect(localizeErrorMessage('正在下载更新文件')).toBe('Đang tải tệp cập nhật')
   })
 
