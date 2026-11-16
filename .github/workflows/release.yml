@@ -175,11 +175,17 @@ jobs:
             DMG_PATH=$(find target -maxdepth 6 -type f -name "*.dmg" | head -n 1 || true)
           fi
           if [[ -n "$DMG_PATH" ]]; then
+            echo "Freeing intermediate Rust build artifacts before rebuilding DMG..."
+            rm -rf target/debug target/aarch64-apple-darwin target/x86_64-apple-darwin \
+              "target/${{ matrix.target }}/release/deps" \
+              "target/${{ matrix.target }}/release/build" \
+              "target/${{ matrix.target }}/release/incremental"
+            rm -f "$DMG_PATH"
+
             echo "Rebuilding DMG $DMG_PATH with signed Reader.app..."
             STAGE_DIR=$(mktemp -d)
             ditto "$APP_PATH" "$STAGE_DIR/Reader.app"
             ln -s /Applications "$STAGE_DIR/Applications"
-            rm -f "$DMG_PATH"
             hdiutil create -volname "Reader" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
             rm -rf "$STAGE_DIR"
           fi
