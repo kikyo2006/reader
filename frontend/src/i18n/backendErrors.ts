@@ -299,6 +299,11 @@ const REGEX_TRANSLATIONS: Array<{
     en: 'Book source not found: $1',
     vi: 'Không tìm thấy nguồn truyện: $1',
   },
+  {
+    pattern: /^设置窗口阴影失败[：:]\s*(.+)$/s,
+    en: 'Failed to set window shadow: $1',
+    vi: 'Đặt bóng đổ cửa sổ thất bại: $1',
+  },
 ]
 
 function applyRule(

@@ -43,4 +43,12 @@ describe('backendErrors localization', () => {
     setLocale('vi-VN')
     expect(localizeErrorMessage('正在下载更新文件')).toBe('Đang tải tệp cập nhật')
   })
+
+  it('translates window shadow error messages', () => {
+    setLocale('en-US')
+    expect(localizeErrorMessage('设置窗口阴影失败：系统不支持')).toBe('Failed to set window shadow: 系统不支持')
+
+    setLocale('vi-VN')
+    expect(localizeErrorMessage('设置窗口阴影失败：系统不支持')).toBe('Đặt bóng đổ cửa sổ thất bại: 系统不支持')
+  })
 })
