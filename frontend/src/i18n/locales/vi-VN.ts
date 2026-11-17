@@ -325,6 +325,12 @@ const viVN = {
       updateFailed: 'Cập nhật nhóm thất bại',
       deleteFailed: 'Xóa nhóm thất bại',
       batchDeleteFailed: 'Xóa hàng loạt nhóm thất bại',
+      selectGroupAria: 'Chọn nhóm {name}',
+      groupNameAria: 'Tên nhóm {name}',
+      saveNameAria: 'Lưu tên nhóm',
+      deleteGroupAria: 'Xóa nhóm',
+      scrollPrevAria: 'Cuộn xem nhóm trước',
+      scrollNextAria: 'Cuộn xem nhóm sau',
     },
     actions: {
       read: 'Bắt đầu đọc',

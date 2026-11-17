@@ -325,6 +325,12 @@ const zhCN = {
       updateFailed: '更新分组失败',
       deleteFailed: '删除分组失败',
       batchDeleteFailed: '批量删除分组失败',
+      selectGroupAria: '选择分组 {name}',
+      groupNameAria: '分组名称 {name}',
+      saveNameAria: '保存分组名称',
+      deleteGroupAria: '删除分组',
+      scrollPrevAria: '向前查看分组',
+      scrollNextAria: '向后查看分组',
     },
     actions: {
       read: '开始阅读',

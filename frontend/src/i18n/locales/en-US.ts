@@ -325,6 +325,12 @@ const enUS = {
       updateFailed: 'Failed to update group',
       deleteFailed: 'Failed to delete group',
       batchDeleteFailed: 'Failed to batch delete groups',
+      selectGroupAria: 'Select group {name}',
+      groupNameAria: 'Group name {name}',
+      saveNameAria: 'Save group name',
+      deleteGroupAria: 'Delete group',
+      scrollPrevAria: 'Scroll groups left',
+      scrollNextAria: 'Scroll groups right',
     },
     actions: {
       read: 'Start Reading',
