@@ -788,12 +788,22 @@ async fn resolve_cover_source(
     }) {
         return Some(cached);
     }
-    let found = state
+    let mut found = state
         .book_source_service
         .get("default", &source_url)
         .await
         .ok()
         .flatten();
+    if found.is_none() {
+        if let Some((base, _)) = source_url.split_once('#') {
+            found = state
+                .book_source_service
+                .get("default", base)
+                .await
+                .ok()
+                .flatten();
+        }
+    }
     if let Some(source) = &found {
         if let Ok(mut cache) = cover_source_cache().lock() {
             if cache.len() >= COVER_SOURCE_CACHE_CAP {

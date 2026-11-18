@@ -3401,12 +3401,23 @@ impl BookService {
             Some(format!("{}://{}", scheme, host))
         });
 
+        let source_headers: Vec<(String, String)> = if let Some(src) = source {
+            crate::crawler::url_analyzer::source_header_spec(src)
+                .map(|spec| spec.headers)
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
+
         let build_request = |client: &reqwest::Client, target: &str| {
             let mut req = client.get(target);
             // Add necessary headers to bypass anti-hotlinking
             req = req
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                 .header("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+            for (name, val) in &source_headers {
+                req = req.header(name, val);
+            }
             if let Some(ref referer) = referer {
                 req = req.header("Referer", referer);
             }
@@ -6248,6 +6259,65 @@ mod tests {
 
         let (data, content_type) = service
             .get_cover_for_source("public", &format!("{base}/plain.jpg"), Some(&source))
+            .await
+            .unwrap();
+        assert_eq!(data, vec![0xFFu8, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4]);
+        assert_eq!(content_type, "image/jpeg");
+
+        server.abort();
+        let _ = std::fs::remove_dir_all(storage_dir);
+    }
+
+    /// 书源带 `header` (如 Authorization) 时，封面请求必须携带这些 Header。
+    #[tokio::test]
+    async fn cover_fetches_with_source_auth_headers() {
+        use std::sync::Arc;
+        use axum::http::HeaderMap;
+
+        let payload = Arc::new(vec![0xFFu8, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4]);
+        let router = axum::Router::new().route(
+            "/auth-cover.jpg",
+            axum::routing::get(move |headers: HeaderMap| {
+                let payload = payload.clone();
+                async move {
+                    if headers.get("authorization").and_then(|v| v.to_str().ok()) == Some("Basic secret123") {
+                        axum::response::Response::builder()
+                            .status(200)
+                            .header("content-type", "image/jpeg")
+                            .body(axum::body::Body::from((*payload).clone()))
+                            .unwrap()
+                    } else {
+                        axum::response::Response::builder()
+                            .status(401)
+                            .body(axum::body::Body::from("unauthorized"))
+                            .unwrap()
+                    }
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move { axum::serve(listener, router).await.unwrap() });
+
+        let storage_dir = std::env::temp_dir().join(format!(
+            "reader-cover-auth-{}",
+            uuid::Uuid::new_v4().simple()
+        ));
+        let service = BookService::new(
+            HttpClient::new(15, None).unwrap(),
+            RuleEngine::new().unwrap(),
+            FileCache::new(storage_dir.join("cache")),
+            storage_dir.to_str().unwrap(),
+        );
+        let source: BookSource = serde_json::from_value(serde_json::json!({
+            "bookSourceUrl": base,
+            "bookSourceName": "Auth封面",
+            "header": "{\"Authorization\": \"Basic secret123\"}"
+        }))
+        .unwrap();
+
+        let (data, content_type) = service
+            .get_cover_for_source("public", &format!("{base}/auth-cover.jpg"), Some(&source))
             .await
             .unwrap();
         assert_eq!(data, vec![0xFFu8, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4]);
