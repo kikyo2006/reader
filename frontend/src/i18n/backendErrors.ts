@@ -87,6 +87,8 @@ const EXACT_TRANSLATIONS: Record<string, LangPair> = {
   '书源不存在': { en: 'Book source not found', vi: 'Không tìm thấy nguồn truyện' },
   '书籍信息错误': { en: 'Invalid book information', vi: 'Thông tin sách không hợp lệ' },
   '没有找到需要缓存的章节': { en: 'No chapters found to cache', vi: 'Không tìm thấy chương nào cần lưu đệm' },
+  '请选择章节': { en: 'Please select chapters', vi: 'Vui lòng chọn chương' },
+  '正文解析为空, 未写入缓存': { en: 'Parsed chapter content is empty, not cached', vi: 'Nội dung phân tích trống, chưa lưu vào bộ nhớ đệm' },
   '书源正文解析为空，请检查正文规则': { en: 'Parsed chapter content is empty; check content rules', vi: 'Nội dung phân tích trống, vui lòng kiểm tra quy tắc nội dung của nguồn' },
   '只能打开网页地址': { en: 'Only web URLs can be opened', vi: 'Chỉ có thể mở địa chỉ web' },
   '分组数量已达上限(31), 无法再创建新分组': { en: 'Group limit (31) reached, cannot create more groups', vi: 'Đã đạt giới hạn 31 nhóm, không thể tạo thêm' },

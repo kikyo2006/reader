@@ -1433,7 +1433,7 @@
         <div class="group-card">
 
       <!-- 更多操作 -->
-      <div class="setting-row">
+      <div v-if="!appStore.isWebMode" class="setting-row">
         <label>{{ t('reader.offlineCache') }}</label>
         <button class="opt-btn wide" @click="store.openPanel('cache', 'settings')">{{ t('reader.batchCacheChapters') }}</button>
       </div>

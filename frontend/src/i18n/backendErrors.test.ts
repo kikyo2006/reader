@@ -69,4 +69,14 @@ describe('backendErrors localization', () => {
       'Tải bản cập nhật thất bại: máy chủ trả về 404',
     )
   })
+
+  it('translates chapter cache selection and empty parsed content errors', () => {
+    setLocale('en-US')
+    expect(localizeErrorMessage('请选择章节')).toBe('Please select chapters')
+    expect(localizeErrorMessage('正文解析为空, 未写入缓存')).toBe('Parsed chapter content is empty, not cached')
+
+    setLocale('vi-VN')
+    expect(localizeErrorMessage('请选择章节')).toBe('Vui lòng chọn chương')
+    expect(localizeErrorMessage('正文解析为空, 未写入缓存')).toBe('Nội dung phân tích trống, chưa lưu vào bộ nhớ đệm')
+  })
 })
